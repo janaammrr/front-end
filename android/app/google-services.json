@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "1055224199913",
+    "firebase_url": "https://flame4-default-rtdb.firebaseio.com",
+    "project_id": "flame4",
+    "storage_bucket": "flame4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1055224199913:android:eab2db5edc66f752ab4e78",
+        "android_client_info": {
+          "package_name": "com.example.flame"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1055224199913-qtimj9e93m3tped6dsg1hcvh4cil1ame.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmVx__tolkOfhpSuX7aobchpCQXNMR-QY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1055224199913-qtimj9e93m3tped6dsg1hcvh4cil1ame.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1055224199913-ts2r0tmcvuf4evbui7pg5ff7kps11l19.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flame"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
