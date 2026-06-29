@@ -144,6 +144,15 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
     );
   }
 
+  void _showMembersModal(CommunityModel community) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _MembersSheet(community: community),
+    );
+  }
+
   Widget _buildEmptyState() {
     final isFollowing = _selectedTab == 1;
     return Center(
@@ -306,6 +315,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                                         isLoading: _joiningIds.contains(c.id),
                                         onJoin: () => _toggleJoin(c),
                                         onShare: () => ScaffoldMessenger.of(context).showSnackBar(_snackBar('Link copied!')),
+                                        onMembersTap: () => _showMembersModal(c),
                                       );
                                     },
                                   ),
@@ -329,6 +339,7 @@ class _CommunityCard extends StatelessWidget {
     required this.isLoading,
     required this.onJoin,
     required this.onShare,
+    required this.onMembersTap,
   });
 
   final CommunityModel community;
@@ -336,6 +347,7 @@ class _CommunityCard extends StatelessWidget {
   final bool isLoading;
   final VoidCallback onJoin;
   final VoidCallback onShare;
+  final VoidCallback onMembersTap;
 
   // Deterministic gradient based on community id
   List<Color> get _gradient {
@@ -401,9 +413,14 @@ class _CommunityCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(community.admin.displayName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: Colors.white)),
                     const Spacer(),
-                    const Icon(Icons.people_outline, size: 14, color: Color(0xFFFF7A18)),
-                    const SizedBox(width: 4),
-                    Text('${community.memberCount} members', style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.55))),
+                    GestureDetector(
+                      onTap: onMembersTap,
+                      child: Row(children: [
+                        const Icon(Icons.people_outline, size: 14, color: Color(0xFFFF7A18)),
+                        const SizedBox(width: 4),
+                        Text('${community.memberCount} members', style: const TextStyle(fontSize: 12, color: Color(0xFFFF7A18), fontWeight: FontWeight.w600, decoration: TextDecoration.underline, decorationColor: Color(0xFFFF7A18))),
+                      ]),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -504,6 +521,113 @@ class _PillTab extends StatelessWidget {
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(label, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: active ? Colors.white : Colors.white.withValues(alpha: 0.4))),
+    );
+  }
+}
+
+// ─── Members Sheet ────────────────────────────────────────────────────────────
+
+class _MembersSheet extends StatefulWidget {
+  const _MembersSheet({required this.community});
+
+  final CommunityModel community;
+
+  @override
+  State<_MembersSheet> createState() => _MembersSheetState();
+}
+
+class _MembersSheetState extends State<_MembersSheet> {
+  List<CommunityUser> _members = [];
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final members = await CommunityService.getMembers(widget.community.id);
+      if (mounted) setState(() { _members = members; _loading = false; });
+    } catch (e) {
+      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.65),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
+          decoration: BoxDecoration(
+            color: const Color(0xFF09090B).withValues(alpha: 0.95),
+            border: const Border(top: BorderSide(color: Color(0x1FFFFFFF))),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(child: Container(width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16), decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(999)))),
+                Row(
+                  children: [
+                    const Icon(Icons.people_rounded, color: Color(0xFFFF7A18), size: 22),
+                    const SizedBox(width: 10),
+                    Expanded(child: Text('${widget.community.name} members', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis)),
+                    GestureDetector(onTap: () => Navigator.of(context).pop(), child: Icon(Icons.close_rounded, color: Colors.white.withValues(alpha: 0.5), size: 22)),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                if (_loading)
+                  const Padding(padding: EdgeInsets.all(32), child: CircularProgressIndicator(color: Color(0xFFFF7A18)))
+                else if (_error != null)
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(children: [
+                      const Icon(Icons.error_outline, color: Colors.white38, size: 40),
+                      const SizedBox(height: 10),
+                      Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13)),
+                      const SizedBox(height: 12),
+                      TextButton(onPressed: _load, child: const Text('Retry', style: TextStyle(color: Color(0xFFFF7A18)))),
+                    ]),
+                  )
+                else if (_members.isEmpty)
+                  const Padding(padding: EdgeInsets.all(32), child: Text('No members yet', style: TextStyle(color: Colors.white54, fontSize: 15)))
+                else
+                  Flexible(
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      padding: const EdgeInsets.only(bottom: 24),
+                      itemCount: _members.length,
+                      separatorBuilder: (_, __) => Divider(color: Colors.white.withValues(alpha: 0.07), height: 1),
+                      itemBuilder: (_, i) {
+                        final m = _members[i];
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          child: Row(children: [
+                            CircleAvatar(
+                              radius: 22,
+                              backgroundColor: const Color(0xFFFF7A18).withValues(alpha: 0.18),
+                              child: Text(m.initials, style: const TextStyle(color: Color(0xFFFF7A18), fontWeight: FontWeight.w700, fontSize: 14)),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(m.displayName, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500)),
+                          ]),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

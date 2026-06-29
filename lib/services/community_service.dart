@@ -117,4 +117,10 @@ class CommunityService {
     final res = await ApiClient.instance.post('/api/communities', data: form);
     return CommunityModel.fromJson(res.data as Map<String, dynamic>);
   }
+
+  static Future<List<CommunityUser>> getMembers(int communityId) async {
+    final res = await ApiClient.instance.get('/api/communities/$communityId/members');
+    final list = res.data as List<dynamic>;
+    return list.map((e) => CommunityUser.fromJson(e as Map<String, dynamic>)).toList();
+  }
 }

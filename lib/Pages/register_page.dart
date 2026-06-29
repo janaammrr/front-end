@@ -5,7 +5,7 @@ import 'package:flame/components/button.dart';
 import 'package:flame/components/text_field.dart';
 import 'package:flutter/material.dart';
 
-import '../Pages/home_page.dart';
+import '../Pages/preferences_screen.dart';
 import '../services/auth_service.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -63,7 +63,7 @@ class _RegisterPageState extends State<RegisterPage> {
       );
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const HomePage()),
+        MaterialPageRoute(builder: (_) => const PreferencesScreen()),
         (_) => false,
       );
     } on DioException catch (e) {

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../services/reel_service.dart';
 import '../services/auth_service.dart';
+import '../services/follow_service.dart';
 import '../auth/auth.dart';
 import 'profile_screen.dart';
 import 'communities_screen.dart';
@@ -466,6 +467,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
   bool _isPaused = false;
   bool _showOverlay = false;
   bool _isFollowing = false;
+  bool _followBusy = false;
   late int _likeCount;
 
   @override
@@ -540,6 +542,23 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
   void _toggleSave() {
     setState(() => _isSaved = !_isSaved);
     ReelService.toggleSave(widget.item.id);
+  }
+
+  Future<void> _toggleFollow() async {
+    if (_followBusy || widget.item.creatorId == null) return;
+    final willFollow = !_isFollowing;
+    setState(() { _isFollowing = willFollow; _followBusy = true; });
+    try {
+      if (willFollow) {
+        await FollowService.follow(widget.item.creatorId!);
+      } else {
+        await FollowService.unfollow(widget.item.creatorId!);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isFollowing = !willFollow);
+    } finally {
+      if (mounted) setState(() => _followBusy = false);
+    }
   }
 
   void _share() {
@@ -653,8 +672,8 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
             child: _CreatorCard(
               item: widget.item,
               isFollowing: _isFollowing,
-              onFollowToggle: () =>
-                  setState(() => _isFollowing = !_isFollowing),
+              followBusy: _followBusy,
+              onFollowToggle: _toggleFollow,
               onCreatorTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -860,12 +879,14 @@ class _CreatorCard extends StatelessWidget {
   const _CreatorCard({
     required this.item,
     required this.isFollowing,
+    required this.followBusy,
     required this.onFollowToggle,
     required this.onCreatorTap,
   });
 
   final _VideoItem item;
   final bool isFollowing;
+  final bool followBusy;
   final VoidCallback onFollowToggle;
   final VoidCallback onCreatorTap;
 
@@ -919,7 +940,7 @@ class _CreatorCard extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: onFollowToggle,
+                    onTap: followBusy ? null : onFollowToggle,
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
                       padding: const EdgeInsets.symmetric(
@@ -937,14 +958,19 @@ class _CreatorCard extends StatelessWidget {
                               )
                             : null,
                       ),
-                      child: Text(
-                        isFollowing ? 'Following' : '+ Follow',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                      child: followBusy
+                          ? const SizedBox(
+                              width: 14, height: 14,
+                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            )
+                          : Text(
+                              isFollowing ? 'Following' : '+ Follow',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                     ),
                   ),
                   const SizedBox(width: 6),

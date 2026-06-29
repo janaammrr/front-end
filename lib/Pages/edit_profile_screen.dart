@@ -1,5 +1,9 @@
 import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:dio/dio.dart';
+import '../services/api_client.dart';
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -9,27 +13,60 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  final _nameController = TextEditingController(text: 'Jana Amr');
-  final _usernameController = TextEditingController(text: 'janaamr');
-  final _bioController = TextEditingController(text: 'Creator & Learner. Passionate about design and AI.');
-  final _websiteController = TextEditingController(text: '');
-  String _selectedCategory = 'Design';
+  final _nameController = TextEditingController(text: '');
+  final _bioController = TextEditingController(text: '');
   bool _saving = false;
-
-  final List<String> _categories = ['Design', 'AI', 'Business', 'Finance', 'Tech', 'Education', 'Science'];
+  bool _uploadingPhoto = false;
+  String? _localPhotoPath;
 
   @override
   void dispose() {
     _nameController.dispose();
-    _usernameController.dispose();
     _bioController.dispose();
-    _websiteController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickAndUploadPhoto() async {
+    final picker = ImagePicker();
+    final xfile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    if (xfile == null) return;
+
+    setState(() { _localPhotoPath = xfile.path; _uploadingPhoto = true; });
+    try {
+      final formData = FormData.fromMap({
+        'file': await MultipartFile.fromFile(xfile.path, filename: xfile.name),
+      });
+      await ApiClient.instance.post('/api/customer/profile-image', data: formData);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(children: [
+              Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+              SizedBox(width: 10),
+              Text('Profile photo updated!'),
+            ]),
+            backgroundColor: const Color(0xFFFF7A18),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            margin: const EdgeInsets.fromLTRB(12, 0, 12, 20),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _localPhotoPath = null);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Upload failed: $e'), backgroundColor: const Color(0xFFEF4444)),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingPhoto = false);
+    }
   }
 
   Future<void> _save() async {
     setState(() => _saving = true);
-    await Future<void>.delayed(const Duration(seconds: 1));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
     if (mounted) {
       setState(() => _saving = false);
       Navigator.of(context).pop();
@@ -59,7 +96,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFFF7A18)))
                           : TextButton(
                               onPressed: _save,
-                              child: const Text('Save', style: TextStyle(color: Color(0xFFFF7A18), fontWeight: FontWeight.w700, fontSize: 16)),
+                              child: const Text('Done', style: TextStyle(color: Color(0xFFFF7A18), fontWeight: FontWeight.w700, fontSize: 16)),
                             ),
                     ],
                   ),
@@ -79,18 +116,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   border: Border.all(color: const Color(0xFFFF7A18), width: 3),
-                                  gradient: const LinearGradient(colors: [Color(0xFFFF7A18), Color(0xFFB83280)]),
                                 ),
-                                child: const CircleAvatar(
-                                  radius: 48,
-                                  backgroundColor: Colors.transparent,
-                                  child: Icon(Icons.person_rounded, color: Colors.white, size: 48),
+                                child: ClipOval(
+                                  child: _localPhotoPath != null
+                                      ? Image.file(File(_localPhotoPath!), fit: BoxFit.cover)
+                                      : Container(
+                                          decoration: const BoxDecoration(
+                                            gradient: LinearGradient(colors: [Color(0xFFFF7A18), Color(0xFFB83280)]),
+                                          ),
+                                          child: const Icon(Icons.person_rounded, color: Colors.white, size: 48),
+                                        ),
                                 ),
                               ),
+                              if (_uploadingPhoto)
+                                Positioned.fill(
+                                  child: ClipOval(
+                                    child: Container(
+                                      color: Colors.black54,
+                                      child: const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFFF7A18)))),
+                                    ),
+                                  ),
+                                ),
                               Positioned(
                                 bottom: 0, right: 0,
                                 child: GestureDetector(
-                                  onTap: () {},
+                                  onTap: _uploadingPhoto ? null : _pickAndUploadPhoto,
                                   child: Container(
                                     width: 30, height: 30,
                                     decoration: const BoxDecoration(color: Color(0xFFFF7A18), shape: BoxShape.circle),
@@ -102,48 +152,40 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        const Center(child: Text('Change photo', style: TextStyle(color: Color(0xFFFF7A18), fontSize: 13, fontWeight: FontWeight.w600))),
+                        GestureDetector(
+                          onTap: _uploadingPhoto ? null : _pickAndUploadPhoto,
+                          child: const Center(child: Text('Change photo', style: TextStyle(color: Color(0xFFFF7A18), fontSize: 13, fontWeight: FontWeight.w600))),
+                        ),
                         const SizedBox(height: 28),
                         _FieldLabel('Full Name'),
                         _StyledField(controller: _nameController, hint: 'Your full name'),
                         const SizedBox(height: 16),
-                        _FieldLabel('Username'),
-                        _StyledField(
-                          controller: _usernameController,
-                          hint: 'username',
-                          prefix: const Padding(
-                            padding: EdgeInsets.only(left: 14, right: 4),
-                            child: Text('@', style: TextStyle(color: Color(0xFFFF7A18), fontWeight: FontWeight.w700)),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
                         _FieldLabel('Bio'),
                         _StyledField(controller: _bioController, hint: 'Tell people about yourself…', maxLines: 3),
                         const SizedBox(height: 16),
-                        _FieldLabel('Website'),
-                        _StyledField(controller: _websiteController, hint: 'https://yoursite.com'),
-                        const SizedBox(height: 20),
-                        _FieldLabel('Primary Category'),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: _categories.map((cat) {
-                            final sel = cat == _selectedCategory;
-                            return GestureDetector(
-                              onTap: () => setState(() => _selectedCategory = cat),
-                              child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                decoration: BoxDecoration(
-                                  color: sel ? const Color(0xFFFF7A18).withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.06),
-                                  borderRadius: BorderRadius.circular(999),
-                                  border: Border.all(color: sel ? const Color(0xFFFF7A18) : Colors.white.withValues(alpha: 0.1)),
-                                ),
-                                child: Text(cat, style: TextStyle(color: sel ? Colors.white : const Color(0xFFB2B8CB), fontWeight: FontWeight.w600, fontSize: 13)),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                            child: Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(14),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
                               ),
-                            );
-                          }).toList(),
+                              child: Row(children: [
+                                const Icon(Icons.info_outline_rounded, color: Colors.white38, size: 18),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Text(
+                                    'To update your preferences, visit Profile → Settings → Preferences.',
+                                    style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 12, height: 1.4),
+                                  ),
+                                ),
+                              ]),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 32),
                         SizedBox(
@@ -190,12 +232,11 @@ class _FieldLabel extends StatelessWidget {
 }
 
 class _StyledField extends StatelessWidget {
-  const _StyledField({required this.controller, required this.hint, this.maxLines = 1, this.prefix});
+  const _StyledField({required this.controller, required this.hint, this.maxLines = 1});
 
   final TextEditingController controller;
   final String hint;
   final int maxLines;
-  final Widget? prefix;
 
   @override
   Widget build(BuildContext context) {
@@ -206,7 +247,6 @@ class _StyledField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-        prefix: prefix,
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.06),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
