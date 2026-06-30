@@ -4,8 +4,14 @@ class ChatUser {
   final int id;
   final String firstname;
   final String lastname;
+  final String? profileUrl;
 
-  ChatUser({required this.id, required this.firstname, required this.lastname});
+  ChatUser({
+    required this.id,
+    required this.firstname,
+    required this.lastname,
+    this.profileUrl,
+  });
 
   String get displayName => '$firstname $lastname'.trim();
   String get initials {
@@ -15,10 +21,11 @@ class ChatUser {
   }
 
   factory ChatUser.fromJson(Map<String, dynamic> j) => ChatUser(
-        id: (j['id'] as num).toInt(),
-        firstname: j['firstname'] as String? ?? '',
-        lastname: j['lastname'] as String? ?? '',
-      );
+    id: (j['id'] as num).toInt(),
+    firstname: j['firstname'] as String? ?? '',
+    lastname: j['lastname'] as String? ?? '',
+    profileUrl: j['profileUrl'] as String?,
+  );
 }
 
 class InboxItem {
@@ -35,11 +42,11 @@ class InboxItem {
   });
 
   factory InboxItem.fromJson(Map<String, dynamic> j) => InboxItem(
-        otherUser: ChatUser.fromJson(j['otherUser'] as Map<String, dynamic>),
-        lastMessage: j['lastMessage'] as String? ?? '',
-        isRead: j['isRead'] as bool? ?? true,
-        unreadCount: (j['unreadCount'] as num?)?.toInt() ?? 0,
-      );
+    otherUser: ChatUser.fromJson(j['otherUser'] as Map<String, dynamic>),
+    lastMessage: j['lastMessage'] as String? ?? '',
+    isRead: j['isRead'] as bool? ?? true,
+    unreadCount: (j['unreadCount'] as num?)?.toInt() ?? 0,
+  );
 }
 
 class ChatMessage {
@@ -48,7 +55,12 @@ class ChatMessage {
   final bool isMine;
   final String sentAt;
 
-  ChatMessage({required this.id, required this.content, required this.isMine, required this.sentAt});
+  ChatMessage({
+    required this.id,
+    required this.content,
+    required this.isMine,
+    required this.sentAt,
+  });
 
   factory ChatMessage.fromJson(Map<String, dynamic> j, int myUserId) {
     final sender = ChatUser.fromJson(j['sender'] as Map<String, dynamic>);
@@ -77,10 +89,15 @@ class ChatService {
   static Future<List<InboxItem>> getInbox() async {
     final res = await ApiClient.instance.get('/api/chat/inbox');
     final list = res.data as List<dynamic>;
-    return list.map((e) => InboxItem.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => InboxItem.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
-  static Future<List<ChatMessage>> getConversation(int otherUserId, int myUserId) async {
+  static Future<List<ChatMessage>> getConversation(
+    int otherUserId,
+    int myUserId,
+  ) async {
     final res = await ApiClient.instance.get('/api/chat/$otherUserId');
     final list = res.data as List<dynamic>;
     return list
@@ -88,11 +105,15 @@ class ChatService {
         .toList();
   }
 
-  static Future<ChatMessage> sendMessage(int receiverId, String content, int myUserId) async {
-    final res = await ApiClient.instance.post('/api/chat/send', data: {
-      'receiverId': receiverId,
-      'content': content,
-    });
+  static Future<ChatMessage> sendMessage(
+    int receiverId,
+    String content,
+    int myUserId,
+  ) async {
+    final res = await ApiClient.instance.post(
+      '/api/chat/send',
+      data: {'receiverId': receiverId, 'content': content},
+    );
     return ChatMessage.fromJson(res.data as Map<String, dynamic>, myUserId);
   }
 }

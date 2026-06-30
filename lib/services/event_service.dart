@@ -28,11 +28,34 @@ class EventService {
     String location = '',
     int capacity = 0,
   }) async {
-    await ApiClient.instance.post('/api/provider/events', data: {
-      'title': title,
-      'description': description,
-      'location': location,
-      'capacity': capacity,
-    });
+    await ApiClient.instance.post(
+      '/api/provider/events',
+      data: {
+        'title': title,
+        'description': description,
+        'location': location,
+        'capacity': capacity,
+      },
+    );
+  }
+
+  static Future<List<EventModel>> getBooked() async {
+    final response = await ApiClient.instance.get(
+      '/api/customer/events/booked',
+    );
+    final list = response.data as List<dynamic>;
+    return list.map((row) {
+      final item =
+          (row as Map<String, dynamic>)['item'] as Map<String, dynamic>;
+      return EventModel.fromJson(item);
+    }).toList();
+  }
+
+  static Future<List<EventModel>> getCreated() async {
+    final response = await ApiClient.instance.get('/api/provider/events');
+    final list = response.data as List<dynamic>;
+    return list
+        .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 }

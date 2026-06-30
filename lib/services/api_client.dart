@@ -2,7 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiClient {
-  static const String _baseUrl = 'http://192.168.1.14:8080';  static const _storage = FlutterSecureStorage();
+  static const String _baseUrl = 'http://192.168.1.14:8080';
+  static const _storage = FlutterSecureStorage();
 
   static final Dio _dio = Dio(
     BaseOptions(
@@ -21,7 +22,8 @@ class ApiClient {
           handler.next(options);
         },
         onError: (error, handler) async {
-          if (error.response?.statusCode == 401) {
+          if (error.response?.statusCode == 401 ||
+              error.response?.statusCode == 403) {
             await _storage.delete(key: 'jwt_token');
           }
           handler.next(error);
@@ -37,4 +39,11 @@ class ApiClient {
   static Future<void> clearToken() => _storage.delete(key: 'jwt_token');
 
   static Future<String?> getToken() => _storage.read(key: 'jwt_token');
+
+  static String? publicUrl(String? url) {
+    if (url == null || url.isEmpty) return null;
+    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    if (url.startsWith('/')) return '$_baseUrl$url';
+    return '$_baseUrl/$url';
+  }
 }

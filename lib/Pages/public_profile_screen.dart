@@ -1,15 +1,23 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+
+import '../models/reel_model.dart';
+import '../services/chat_service.dart';
+import '../services/follow_service.dart';
+import '../services/reel_service.dart';
+import '../services/user_service.dart';
 import 'messaging_screen.dart';
 
 class PublicProfileScreen extends StatefulWidget {
   const PublicProfileScreen({
     super.key,
+    this.creatorId,
     required this.creatorName,
     required this.gradient,
   });
 
+  final int? creatorId;
   final String creatorName;
   final List<Color> gradient;
 
@@ -18,78 +26,131 @@ class PublicProfileScreen extends StatefulWidget {
 }
 
 class _PublicProfileScreenState extends State<PublicProfileScreen> {
+  List<ReelModel> _reels = [];
+  int _followersCount = 0;
+  int _followingCount = 0;
+  int? _myId;
   bool _isFollowing = false;
+  bool _isSelf = false;
+  bool _loading = true;
+  bool _followBusy = false;
+  String? _error;
 
   String get _handle =>
       '@${widget.creatorName.toLowerCase().replaceAll(' ', '_').replaceAll('.', '')}';
 
-  String get _bio {
-    final n = widget.creatorName.toLowerCase();
-    if (n.contains('amina')) {
-      return 'AI researcher & educator. Making machine learning accessible for every learner on Flame.';
-    }
-    if (n.contains('design')) {
-      return 'Senior UX designer · 8 years of experience. Teaching design thinking and visual craft one short video at a time.';
-    }
-    if (n.contains('finance')) {
-      return 'Finance educator. Simplifying money management and investment strategies for creators and entrepreneurs.';
-    }
-    if (n.contains('ibrahim')) {
-      return 'Serial entrepreneur & startup advisor based in Cairo. Sharing real lessons from building companies in MENA.';
-    }
-    if (n.contains('mona')) {
-      return 'Product designer and color theory enthusiast. I teach through beautiful things.';
-    }
-    return 'Educator and content creator on Flame. Sharing knowledge, one video at a time.';
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
   }
 
-  int get _videoCount {
-    final n = widget.creatorName.toLowerCase();
-    if (n.contains('amina')) return 48;
-    if (n.contains('design')) return 31;
-    if (n.contains('finance')) return 56;
-    if (n.contains('ibrahim')) return 23;
-    if (n.contains('mona')) return 19;
-    return 14;
+  Future<void> _loadProfile() async {
+    final creatorId = widget.creatorId;
+    if (creatorId == null) {
+      setState(() => _loading = false);
+      return;
+    }
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final me = await UserService.getMe();
+      final results = await Future.wait([
+        ReelService.getByUser(creatorId),
+        FollowService.getFollowers(creatorId),
+        FollowService.getFollowing(creatorId),
+        FollowService.getFollowing(me.id),
+      ]);
+      final myFollowing = results[3] as List<FollowUser>;
+      if (!mounted) return;
+      setState(() {
+        _myId = me.id;
+        _isSelf = me.id == creatorId;
+        _reels = results[0] as List<ReelModel>;
+        _followersCount = (results[1] as List<FollowUser>).length;
+        _followingCount = (results[2] as List<FollowUser>).length;
+        _isFollowing = myFollowing.any((user) => user.id == creatorId);
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
   }
 
-  int get _followerCount {
-    final n = widget.creatorName.toLowerCase();
-    if (n.contains('amina')) return 12400;
-    if (n.contains('design')) return 8100;
-    if (n.contains('finance')) return 9700;
-    if (n.contains('ibrahim')) return 15200;
-    if (n.contains('mona')) return 6300;
-    return 3800;
+  Future<void> _toggleFollow() async {
+    final creatorId = widget.creatorId;
+    if (creatorId == null || _isSelf || _followBusy) return;
+
+    final willFollow = !_isFollowing;
+    setState(() {
+      _isFollowing = willFollow;
+      _followersCount += willFollow ? 1 : -1;
+      _followBusy = true;
+    });
+
+    try {
+      if (willFollow) {
+        await FollowService.follow(creatorId);
+      } else {
+        await FollowService.unfollow(creatorId);
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isFollowing = !willFollow;
+        _followersCount += willFollow ? -1 : 1;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Could not update follow: $e'),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _followBusy = false);
+    }
   }
 
-  String _fmt(int n) =>
-      n >= 1000 ? '${(n / 1000).toStringAsFixed(1)}K' : '$n';
+  Future<void> _openMessage() async {
+    final creatorId = widget.creatorId;
+    if (creatorId == null || _isSelf) return;
 
-  static const _thumbGradients = [
-    [Color(0xFF7C2D12), Color(0xFF9A3412)],
-    [Color(0xFF134E4A), Color(0xFF0F766E)],
-    [Color(0xFF1E1B4B), Color(0xFF4338CA)],
-    [Color(0xFF500724), Color(0xFF9F1239)],
-    [Color(0xFF78350F), Color(0xFF9D174D)],
-    [Color(0xFF064E3B), Color(0xFF065F46)],
-  ];
+    var myId = _myId;
+    if (myId == null) {
+      final me = await UserService.getMe();
+      myId = me.id;
+      if (mounted) setState(() => _myId = myId);
+    }
+    if (!mounted) return;
+
+    final parts = widget.creatorName.trim().split(RegExp(r'\s+'));
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(
+          otherUser: ChatUser(
+            id: creatorId,
+            firstname: parts.isNotEmpty ? parts.first : widget.creatorName,
+            lastname: parts.length > 1 ? parts.sublist(1).join(' ') : '',
+          ),
+          myId: myId!,
+        ),
+      ),
+    );
+  }
 
   void _shareProfile() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                '${widget.creatorName}\'s profile link copied!',
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
+        content: Text('${widget.creatorName} profile link copied'),
         backgroundColor: const Color(0xFFFF7A18),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -99,6 +160,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     );
   }
 
+  String _fmt(int n) {
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+    return '$n';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -106,31 +172,47 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       body: CustomScrollView(
         slivers: [
           _buildHeader(context),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildProfileInfo(),
-                const SizedBox(height: 16),
-                _buildStats(),
-                const SizedBox(height: 14),
-                _buildActionButtons(context),
-                const SizedBox(height: 24),
-                _buildSectionHeader(),
-              ],
+          if (_loading)
+            const SliverFillRemaining(
+              child: Center(
+                child: CircularProgressIndicator(color: Color(0xFFFF7A18)),
+              ),
+            )
+          else if (_error != null)
+            SliverFillRemaining(
+              child: _ErrorState(error: _error!, onRetry: _loadProfile),
+            )
+          else ...[
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildProfileInfo(),
+                  const SizedBox(height: 16),
+                  _buildStats(),
+                  if (!_isSelf) ...[
+                    const SizedBox(height: 14),
+                    _buildActionButtons(),
+                  ],
+                  const SizedBox(height: 24),
+                  _buildSectionHeader(),
+                ],
+              ),
             ),
-          ),
-          _buildVideoGrid(),
-          const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            _buildVideoGrid(),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
         ],
       ),
     );
   }
 
-  // ─── Expandable cover header ────────────────────────────────────────────────
-
   Widget _buildHeader(BuildContext context) {
     final topPad = MediaQuery.of(context).padding.top;
+    final initial = widget.creatorName.trim().isEmpty
+        ? '?'
+        : widget.creatorName.trim()[0].toUpperCase();
+
     return SliverAppBar(
       expandedHeight: 260,
       pinned: true,
@@ -140,7 +222,6 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            // Gradient cover
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -150,7 +231,6 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 ),
               ),
             ),
-            // Dark overlay
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -163,7 +243,6 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 ),
               ),
             ),
-            // Back button
             Positioned(
               top: topPad + 8,
               left: 12,
@@ -172,7 +251,6 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 onTap: () => Navigator.of(context).maybePop(),
               ),
             ),
-            // Share button
             Positioned(
               top: topPad + 8,
               right: 12,
@@ -181,71 +259,49 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 onTap: _shareProfile,
               ),
             ),
-            // Avatar
             Positioned(
               bottom: 20,
               left: 0,
               right: 0,
               child: Center(
-                child: Stack(
-                  children: [
-                    Container(
-                      width: 100,
-                      height: 100,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: const Color(0xFFFF7A18), width: 3),
-                        gradient: LinearGradient(
-                          colors: widget.gradient.length >= 2
-                              ? [widget.gradient[0], widget.gradient[1]]
-                              : [widget.gradient[0], widget.gradient[0]],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFFF7A18).withValues(alpha: 0.4),
-                            blurRadius: 20,
-                            spreadRadius: 2,
-                          ),
-                        ],
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: const Color(0xFFFF7A18),
+                      width: 3,
+                    ),
+                    gradient: LinearGradient(
+                      colors: widget.gradient.length >= 2
+                          ? [widget.gradient[0], widget.gradient[1]]
+                          : [widget.gradient[0], widget.gradient[0]],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFFFF7A18).withValues(alpha: 0.4),
+                        blurRadius: 20,
+                        spreadRadius: 2,
                       ),
-                      child: Center(
-                        child: Text(
-                          widget.creatorName[0].toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      initial,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 40,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                    Positioned(
-                      bottom: 2,
-                      right: 2,
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFFFF7A18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0x80FF7A18),
-                              blurRadius: 8,
-                            ),
-                          ],
-                        ),
-                        child: const Icon(Icons.verified_rounded, color: Colors.white, size: 16),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
           ],
         ),
       ),
-      // Collapsed state — just show the back button + name
       title: Text(
         widget.creatorName,
         style: const TextStyle(
@@ -262,16 +318,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 8),
-          child: _CircleBtn(
-            icon: Icons.share_outlined,
-            onTap: _shareProfile,
-          ),
+          child: _CircleBtn(icon: Icons.share_outlined, onTap: _shareProfile),
         ),
       ],
     );
   }
-
-  // ─── Name / handle / bio ────────────────────────────────────────────────────
 
   Widget _buildProfileInfo() {
     return Padding(
@@ -281,11 +332,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         children: [
           Text(
             widget.creatorName,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 24,
               fontWeight: FontWeight.w800,
-              letterSpacing: -0.3,
             ),
           ),
           const SizedBox(height: 4),
@@ -299,7 +350,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            _bio,
+            'Educator and content creator on Flame.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.6),
@@ -307,30 +358,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               height: 1.45,
             ),
           ),
-          const SizedBox(height: 10),
-          // Category tag
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFF7A18).withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: const Color(0xFFFF7A18).withValues(alpha: 0.4)),
-            ),
-            child: const Text(
-              'Creator · Educator',
-              style: TextStyle(
-                color: Color(0xFFFFB073),
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
         ],
       ),
     );
   }
-
-  // ─── Stats row ──────────────────────────────────────────────────────────────
 
   Widget _buildStats() {
     return Padding(
@@ -349,11 +380,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _Stat(value: '$_videoCount', label: 'Videos'),
+                _Stat(value: '${_reels.length}', label: 'Videos'),
                 Container(width: 1, height: 36, color: Colors.white12),
-                _Stat(value: _fmt(_followerCount), label: 'Followers'),
+                _Stat(value: _fmt(_followersCount), label: 'Followers'),
                 Container(width: 1, height: 36, color: Colors.white12),
-                _Stat(value: _fmt((_followerCount * 0.014).round() + 80), label: 'Following'),
+                _Stat(value: _fmt(_followingCount), label: 'Following'),
               ],
             ),
           ),
@@ -362,9 +393,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     );
   }
 
-  // ─── Follow + Message buttons ───────────────────────────────────────────────
-
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActionButtons() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
@@ -372,7 +401,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           Expanded(
             flex: 3,
             child: GestureDetector(
-              onTap: () => setState(() => _isFollowing = !_isFollowing),
+              onTap: _toggleFollow,
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 220),
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -389,26 +418,27 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   border: _isFollowing
                       ? Border.all(color: Colors.white.withValues(alpha: 0.2))
                       : null,
-                  boxShadow: _isFollowing
-                      ? null
-                      : [
-                          BoxShadow(
-                            color: const Color(0xFFFF7A18).withValues(alpha: 0.38),
-                            blurRadius: 14,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      _isFollowing
-                          ? Icons.person_remove_outlined
-                          : Icons.person_add_outlined,
-                      color: Colors.white,
-                      size: 18,
-                    ),
+                    if (_followBusy)
+                      const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    else
+                      Icon(
+                        _isFollowing
+                            ? Icons.person_remove_outlined
+                            : Icons.person_add_outlined,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                     const SizedBox(width: 6),
                     Text(
                       _isFollowing ? 'Following' : 'Follow',
@@ -427,21 +457,24 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           Expanded(
             flex: 2,
             child: GestureDetector(
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MessagingScreen()),
-              ),
+              onTap: _openMessage,
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.18),
+                  ),
                 ),
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.chat_bubble_outline_rounded, color: Colors.white, size: 17),
+                    Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      color: Colors.white,
+                      size: 17,
+                    ),
                     SizedBox(width: 6),
                     Text(
                       'Message',
@@ -460,8 +493,6 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       ),
     );
   }
-
-  // ─── "Videos" section header ─────────────────────────────────────────────────
 
   Widget _buildSectionHeader() {
     return Padding(
@@ -482,10 +513,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFFF7A18).withValues(alpha: 0.13),
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: const Color(0xFFFF7A18).withValues(alpha: 0.4)),
+              border: Border.all(
+                color: const Color(0xFFFF7A18).withValues(alpha: 0.4),
+              ),
             ),
             child: Text(
-              '$_videoCount total',
+              '${_reels.length} total',
               style: const TextStyle(
                 color: Color(0xFFFFB073),
                 fontSize: 12,
@@ -498,9 +531,21 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     );
   }
 
-  // ─── 3-column video grid ─────────────────────────────────────────────────────
+  Widget _buildVideoGrid() {
+    if (_reels.isEmpty) {
+      return const SliverToBoxAdapter(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 48),
+          child: Center(
+            child: Text(
+              'No public videos yet',
+              style: TextStyle(color: Colors.white54),
+            ),
+          ),
+        ),
+      );
+    }
 
-  SliverGrid _buildVideoGrid() {
     return SliverGrid(
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
@@ -508,57 +553,105 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         mainAxisSpacing: 2,
         childAspectRatio: 0.68,
       ),
-      delegate: SliverChildBuilderDelegate(
-        childCount: 6,
-        (context, i) {
-          final g = _thumbGradients[i % _thumbGradients.length];
-          final likes = (i + 1) * 1300 + i * 430;
-          return Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: g,
+      delegate: SliverChildBuilderDelegate(childCount: _reels.length, (
+        context,
+        i,
+      ) {
+        final reel = _reels[i];
+        final colors = _thumbGradients[i % _thumbGradients.length];
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: colors,
+            ),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Center(
+                child: Icon(
+                  Icons.play_circle_fill_rounded,
+                  color: Colors.white.withValues(alpha: 0.35),
+                  size: 36,
+                ),
               ),
-            ),
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                Center(
-                  child: Icon(
-                    Icons.play_circle_fill_rounded,
-                    color: Colors.white.withValues(alpha: 0.35),
-                    size: 36,
-                  ),
-                ),
-                Positioned(
-                  bottom: 6,
-                  left: 6,
-                  child: Row(
-                    children: [
-                      const Icon(Icons.favorite_rounded, color: Colors.white60, size: 12),
-                      const SizedBox(width: 3),
-                      Text(
-                        _fmt(likes),
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                        ),
+              Positioned(
+                left: 6,
+                right: 6,
+                bottom: 6,
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.favorite_rounded,
+                      color: Colors.white60,
+                      size: 12,
+                    ),
+                    const SizedBox(width: 3),
+                    Text(
+                      _fmt(reel.likesCount),
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
+            ],
+          ),
+        );
+      }),
+    );
+  }
+
+  static const _thumbGradients = [
+    [Color(0xFF7C2D12), Color(0xFF9A3412)],
+    [Color(0xFF134E4A), Color(0xFF0F766E)],
+    [Color(0xFF1E1B4B), Color(0xFF4338CA)],
+    [Color(0xFF500724), Color(0xFF9F1239)],
+    [Color(0xFF78350F), Color(0xFF9D174D)],
+    [Color(0xFF064E3B), Color(0xFF065F46)],
+  ];
+}
+
+class _ErrorState extends StatelessWidget {
+  const _ErrorState({required this.error, required this.onRetry});
+
+  final String error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, color: Colors.white38, size: 48),
+            const SizedBox(height: 12),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13),
             ),
-          );
-        },
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: onRetry,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFFF7A18),
+              ),
+              child: const Text('Retry', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 class _CircleBtn extends StatelessWidget {
   const _CircleBtn({required this.icon, required this.onTap});

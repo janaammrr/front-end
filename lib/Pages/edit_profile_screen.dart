@@ -36,7 +36,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(xfile.path, filename: xfile.name),
       });
-      await ApiClient.instance.post('/api/customer/profile-image', data: formData);
+      await ApiClient.instance.post('/api/users/me/profile-image', data: formData);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

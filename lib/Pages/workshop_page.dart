@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../auth/auth.dart';
 import 'profile_screen.dart';
 import '../models/workshop_model.dart';
+import '../services/auth_service.dart';
 import '../services/workshop_service.dart';
 
 class WorkshopPage extends StatefulWidget {
@@ -34,6 +36,15 @@ class _WorkshopPageState extends State<WorkshopPage> {
       });
     } catch (e) {
       if (!mounted) return;
+      if (AuthService.isAuthFailure(e)) {
+        await AuthService.logout();
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthPage()),
+          (_) => false,
+        );
+        return;
+      }
       setState(() {
         _error = 'Could not load workshops. Check your connection.';
         _loading = false;

@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/reel_service.dart';
@@ -58,7 +57,7 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Video submitted for review!'), backgroundColor: Color(0xFF10B981)),
         );
-        Navigator.of(context).pop();
+        Navigator.of(context).pop(true);
       }
     } catch (_) {
       if (mounted) {

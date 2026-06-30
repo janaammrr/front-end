@@ -11,6 +11,14 @@ class ReelService {
         .toList();
   }
 
+  static Future<List<ReelModel>> getByUser(int userId) async {
+    final response = await ApiClient.instance.get('/api/reels/user/$userId');
+    final list = response.data as List<dynamic>;
+    return list
+        .map((json) => ReelModel.fromJson(json as Map<String, dynamic>))
+        .toList();
+  }
+
   static Future<void> toggleLike(int reelId) =>
       ApiClient.instance.post('/api/reels/$reelId/like');
 
@@ -20,13 +28,17 @@ class ReelService {
   static Future<List<ReelModel>> getLiked() async {
     final response = await ApiClient.instance.get('/api/reels/liked');
     final list = response.data as List<dynamic>;
-    return list.map((json) => ReelModel.fromJson(json as Map<String, dynamic>)).toList();
+    return list
+        .map((json) => ReelModel.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   static Future<List<ReelModel>> getSaved() async {
     final response = await ApiClient.instance.get('/api/reels/saved');
     final list = response.data as List<dynamic>;
-    return list.map((json) => ReelModel.fromJson(json as Map<String, dynamic>)).toList();
+    return list
+        .map((json) => ReelModel.fromJson(json as Map<String, dynamic>))
+        .toList();
   }
 
   static Future<void> upload({

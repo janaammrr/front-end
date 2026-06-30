@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:video_player/video_player.dart';
 
 import '../services/reel_service.dart';
 import '../services/auth_service.dart';
@@ -59,6 +60,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _tabIndex = 0;
+  int _profileRefreshKey = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -66,17 +68,20 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: const Color(0xFF09090B),
       body: IndexedStack(
         index: _tabIndex,
-        children: const [
-          _FeedView(),
-          WorkshopPage(),
-          EventsPage(),
-          CommunitiesScreen(),
-          ProfileScreen(),
+        children: [
+          const _FeedView(),
+          const WorkshopPage(),
+          const EventsPage(),
+          const CommunitiesScreen(),
+          ProfileScreen(key: ValueKey(_profileRefreshKey)),
         ],
       ),
       bottomNavigationBar: _MainNav(
         currentIndex: _tabIndex,
-        onTap: (i) => setState(() => _tabIndex = i),
+        onTap: (i) => setState(() {
+          _tabIndex = i;
+          if (i == 4) _profileRefreshKey++;
+        }),
       ),
     );
   }
@@ -241,8 +246,17 @@ class _FeedViewState extends State<_FeedView> {
         }).toList();
         _loading = false;
       });
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
+      if (AuthService.isAuthFailure(e)) {
+        await AuthService.logout();
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthPage()),
+          (_) => false,
+        );
+        return;
+      }
       setState(() {
         _error = 'Could not load feed. Check your connection.';
         _loading = false;
@@ -266,7 +280,7 @@ class _FeedViewState extends State<_FeedView> {
   }
 
   Future<void> _openCreateMenu() async {
-    await showModalBottomSheet<void>(
+    final created = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black54,
@@ -274,6 +288,13 @@ class _FeedViewState extends State<_FeedView> {
       isScrollControlled: true,
       builder: (_) => const _CreateMenuSheet(),
     );
+    if (created == true && mounted) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+      await _loadReels();
+    }
   }
 
   @override
@@ -317,10 +338,7 @@ class _FeedViewState extends State<_FeedView> {
       return const ColoredBox(
         color: Color(0xFF09090B),
         child: Center(
-          child: Text(
-            'No videos yet',
-            style: TextStyle(color: Colors.white54),
-          ),
+          child: Text('No videos yet', style: TextStyle(color: Colors.white54)),
         ),
       );
     }
@@ -468,7 +486,11 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
   bool _showOverlay = false;
   bool _isFollowing = false;
   bool _followBusy = false;
+  bool _videoReady = false;
+  bool _videoFailed = false;
+  bool _notifiedVideoEnd = false;
   late int _likeCount;
+  VideoPlayerController? _videoController;
 
   @override
   void initState() {
@@ -477,12 +499,11 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
     _isSaved = widget.item.savedByMe;
     _likeCount = widget.item.likes;
 
-    _progressCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
-    )..addStatusListener((s) {
-        if (s == AnimationStatus.completed && mounted) widget.onVideoEnd();
-      });
+    _progressCtrl =
+        AnimationController(vsync: this, duration: const Duration(seconds: 10))
+          ..addStatusListener((s) {
+            if (s == AnimationStatus.completed && mounted) widget.onVideoEnd();
+          });
 
     _likeCtrl = AnimationController(
       vsync: this,
@@ -493,7 +514,63 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
       TweenSequenceItem(tween: Tween(begin: 1.55, end: 1.0), weight: 60),
     ]).animate(CurvedAnimation(parent: _likeCtrl, curve: Curves.easeOut));
 
-    if (widget.isActive) _progressCtrl.forward();
+    _initVideo();
+    if (widget.isActive) _startPlayback();
+  }
+
+  Future<void> _initVideo() async {
+    final url = widget.item.videoUrl;
+    if (url == null || url.isEmpty) return;
+
+    final controller = VideoPlayerController.networkUrl(Uri.parse(url));
+    _videoController = controller;
+    try {
+      await controller.initialize();
+      controller.setLooping(false);
+      controller.addListener(_handleVideoTick);
+      if (!mounted || _videoController != controller) return;
+      _progressCtrl.stop();
+      setState(() => _videoReady = true);
+      if (widget.isActive && !_isPaused) controller.play();
+    } catch (_) {
+      if (mounted) setState(() => _videoFailed = true);
+      await controller.dispose();
+      if (_videoController == controller) _videoController = null;
+    }
+  }
+
+  void _handleVideoTick() {
+    final controller = _videoController;
+    if (controller == null || !controller.value.isInitialized) return;
+    final duration = controller.value.duration;
+    final position = controller.value.position;
+    if (duration > Duration.zero &&
+        position >= duration &&
+        !_notifiedVideoEnd &&
+        mounted) {
+      _notifiedVideoEnd = true;
+      widget.onVideoEnd();
+    }
+    if (mounted) setState(() {});
+  }
+
+  void _startPlayback() {
+    _notifiedVideoEnd = false;
+    final controller = _videoController;
+    if (controller != null && controller.value.isInitialized) {
+      controller.seekTo(Duration.zero);
+      controller.play();
+    } else {
+      _progressCtrl.forward(from: 0);
+    }
+  }
+
+  void _stopPlayback() {
+    final controller = _videoController;
+    if (controller != null && controller.value.isInitialized) {
+      controller.pause();
+    }
+    _progressCtrl.stop();
   }
 
   @override
@@ -501,15 +578,23 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
     super.didUpdateWidget(old);
     if (widget.isActive && !old.isActive) {
       _progressCtrl.reset();
-      if (mounted) setState(() { _isPaused = false; _showOverlay = false; });
-      _progressCtrl.forward();
+      _videoController?.seekTo(Duration.zero);
+      if (mounted) {
+        setState(() {
+          _isPaused = false;
+          _showOverlay = false;
+        });
+      }
+      _startPlayback();
     } else if (!widget.isActive && old.isActive) {
-      _progressCtrl.stop();
+      _stopPlayback();
     }
   }
 
   @override
   void dispose() {
+    _videoController?.removeListener(_handleVideoTick);
+    _videoController?.dispose();
     _progressCtrl.dispose();
     _likeCtrl.dispose();
     super.dispose();
@@ -530,9 +615,10 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
       _showOverlay = true;
     });
     if (_isPaused) {
-      _progressCtrl.stop();
+      _stopPlayback();
     } else {
-      _progressCtrl.forward();
+      _videoController?.play();
+      if (!_videoReady) _progressCtrl.forward();
       Future.delayed(const Duration(milliseconds: 900), () {
         if (mounted) setState(() => _showOverlay = false);
       });
@@ -547,7 +633,10 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
   Future<void> _toggleFollow() async {
     if (_followBusy || widget.item.creatorId == null) return;
     final willFollow = !_isFollowing;
-    setState(() { _isFollowing = willFollow; _followBusy = true; });
+    setState(() {
+      _isFollowing = willFollow;
+      _followBusy = true;
+    });
     try {
       if (willFollow) {
         await FollowService.follow(widget.item.creatorId!);
@@ -576,8 +665,19 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
     );
   }
 
-  String get _likesLabel =>
-      _likeCount >= 1000 ? '${(_likeCount / 1000).toStringAsFixed(1)}K' : '$_likeCount';
+  String get _likesLabel => _likeCount >= 1000
+      ? '${(_likeCount / 1000).toStringAsFixed(1)}K'
+      : '$_likeCount';
+
+  double get _progressValue {
+    final controller = _videoController;
+    if (controller == null || !controller.value.isInitialized) {
+      return _progressCtrl.value;
+    }
+    final duration = controller.value.duration.inMilliseconds;
+    if (duration <= 0) return 0;
+    return (controller.value.position.inMilliseconds / duration).clamp(0, 1);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -589,15 +689,34 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
         fit: StackFit.expand,
         children: [
           // ── Background gradient ──────────────────────────────────────────
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: widget.item.gradient,
+          if (_videoReady && _videoController != null)
+            FittedBox(
+              fit: BoxFit.cover,
+              child: SizedBox(
+                width: _videoController!.value.size.width,
+                height: _videoController!.value.size.height,
+                child: VideoPlayer(_videoController!),
               ),
+            )
+          else
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: widget.item.gradient,
+                ),
+              ),
+              child: _videoFailed
+                  ? const Center(
+                      child: Icon(
+                        Icons.videocam_off_rounded,
+                        color: Colors.white30,
+                        size: 72,
+                      ),
+                    )
+                  : null,
             ),
-          ),
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             color: Colors.black.withValues(alpha: _isPaused ? 0.58 : 0.28),
@@ -634,10 +753,11 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
             child: AnimatedBuilder(
               animation: _progressCtrl,
               builder: (_, __) => LinearProgressIndicator(
-                value: _progressCtrl.value,
+                value: _progressValue,
                 backgroundColor: Colors.white.withValues(alpha: 0.18),
-                valueColor:
-                    const AlwaysStoppedAnimation<Color>(Color(0xFFFF7A18)),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                  Color(0xFFFF7A18),
+                ),
                 minHeight: 3,
               ),
             ),
@@ -655,7 +775,8 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
               comments: widget.item.comments,
               onLike: _toggleLike,
               onSave: _toggleSave,
-              onComment: () => CommentsScreen.show(context, reelId: widget.item.id),
+              onComment: () =>
+                  CommentsScreen.show(context, reelId: widget.item.id),
               onShare: _share,
               onAI: () => Navigator.push(
                 context,
@@ -678,6 +799,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
                 context,
                 MaterialPageRoute(
                   builder: (_) => PublicProfileScreen(
+                    creatorId: widget.item.creatorId,
                     creatorName: widget.item.creatorName,
                     gradient: widget.item.gradient,
                   ),
@@ -732,7 +854,9 @@ class _ActionRail extends StatelessWidget {
               duration: const Duration(milliseconds: 180),
               transitionBuilder: (c, a) => ScaleTransition(scale: a, child: c),
               child: Icon(
-                isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                isLiked
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
                 key: ValueKey(isLiked),
                 color: isLiked ? const Color(0xFFFF4757) : Colors.white,
                 size: 28,
@@ -760,7 +884,11 @@ class _ActionRail extends StatelessWidget {
         _RailBtn(
           onTap: onShare,
           label: 'Share',
-          child: const Icon(Icons.reply_outlined, color: Colors.white, size: 26),
+          child: const Icon(
+            Icons.reply_outlined,
+            color: Colors.white,
+            size: 26,
+          ),
         ),
 
         const SizedBox(height: 16),
@@ -913,8 +1041,9 @@ class _CreatorCard extends StatelessWidget {
                     onTap: onCreatorTap,
                     child: CircleAvatar(
                       radius: 15,
-                      backgroundColor:
-                          const Color(0xFFFF7A18).withValues(alpha: 0.25),
+                      backgroundColor: const Color(
+                        0xFFFF7A18,
+                      ).withValues(alpha: 0.25),
                       child: Text(
                         item.creatorName[0],
                         style: const TextStyle(
@@ -960,8 +1089,12 @@ class _CreatorCard extends StatelessWidget {
                       ),
                       child: followBusy
                           ? const SizedBox(
-                              width: 14, height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
                             )
                           : Text(
                               isFollowing ? 'Following' : '+ Follow',
@@ -1061,14 +1194,16 @@ class _CreateMenuSheet extends StatelessWidget {
                   icon: Icons.video_library_outlined,
                   title: 'Create a Reel',
                   subtitle: 'Share a quick educational video.',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    Navigator.push(
+                  onTap: () async {
+                    final created = await Navigator.push<bool>(
                       context,
                       MaterialPageRoute(
                         builder: (_) => const VideoUploadScreen(),
                       ),
                     );
+                    if (context.mounted) {
+                      Navigator.of(context).pop(created == true);
+                    }
                   },
                 ),
                 _CreateTile(
@@ -1240,7 +1375,11 @@ class _ShareSheet extends StatelessWidget {
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+            const Icon(
+              Icons.check_circle_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             const SizedBox(width: 10),
             Text('Opening $appName...'),
           ],
@@ -1294,7 +1433,9 @@ class _ShareSheet extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
                       ),
                       child: Row(
                         children: [
@@ -1307,7 +1448,11 @@ class _ShareSheet extends StatelessWidget {
                                 colors: [Color(0xFFFF7A18), Color(0xFF9A3412)],
                               ),
                             ),
-                            child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
+                            child: const Icon(
+                              Icons.play_arrow_rounded,
+                              color: Colors.white,
+                              size: 28,
+                            ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
@@ -1456,16 +1601,46 @@ class _DmPickerSheetState extends State<_DmPickerSheet> {
   final Set<int> _sentTo = {};
 
   static const _contacts = [
-    (initial: 'Z', name: 'Zeina Ahmed',     status: 'Online',    gradient: [Color(0xFF7C3AED), Color(0xFFA855F7)]),
-    (initial: 'M', name: 'Mohamed Hassan',  status: '2h ago',    gradient: [Color(0xFF0F766E), Color(0xFF134E4A)]),
-    (initial: 'S', name: 'Sara Khaled',     status: 'Online',    gradient: [Color(0xFF9A3412), Color(0xFF7C2D12)]),
-    (initial: 'A', name: 'Ahmed Tarek',     status: '5h ago',    gradient: [Color(0xFF1D4ED8), Color(0xFF1E1B4B)]),
-    (initial: 'R', name: 'Rania Mohamed',   status: 'Yesterday', gradient: [Color(0xFF9D174D), Color(0xFF500724)]),
-    (initial: 'K', name: 'Karim Nour',      status: 'Online',    gradient: [Color(0xFF065F46), Color(0xFF064E3B)]),
+    (
+      initial: 'Z',
+      name: 'Zeina Ahmed',
+      status: 'Online',
+      gradient: [Color(0xFF7C3AED), Color(0xFFA855F7)],
+    ),
+    (
+      initial: 'M',
+      name: 'Mohamed Hassan',
+      status: '2h ago',
+      gradient: [Color(0xFF0F766E), Color(0xFF134E4A)],
+    ),
+    (
+      initial: 'S',
+      name: 'Sara Khaled',
+      status: 'Online',
+      gradient: [Color(0xFF9A3412), Color(0xFF7C2D12)],
+    ),
+    (
+      initial: 'A',
+      name: 'Ahmed Tarek',
+      status: '5h ago',
+      gradient: [Color(0xFF1D4ED8), Color(0xFF1E1B4B)],
+    ),
+    (
+      initial: 'R',
+      name: 'Rania Mohamed',
+      status: 'Yesterday',
+      gradient: [Color(0xFF9D174D), Color(0xFF500724)],
+    ),
+    (
+      initial: 'K',
+      name: 'Karim Nour',
+      status: 'Online',
+      gradient: [Color(0xFF065F46), Color(0xFF064E3B)],
+    ),
   ];
 
   List<({String initial, String name, String status, List<Color> gradient})>
-      get _filtered {
+  get _filtered {
     final q = _search.text.toLowerCase();
     if (q.isEmpty) return _contacts;
     return _contacts.where((c) => c.name.toLowerCase().contains(q)).toList();
@@ -1505,7 +1680,8 @@ class _DmPickerSheetState extends State<_DmPickerSheet> {
                 // Handle
                 Center(
                   child: Container(
-                    width: 40, height: 4,
+                    width: 40,
+                    height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.2),
@@ -1528,7 +1704,11 @@ class _DmPickerSheetState extends State<_DmPickerSheet> {
                     const Spacer(),
                     GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
-                      child: Icon(Icons.close_rounded, color: Colors.white.withValues(alpha: 0.5), size: 22),
+                      child: Icon(
+                        Icons.close_rounded,
+                        color: Colors.white.withValues(alpha: 0.5),
+                        size: 22,
+                      ),
                     ),
                   ],
                 ),
@@ -1541,18 +1721,33 @@ class _DmPickerSheetState extends State<_DmPickerSheet> {
                   style: const TextStyle(fontSize: 14, color: Colors.white),
                   decoration: InputDecoration(
                     hintText: 'Search friends...',
-                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.35), fontSize: 14),
-                    prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.4), size: 20),
+                    hintStyle: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.35),
+                      fontSize: 14,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Colors.white.withValues(alpha: 0.4),
+                      size: 20,
+                    ),
                     filled: true,
                     fillColor: Colors.white.withValues(alpha: 0.07),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                      borderSide: BorderSide(
+                        color: Colors.white.withValues(alpha: 0.1),
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Color(0xFFFF7A18), width: 1.5),
+                      borderSide: const BorderSide(
+                        color: Color(0xFFFF7A18),
+                        width: 1.5,
+                      ),
                     ),
                   ),
                 ),
@@ -1567,8 +1762,10 @@ class _DmPickerSheetState extends State<_DmPickerSheet> {
                     padding: const EdgeInsets.only(bottom: 20),
                     shrinkWrap: true,
                     itemCount: filtered.length,
-                    separatorBuilder: (_, __) =>
-                        Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
+                    separatorBuilder: (_, __) => Divider(
+                      color: Colors.white.withValues(alpha: 0.06),
+                      height: 1,
+                    ),
                     itemBuilder: (ctx, i) {
                       final c = filtered[i];
                       final originalIndex = _contacts.indexOf(c);
@@ -1624,7 +1821,10 @@ class _DmContactTile extends StatelessWidget {
               shape: BoxShape.circle,
               gradient: LinearGradient(colors: gradient),
               boxShadow: [
-                BoxShadow(color: gradient.first.withValues(alpha: 0.4), blurRadius: 8),
+                BoxShadow(
+                  color: gradient.first.withValues(alpha: 0.4),
+                  blurRadius: 8,
+                ),
               ],
             ),
             child: Center(
@@ -1703,7 +1903,9 @@ class _DmContactTile extends StatelessWidget {
                     ? null
                     : [
                         BoxShadow(
-                          color: const Color(0xFFFF7A18).withValues(alpha: 0.38),
+                          color: const Color(
+                            0xFFFF7A18,
+                          ).withValues(alpha: 0.38),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),

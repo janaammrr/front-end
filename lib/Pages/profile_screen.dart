@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import '../auth/auth.dart';
 import 'edit_profile_screen.dart';
 import 'settings_screen.dart';
+import 'events_page.dart';
 import 'public_profile_screen.dart';
 import 'my_learning_screen.dart';
 import 'my_workshops_screen.dart';
@@ -11,11 +12,13 @@ import 'liked_videos_screen.dart';
 import 'saved_content_screen.dart';
 import 'wallet_screen.dart';
 import 'followers_screen.dart';
-import 'moderation_panel_screen.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
 import '../services/auth_service.dart';
 import '../services/follow_service.dart';
+import '../services/reel_service.dart';
+import '../services/workshop_service.dart';
+import '../services/event_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -36,12 +39,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUser() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final user = await UserService.getMe();
-      if (mounted) setState(() { _user = user; _loading = false; });
+      if (mounted) {
+        setState(() {
+          _user = user;
+          _loading = false;
+        });
+      }
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -59,7 +75,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     if (_loading) {
       return const Scaffold(
         backgroundColor: Color(0xFF09090B),
-        body: Center(child: CircularProgressIndicator(color: Color(0xFFFB923C))),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFFFB923C)),
+        ),
       );
     }
 
@@ -72,17 +90,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.person_off_rounded, color: Colors.white38, size: 56),
+                const Icon(
+                  Icons.person_off_rounded,
+                  color: Colors.white38,
+                  size: 56,
+                ),
                 const SizedBox(height: 16),
                 const Text(
                   'Could not load profile',
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   _error ?? '',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFFEF4444), fontSize: 12, height: 1.4),
+                  style: const TextStyle(
+                    color: Color(0xFFEF4444),
+                    fontSize: 12,
+                    height: 1.4,
+                  ),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
@@ -90,15 +120,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFB923C),
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 13,
+                    ),
                   ),
-                  child: const Text('Retry', style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: const Text(
+                    'Retry',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: _logout,
-                  child: const Text('Log out & log in again', style: TextStyle(color: Color(0xFFFB923C))),
+                  child: const Text(
+                    'Log out & log in again',
+                    style: TextStyle(color: Color(0xFFFB923C)),
+                  ),
                 ),
               ],
             ),
@@ -118,9 +159,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 SliverToBoxAdapter(
                   child: Column(
                     children: [
-                      _ProfileHeader(user: _user),
+                      _ProfileHeader(user: _user, onProfileChanged: _loadUser),
                       const SizedBox(height: 18),
-                      _ProfileActions(user: _user),
+                      _ProfileActions(user: _user, onProfileChanged: _loadUser),
                       const SizedBox(height: 18),
                       _StatsSection(userId: _user?.id),
                       const SizedBox(height: 18),
@@ -149,12 +190,20 @@ class _ProfileBackground extends StatelessWidget {
       children: [
         Container(color: const Color(0xFF09090B)),
         Positioned(
-          top: -100, right: -80,
-          child: _GlowOrb(color: const Color(0xFFFB923C).withValues(alpha: 0.28), size: 260),
+          top: -100,
+          right: -80,
+          child: _GlowOrb(
+            color: const Color(0xFFFB923C).withValues(alpha: 0.28),
+            size: 260,
+          ),
         ),
         Positioned(
-          bottom: -140, left: -90,
-          child: _GlowOrb(color: const Color(0xFF7C3AED).withValues(alpha: 0.22), size: 300),
+          bottom: -140,
+          left: -90,
+          child: _GlowOrb(
+            color: const Color(0xFF7C3AED).withValues(alpha: 0.22),
+            size: 300,
+          ),
         ),
       ],
     );
@@ -170,15 +219,21 @@ class _GlowOrb extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: size, height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: color, boxShadow: [BoxShadow(color: color, blurRadius: 120, spreadRadius: 35)]),
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [BoxShadow(color: color, blurRadius: 120, spreadRadius: 35)],
+      ),
     );
   }
 }
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({this.user});
+  const _ProfileHeader({this.user, required this.onProfileChanged});
   final UserModel? user;
+  final VoidCallback onProfileChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -190,7 +245,13 @@ class _ProfileHeader extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
         border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.35), blurRadius: 24, offset: const Offset(0, 12))],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
@@ -199,7 +260,15 @@ class _ProfileHeader extends StatelessWidget {
           children: [
             Container(
               decoration: const BoxDecoration(
-                gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460)]),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF1A1A2E),
+                    Color(0xFF16213E),
+                    Color(0xFF0F3460),
+                  ],
+                ),
               ),
             ),
             Container(
@@ -207,23 +276,36 @@ class _ProfileHeader extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
-                  colors: [Colors.black.withValues(alpha: 0.2), Colors.black.withValues(alpha: 0.75)],
+                  colors: [
+                    Colors.black.withValues(alpha: 0.2),
+                    Colors.black.withValues(alpha: 0.75),
+                  ],
                 ),
               ),
             ),
             Positioned(
-              top: 14, left: 14,
-              child: _CircleIconButton(icon: Icons.arrow_back_ios_new_rounded, onTap: () => Navigator.of(context).maybePop()),
-            ),
-            Positioned(
-              top: 14, right: 14,
+              top: 14,
+              left: 14,
               child: _CircleIconButton(
-                icon: Icons.settings_outlined,
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                icon: Icons.arrow_back_ios_new_rounded,
+                onTap: () => Navigator.of(context).maybePop(),
               ),
             ),
             Positioned(
-              left: 18, right: 18, bottom: 18,
+              top: 14,
+              right: 14,
+              child: _CircleIconButton(
+                icon: Icons.settings_outlined,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 18,
+              right: 18,
+              bottom: 18,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(24),
                 child: BackdropFilter(
@@ -233,33 +315,76 @@ class _ProfileHeader extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.16),
+                      ),
                     ),
                     child: Row(
                       children: [
                         Stack(
                           children: [
                             Container(
-                              width: 88, height: 88,
+                              width: 88,
+                              height: 88,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0xFFFB923C), width: 3),
-                                gradient: const LinearGradient(colors: [Color(0xFFFF7A18), Color(0xFFB83280)]),
+                                border: Border.all(
+                                  color: const Color(0xFFFB923C),
+                                  width: 3,
+                                ),
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFFF7A18),
+                                    Color(0xFFB83280),
+                                  ],
+                                ),
                               ),
-                              child: const CircleAvatar(
-                                radius: 44,
-                                backgroundColor: Colors.transparent,
-                                child: Icon(Icons.person_rounded, color: Colors.white, size: 44),
+                              child: ClipOval(
+                                child: user?.profileUrl != null
+                                    ? Image.network(
+                                        user!.profileUrl!,
+                                        fit: BoxFit.cover,
+                                        width: 88,
+                                        height: 88,
+                                        errorBuilder: (_, __, ___) =>
+                                            const Icon(
+                                          Icons.person_rounded,
+                                          color: Colors.white,
+                                          size: 44,
+                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.person_rounded,
+                                        color: Colors.white,
+                                        size: 44,
+                                      ),
                               ),
                             ),
                             Positioned(
-                              bottom: 2, right: 2,
+                              bottom: 2,
+                              right: 2,
                               child: GestureDetector(
-                                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen())),
+                                onTap: () async {
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const EditProfileScreen(),
+                                    ),
+                                  );
+                                  onProfileChanged();
+                                },
                                 child: Container(
-                                  width: 26, height: 26,
-                                  decoration: const BoxDecoration(color: Color(0xFFFB923C), shape: BoxShape.circle),
-                                  child: const Icon(Icons.edit_rounded, size: 14, color: Colors.white),
+                                  width: 26,
+                                  height: 26,
+                                  decoration: const BoxDecoration(
+                                    color: Color(0xFFFB923C),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.edit_rounded,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ),
@@ -270,9 +395,22 @@ class _ProfileHeader extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(displayName, style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800)),
+                              Text(
+                                displayName,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                               const SizedBox(height: 4),
-                              Text(handle, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                              Text(
+                                handle,
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 13,
+                                ),
+                              ),
                               const SizedBox(height: 10),
                               const _ProfileBadge(text: 'Creator • Learner'),
                             ],
@@ -303,9 +441,18 @@ class _ProfileBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: const Color(0xFFFB923C).withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFFB923C).withValues(alpha: 0.4)),
+        border: Border.all(
+          color: const Color(0xFFFB923C).withValues(alpha: 0.4),
+        ),
       ),
-      child: const Text('Creator • Learner', style: TextStyle(color: Color(0xFFFFD7AA), fontSize: 12, fontWeight: FontWeight.w700)),
+      child: const Text(
+        'Creator • Learner',
+        style: TextStyle(
+          color: Color(0xFFFFD7AA),
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }
@@ -326,8 +473,13 @@ class _CircleIconButton extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(999),
           child: Container(
-            width: 42, height: 42,
-            decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.35), shape: BoxShape.circle, border: Border.all(color: Colors.white.withValues(alpha: 0.16))),
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.35),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withValues(alpha: 0.16)),
+            ),
             child: Icon(icon, color: Colors.white, size: 20),
           ),
         ),
@@ -337,8 +489,9 @@ class _CircleIconButton extends StatelessWidget {
 }
 
 class _ProfileActions extends StatelessWidget {
-  const _ProfileActions({this.user});
+  const _ProfileActions({this.user, required this.onProfileChanged});
   final UserModel? user;
+  final VoidCallback onProfileChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -350,15 +503,28 @@ class _ProfileActions extends StatelessWidget {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EditProfileScreen())),
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const EditProfileScreen(),
+                      ),
+                    );
+                    onProfileChanged();
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFB923C),
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                   icon: const Icon(Icons.edit_outlined, size: 18),
-                  label: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.w700)),
+                  label: const Text(
+                    'Edit Profile',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
               const SizedBox(width: 10),
@@ -367,12 +533,19 @@ class _ProfileActions extends StatelessWidget {
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
-                    side: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+                    side: BorderSide(
+                      color: Colors.white.withValues(alpha: 0.2),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                   icon: const Icon(Icons.share_outlined, size: 18),
-                  label: const Text('Share', style: TextStyle(fontWeight: FontWeight.w700)),
+                  label: const Text(
+                    'Share',
+                    style: TextStyle(fontWeight: FontWeight.w700),
+                  ),
                 ),
               ),
             ],
@@ -383,8 +556,13 @@ class _ProfileActions extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (_) => PublicProfileScreen(
+                  creatorId: user?.id,
                   creatorName: user?.fullName ?? 'My Profile',
-                  gradient: const [Color(0xFF7C2D12), Color(0xFF9A3412), Color(0xFF09090B)],
+                  gradient: const [
+                    Color(0xFF7C2D12),
+                    Color(0xFF9A3412),
+                    Color(0xFF09090B),
+                  ],
                 ),
               ),
             ),
@@ -394,7 +572,10 @@ class _ProfileActions extends StatelessWidget {
                 filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
                 child: Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 13, horizontal: 16),
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 13,
+                    horizontal: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(16),
@@ -405,7 +586,11 @@ class _ProfileActions extends StatelessWidget {
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.remove_red_eye_outlined, color: Color(0xFFFF7A18), size: 18),
+                      Icon(
+                        Icons.remove_red_eye_outlined,
+                        color: Color(0xFFFF7A18),
+                        size: 18,
+                      ),
                       SizedBox(width: 8),
                       Text(
                         'Preview my public profile',
@@ -416,7 +601,11 @@ class _ProfileActions extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: 6),
-                      Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFFFF7A18), size: 13),
+                      Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: Color(0xFFFF7A18),
+                        size: 13,
+                      ),
                     ],
                   ),
                 ),
@@ -480,13 +669,29 @@ class _StatsSectionState extends State<_StatsSection> {
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FollowersScreen(initialTab: 1))),
-            child: _StatItem(title: 'Following', value: _loaded ? _fmt(_following) : '—'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const FollowersScreen(initialTab: 1),
+              ),
+            ),
+            child: _StatItem(
+              title: 'Following',
+              value: _loaded ? _fmt(_following) : '—',
+            ),
           ),
           const _Divider(),
           GestureDetector(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FollowersScreen(initialTab: 0))),
-            child: _StatItem(title: 'Followers', value: _loaded ? _fmt(_followers) : '—'),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const FollowersScreen(initialTab: 0),
+              ),
+            ),
+            child: _StatItem(
+              title: 'Followers',
+              value: _loaded ? _fmt(_followers) : '—',
+            ),
           ),
           const _Divider(),
           const _StatItem(title: 'Learned', value: '—'),
@@ -507,9 +712,19 @@ class _StatItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value, style: const TextStyle(color: Colors.white, fontSize: 19, fontWeight: FontWeight.w800)),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 19,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
         const SizedBox(height: 5),
-        Text(title, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        Text(
+          title,
+          style: const TextStyle(color: Colors.white54, fontSize: 12),
+        ),
       ],
     );
   }
@@ -535,30 +750,105 @@ class _CreatorCard extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 48, height: 48,
-            decoration: BoxDecoration(color: const Color(0xFFFB923C).withValues(alpha: 0.16), borderRadius: BorderRadius.circular(16)),
-            child: const Icon(Icons.auto_awesome_rounded, color: Color(0xFFFB923C)),
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFB923C).withValues(alpha: 0.16),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.auto_awesome_rounded,
+              color: Color(0xFFFB923C),
+            ),
           ),
           const SizedBox(width: 12),
           const Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Creator Progress', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                Text(
+                  'Creator Progress',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 SizedBox(height: 4),
-                Text('You are building a strong learning profile.', style: TextStyle(color: Colors.white60, fontSize: 12, height: 1.3)),
+                Text(
+                  'You are building a strong learning profile.',
+                  style: TextStyle(
+                    color: Colors.white60,
+                    fontSize: 12,
+                    height: 1.3,
+                  ),
+                ),
               ],
             ),
           ),
-          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white38, size: 15),
+          const Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: Colors.white38,
+            size: 15,
+          ),
         ],
       ),
     );
   }
 }
 
-class _MenuSection extends StatelessWidget {
+class _MenuSection extends StatefulWidget {
   const _MenuSection();
+
+  @override
+  State<_MenuSection> createState() => _MenuSectionState();
+}
+
+class _MenuSectionState extends State<_MenuSection> {
+  int? _likedCount;
+  int? _savedCount;
+  int? _bookedWorkshopsCount;
+  int? _createdWorkshopsCount;
+  int? _bookedEventsCount;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCounts();
+  }
+
+  Future<void> _loadCounts() async {
+    try {
+      final results = await Future.wait([
+        ReelService.getLiked(),
+        ReelService.getSaved(),
+        WorkshopService.getBooked(),
+        WorkshopService.getCreated(),
+        EventService.getBooked(),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _likedCount = results[0].length;
+        _savedCount = results[1].length;
+        _bookedWorkshopsCount = results[2].length;
+        _createdWorkshopsCount = results[3].length;
+        _bookedEventsCount = results[4].length;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _likedCount ??= 0;
+        _savedCount ??= 0;
+        _bookedWorkshopsCount ??= 0;
+        _createdWorkshopsCount ??= 0;
+        _bookedEventsCount ??= 0;
+      });
+    }
+  }
+
+  String _countLabel(int? count, String singular, String plural) {
+    if (count == null) return 'Loading...';
+    return '$count ${count == 1 ? singular : plural}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -567,38 +857,57 @@ class _MenuSection extends StatelessWidget {
         _MenuItem(
           icon: Icons.video_library_outlined,
           title: 'My Learning',
-          subtitle: '150 videos watched',
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyLearningScreen())),
+          subtitle: 'Learning activity is not tracked yet',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MyLearningScreen()),
+          ),
         ),
         _MenuItem(
           icon: Icons.school_outlined,
           title: 'My Workshops',
-          subtitle: '4 booked workshops',
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyWorkshopsScreen())),
+          subtitle:
+              '${_countLabel(_bookedWorkshopsCount, 'booked workshop', 'booked workshops')} - ${_countLabel(_createdWorkshopsCount, 'created', 'created')}',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MyWorkshopsScreen()),
+          ),
         ),
         _MenuItem(
           icon: Icons.favorite_border,
           title: 'Liked Videos',
-          subtitle: '89 videos',
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LikedVideosScreen())),
+          subtitle: _countLabel(_likedCount, 'video', 'videos'),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const LikedVideosScreen()),
+          ),
         ),
         _MenuItem(
           icon: Icons.bookmark_border,
           title: 'Saved Content',
-          subtitle: '130 saved items',
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SavedContentScreen())),
+          subtitle: _countLabel(_savedCount, 'saved reel', 'saved reels'),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const SavedContentScreen()),
+          ),
+        ),
+        _MenuItem(
+          icon: Icons.event_available_outlined,
+          title: 'Booked Events',
+          subtitle: _countLabel(_bookedEventsCount, 'event', 'events'),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const EventsPage()),
+          ),
         ),
         _MenuItem(
           icon: Icons.wallet_outlined,
           title: 'Wallet & Tokens',
           subtitle: 'Manage token seats and payments',
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WalletScreen())),
-        ),
-        _MenuItem(
-          icon: Icons.admin_panel_settings_outlined,
-          title: 'Moderation Panel',
-          subtitle: 'Admin — review content',
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ModerationPanelScreen())),
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const WalletScreen()),
+          ),
         ),
       ],
     );
@@ -606,7 +915,12 @@ class _MenuSection extends StatelessWidget {
 }
 
 class _MenuItem extends StatelessWidget {
-  const _MenuItem({required this.icon, required this.title, required this.subtitle, required this.onTap});
+  const _MenuItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
 
   final IconData icon;
   final String title;
@@ -623,8 +937,12 @@ class _MenuItem extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 46, height: 46,
-              decoration: BoxDecoration(color: const Color(0xFFFB923C).withValues(alpha: 0.13), borderRadius: BorderRadius.circular(14)),
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFB923C).withValues(alpha: 0.13),
+                borderRadius: BorderRadius.circular(14),
+              ),
               child: Icon(icon, color: const Color(0xFFFB923C), size: 22),
             ),
             const SizedBox(width: 12),
@@ -632,13 +950,26 @@ class _MenuItem extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 3),
-                  Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                  ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.white38),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 14,
+              color: Colors.white38,
+            ),
           ],
         ),
       ),
@@ -647,7 +978,11 @@ class _MenuItem extends StatelessWidget {
 }
 
 class _GlassPanel extends StatelessWidget {
-  const _GlassPanel({required this.child, required this.margin, required this.padding});
+  const _GlassPanel({
+    required this.child,
+    required this.margin,
+    required this.padding,
+  });
 
   final Widget child;
   final EdgeInsets margin;

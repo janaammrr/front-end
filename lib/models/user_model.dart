@@ -1,3 +1,5 @@
+import '../services/api_client.dart';
+
 class UserModel {
   final int id;
   final String firstname;
@@ -23,7 +25,7 @@ class UserModel {
       firstname: json['firstname'] as String? ?? '',
       lastname: json['lastname'] as String? ?? '',
       email: json['email'] as String? ?? '',
-      profileUrl: json['profileUrl'] as String?,
+      profileUrl: ApiClient.publicUrl(json['profileUrl'] as String?),
       role: json['role'] as String? ?? 'USER',
     );
   }

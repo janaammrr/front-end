@@ -1,3 +1,5 @@
+import '../services/api_client.dart';
+
 class ReelModel {
   final int id;
   final String caption;
@@ -32,8 +34,8 @@ class ReelModel {
     return ReelModel(
       id: (json['id'] as num).toInt(),
       caption: json['caption'] as String? ?? '',
-      videoUrl: json['videoUrl'] as String?,
-      thumbnailUrl: json['thumbnailUrl'] as String?,
+      videoUrl: ApiClient.publicUrl(json['videoUrl'] as String?),
+      thumbnailUrl: ApiClient.publicUrl(json['thumbnailUrl'] as String?),
       durationSeconds: (json['durationSeconds'] as num?)?.toInt(),
       views: (json['views'] as num?)?.toInt() ?? 0,
       likesCount: (json['likesCount'] as num?)?.toInt() ?? 0,

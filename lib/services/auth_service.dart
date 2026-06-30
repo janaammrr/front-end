@@ -38,6 +38,11 @@ class AuthService {
     return token != null;
   }
 
+  static bool isAuthFailure(Object error) {
+    return error is DioException &&
+        (error.response?.statusCode == 401 || error.response?.statusCode == 403);
+  }
+
   static String mapDioError(DioException e) {
     if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
       return 'Invalid email or password.';

@@ -1,7 +1,7 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../services/chat_service.dart';
 import '../services/user_service.dart';
+import '../services/follow_service.dart';
 
 class MessagingScreen extends StatefulWidget {
   const MessagingScreen({super.key});
@@ -26,18 +26,48 @@ class _MessagingScreenState extends State<MessagingScreen> {
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final me = await UserService.getMe();
-      final inbox = await ChatService.getInbox();
+      final results = await Future.wait([
+        ChatService.getInbox(),
+        FollowService.getFollowing(me.id),
+      ]);
+      final inbox = results[0] as List<InboxItem>;
+      final following = results[1] as List<FollowUser>;
+      final inboxUserIds = inbox.map((item) => item.otherUser.id).toSet();
+      final startableChats = following
+          .where((user) => !inboxUserIds.contains(user.id))
+          .map(
+            (user) => InboxItem(
+              otherUser: ChatUser(
+                id: user.id,
+                firstname: user.firstname,
+                lastname: user.lastname,
+                profileUrl: user.profileUrl,
+              ),
+              lastMessage: 'Start a conversation',
+              isRead: true,
+              unreadCount: 0,
+            ),
+          )
+          .toList();
       if (!mounted) return;
       setState(() {
-        _inbox = inbox;
+        _inbox = [...inbox, ...startableChats];
         _myId = me.id;
         _loading = false;
       });
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -47,8 +77,13 @@ class _MessagingScreenState extends State<MessagingScreen> {
     super.dispose();
   }
 
-  List<InboxItem> get _filtered =>
-      _query.isEmpty ? _inbox : _inbox.where((c) => c.otherUser.displayName.toLowerCase().contains(_query)).toList();
+  List<InboxItem> get _filtered => _query.isEmpty
+      ? _inbox
+      : _inbox
+            .where(
+              (c) => c.otherUser.displayName.toLowerCase().contains(_query),
+            )
+            .toList();
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +92,22 @@ class _MessagingScreenState extends State<MessagingScreen> {
       backgroundColor: const Color(0xFF09090B),
       body: Stack(
         children: [
-          Positioned(top: -80, right: -60, child: _GlowOrb(color: const Color(0xFF3B82F6).withValues(alpha: 0.14), size: 200)),
-          Positioned(bottom: -100, left: -60, child: _GlowOrb(color: const Color(0xFF6D28D9).withValues(alpha: 0.14), size: 240)),
+          Positioned(
+            top: -80,
+            right: -60,
+            child: _GlowOrb(
+              color: const Color(0xFF3B82F6).withValues(alpha: 0.14),
+              size: 200,
+            ),
+          ),
+          Positioned(
+            bottom: -100,
+            left: -60,
+            child: _GlowOrb(
+              color: const Color(0xFF6D28D9).withValues(alpha: 0.14),
+              size: 240,
+            ),
+          ),
           SafeArea(
             child: Column(
               children: [
@@ -68,7 +117,14 @@ class _MessagingScreenState extends State<MessagingScreen> {
                     children: [
                       _BackButton(onTap: () => Navigator.of(context).pop()),
                       const SizedBox(width: 12),
-                      const Text('Messages', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+                      const Text(
+                        'Messages',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       const Spacer(),
                     ],
                   ),
@@ -82,47 +138,105 @@ class _MessagingScreenState extends State<MessagingScreen> {
                     decoration: InputDecoration(
                       hintText: 'Search messages',
                       hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-                      prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF6B7280)),
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        color: Color(0xFF6B7280),
+                      ),
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.06),
                       contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-                      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-                      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFFF7A18), width: 1.1)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.1),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(
+                          color: Color(0xFFFF7A18),
+                          width: 1.1,
+                        ),
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 12),
                 Expanded(
                   child: _loading
-                      ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF7A18)))
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFFFF7A18),
+                          ),
+                        )
                       : _error != null
-                          ? Center(
-                              child: Column(mainAxisSize: MainAxisSize.min, children: [
-                                const Icon(Icons.error_outline, color: Colors.white38, size: 48),
-                                const SizedBox(height: 12),
-                                Text(_error!, style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13)),
-                                const SizedBox(height: 16),
-                                ElevatedButton(onPressed: _load, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF7A18)), child: const Text('Retry', style: TextStyle(color: Colors.white))),
-                              ]),
-                            )
-                          : convos.isEmpty
-                              ? const Center(child: Text('No conversations yet', style: TextStyle(color: Color(0xFF6B7280))))
-                              : RefreshIndicator(
-                                  onRefresh: _load,
-                                  color: const Color(0xFFFF7A18),
-                                  child: ListView.separated(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                                    itemCount: convos.length,
-                                    separatorBuilder: (_, _) => Divider(color: Colors.white.withValues(alpha: 0.06), height: 1),
-                                    itemBuilder: (_, i) => _ConvoTile(
-                                      item: convos[i],
-                                      onTap: () => Navigator.of(context).push(
-                                        MaterialPageRoute(builder: (_) => ChatScreen(otherUser: convos[i].otherUser, myId: _myId)),
-                                      ),
-                                    ),
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.error_outline,
+                                color: Colors.white38,
+                                size: 48,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                _error!,
+                                style: const TextStyle(
+                                  color: Color(0xFFEF4444),
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ElevatedButton(
+                                onPressed: _load,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFFFF7A18),
+                                ),
+                                child: const Text(
+                                  'Retry',
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : convos.isEmpty
+                      ? const Center(
+                          child: Text(
+                            'No conversations yet',
+                            style: TextStyle(color: Color(0xFF6B7280)),
+                          ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _load,
+                          color: const Color(0xFFFF7A18),
+                          child: ListView.separated(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: convos.length,
+                            separatorBuilder: (_, _) => Divider(
+                              color: Colors.white.withValues(alpha: 0.06),
+                              height: 1,
+                            ),
+                            itemBuilder: (_, i) => _ConvoTile(
+                              item: convos[i],
+                              onTap: () => Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) => ChatScreen(
+                                    otherUser: convos[i].otherUser,
+                                    myId: _myId,
                                   ),
                                 ),
+                              ),
+                            ),
+                          ),
+                        ),
                 ),
               ],
             ),
@@ -147,12 +261,52 @@ class _ConvoTile extends StatelessWidget {
       leading: CircleAvatar(
         radius: 26,
         backgroundColor: const Color(0xFFFF7A18).withValues(alpha: 0.2),
-        child: Text(item.otherUser.initials, style: const TextStyle(color: Color(0xFFFF7A18), fontWeight: FontWeight.w800, fontSize: 16)),
+        child: Text(
+          item.otherUser.initials,
+          style: const TextStyle(
+            color: Color(0xFFFF7A18),
+            fontWeight: FontWeight.w800,
+            fontSize: 16,
+          ),
+        ),
       ),
-      title: Text(item.otherUser.displayName, style: TextStyle(color: Colors.white, fontWeight: item.unreadCount > 0 ? FontWeight.w700 : FontWeight.w600)),
-      subtitle: Text(item.lastMessage, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: item.unreadCount > 0 ? const Color(0xFFD1D5DB) : const Color(0xFF6B7280), fontSize: 13)),
+      title: Text(
+        item.otherUser.displayName,
+        style: TextStyle(
+          color: Colors.white,
+          fontWeight: item.unreadCount > 0 ? FontWeight.w700 : FontWeight.w600,
+        ),
+      ),
+      subtitle: Text(
+        item.lastMessage,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          color: item.unreadCount > 0
+              ? const Color(0xFFD1D5DB)
+              : const Color(0xFF6B7280),
+          fontSize: 13,
+        ),
+      ),
       trailing: item.unreadCount > 0
-          ? Container(width: 20, height: 20, decoration: const BoxDecoration(color: Color(0xFFFF7A18), shape: BoxShape.circle), child: Center(child: Text('${item.unreadCount}', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w800))))
+          ? Container(
+              width: 20,
+              height: 20,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFF7A18),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  '${item.unreadCount}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            )
           : null,
     );
   }
@@ -186,8 +340,16 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Future<void> _loadMessages() async {
     try {
-      final msgs = await ChatService.getConversation(widget.otherUser.id, widget.myId);
-      if (mounted) setState(() { _messages = msgs; _loading = false; });
+      final msgs = await ChatService.getConversation(
+        widget.otherUser.id,
+        widget.myId,
+      );
+      if (mounted) {
+        setState(() {
+          _messages = msgs;
+          _loading = false;
+        });
+      }
       _scrollToBottom();
     } catch (e) {
       if (mounted) setState(() => _loading = false);
@@ -197,7 +359,11 @@ class _ChatScreenState extends State<ChatScreen> {
   void _scrollToBottom() {
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
-        _scrollController.animateTo(_scrollController.position.maxScrollExtent, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
     });
   }
@@ -208,15 +374,27 @@ class _ChatScreenState extends State<ChatScreen> {
     _controller.clear();
     setState(() => _sending = true);
     try {
-      final msg = await ChatService.sendMessage(widget.otherUser.id, text, widget.myId);
+      final msg = await ChatService.sendMessage(
+        widget.otherUser.id,
+        text,
+        widget.myId,
+      );
       if (mounted) {
-        setState(() { _messages.add(msg); _sending = false; });
+        setState(() {
+          _messages.add(msg);
+          _sending = false;
+        });
         _scrollToBottom();
       }
     } catch (e) {
       if (mounted) {
         setState(() => _sending = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to send: $e'), backgroundColor: const Color(0xFFEF4444)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to send: $e'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
       }
     }
   }
@@ -238,20 +416,48 @@ class _ChatScreenState extends State<ChatScreen> {
           children: [
             Container(
               padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.08)))),
+              decoration: BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(
+                    color: Colors.white.withValues(alpha: 0.08),
+                  ),
+                ),
+              ),
               child: Row(
                 children: [
                   _BackButton(onTap: () => Navigator.of(context).pop()),
                   const SizedBox(width: 10),
-                  CircleAvatar(radius: 20, backgroundColor: const Color(0xFFFF7A18).withValues(alpha: 0.2), child: Text(widget.otherUser.initials, style: const TextStyle(color: Color(0xFFFF7A18), fontWeight: FontWeight.w800))),
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundColor: const Color(
+                      0xFFFF7A18,
+                    ).withValues(alpha: 0.2),
+                    child: Text(
+                      widget.otherUser.initials,
+                      style: const TextStyle(
+                        color: Color(0xFFFF7A18),
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: 10),
-                  Text(widget.otherUser.displayName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                  Text(
+                    widget.otherUser.displayName,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ],
               ),
             ),
             Expanded(
               child: _loading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF7A18)))
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFFF7A18),
+                      ),
+                    )
                   : ListView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.all(16),
@@ -269,12 +475,27 @@ class _ChatScreenState extends State<ChatScreen> {
                       style: const TextStyle(color: Colors.white, fontSize: 14),
                       decoration: InputDecoration(
                         hintText: 'Message…',
-                        hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
+                        hintStyle: const TextStyle(
+                          color: Color(0xFF6B7280),
+                          fontSize: 14,
+                        ),
                         filled: true,
                         fillColor: Colors.white.withValues(alpha: 0.07),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: BorderSide.none),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(22), borderSide: const BorderSide(color: Color(0xFFFF7A18), width: 1.2)),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(22),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(22),
+                          borderSide: const BorderSide(
+                            color: Color(0xFFFF7A18),
+                            width: 1.2,
+                          ),
+                        ),
                       ),
                       onSubmitted: (_) => _send(),
                     ),
@@ -283,11 +504,28 @@ class _ChatScreenState extends State<ChatScreen> {
                   GestureDetector(
                     onTap: _send,
                     child: Container(
-                      width: 42, height: 42,
-                      decoration: const BoxDecoration(color: Color(0xFFFF7A18), shape: BoxShape.circle),
+                      width: 42,
+                      height: 42,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF7A18),
+                        shape: BoxShape.circle,
+                      ),
                       child: _sending
-                          ? const Center(child: SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)))
-                          : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                          ? const Center(
+                              child: SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            )
+                          : const Icon(
+                              Icons.send_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
                     ),
                   ),
                 ],
@@ -310,21 +548,41 @@ class _ChatBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
-        mainAxisAlignment: msg.isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: msg.isMine
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!msg.isMine) ...[
-            const CircleAvatar(radius: 14, backgroundColor: Color(0x33FF7A18), child: Text('?', style: TextStyle(color: Color(0xFFFF7A18), fontSize: 11, fontWeight: FontWeight.w800))),
+            const CircleAvatar(
+              radius: 14,
+              backgroundColor: Color(0x33FF7A18),
+              child: Text(
+                '?',
+                style: TextStyle(
+                  color: Color(0xFFFF7A18),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
             const SizedBox(width: 8),
           ],
           Flexible(
             child: Column(
-              crossAxisAlignment: msg.isMine ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: msg.isMine
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
-                    color: msg.isMine ? const Color(0xFFFF7A18) : Colors.white.withValues(alpha: 0.09),
+                    color: msg.isMine
+                        ? const Color(0xFFFF7A18)
+                        : Colors.white.withValues(alpha: 0.09),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(18),
                       topRight: const Radius.circular(18),
@@ -332,10 +590,25 @@ class _ChatBubble extends StatelessWidget {
                       bottomRight: Radius.circular(msg.isMine ? 4 : 18),
                     ),
                   ),
-                  child: Text(msg.content, style: TextStyle(color: msg.isMine ? Colors.white : const Color(0xFFD1D5DB), fontSize: 14, height: 1.4)),
+                  child: Text(
+                    msg.content,
+                    style: TextStyle(
+                      color: msg.isMine
+                          ? Colors.white
+                          : const Color(0xFFD1D5DB),
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 3),
-                Text(msg.sentAt, style: const TextStyle(color: Color(0xFF4B5563), fontSize: 11)),
+                Text(
+                  msg.sentAt,
+                  style: const TextStyle(
+                    color: Color(0xFF4B5563),
+                    fontSize: 11,
+                  ),
+                ),
               ],
             ),
           ),
@@ -353,7 +626,15 @@ class _GlowOrb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(width: size, height: size, decoration: BoxDecoration(shape: BoxShape.circle, color: color, boxShadow: [BoxShadow(color: color, blurRadius: 100, spreadRadius: 30)]));
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [BoxShadow(color: color, blurRadius: 100, spreadRadius: 30)],
+      ),
+    );
   }
 }
 
@@ -367,9 +648,18 @@ class _BackButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40, height: 40,
-        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.07), shape: BoxShape.circle, border: Border.all(color: Colors.white.withValues(alpha: 0.12))),
-        child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.07),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: Colors.white,
+          size: 18,
+        ),
       ),
     );
   }
