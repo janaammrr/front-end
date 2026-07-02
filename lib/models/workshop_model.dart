@@ -4,6 +4,8 @@ class WorkshopModel {
   final String? description;
   final String? location;
   final int? capacity;
+  final String? date;
+  final double? price;
 
   const WorkshopModel({
     required this.id,
@@ -11,6 +13,8 @@ class WorkshopModel {
     this.description,
     this.location,
     this.capacity,
+    this.date,
+    this.price,
   });
 
   factory WorkshopModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +24,8 @@ class WorkshopModel {
       description: json['description'] as String?,
       location: json['location'] as String?,
       capacity: (json['capacity'] as num?)?.toInt(),
+      date: json['date'] as String?,
+      price: (json['price'] as num?)?.toDouble(),
     );
   }
 }

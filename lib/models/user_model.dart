@@ -22,8 +22,10 @@ class UserModel {
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: (json['id'] as num).toInt(),
-      firstname: json['firstname'] as String? ?? '',
-      lastname: json['lastname'] as String? ?? '',
+      firstname:
+          json['firstname'] as String? ?? json['firstName'] as String? ?? '',
+      lastname:
+          json['lastname'] as String? ?? json['lastName'] as String? ?? '',
       email: json['email'] as String? ?? '',
       profileUrl: ApiClient.publicUrl(json['profileUrl'] as String?),
       role: json['role'] as String? ?? 'USER',

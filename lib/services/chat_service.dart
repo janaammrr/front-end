@@ -22,8 +22,8 @@ class ChatUser {
 
   factory ChatUser.fromJson(Map<String, dynamic> j) => ChatUser(
     id: (j['id'] as num).toInt(),
-    firstname: j['firstname'] as String? ?? '',
-    lastname: j['lastname'] as String? ?? '',
+    firstname: j['firstname'] as String? ?? j['firstName'] as String? ?? '',
+    lastname: j['lastname'] as String? ?? j['lastName'] as String? ?? '',
     profileUrl: j['profileUrl'] as String?,
   );
 }

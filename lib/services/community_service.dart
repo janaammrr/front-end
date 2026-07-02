@@ -6,7 +6,11 @@ class CommunityUser {
   final String firstname;
   final String lastname;
 
-  CommunityUser({required this.id, required this.firstname, required this.lastname});
+  CommunityUser({
+    required this.id,
+    required this.firstname,
+    required this.lastname,
+  });
 
   String get displayName => '$firstname $lastname'.trim();
   String get initials {
@@ -16,10 +20,10 @@ class CommunityUser {
   }
 
   factory CommunityUser.fromJson(Map<String, dynamic> j) => CommunityUser(
-        id: (j['id'] as num).toInt(),
-        firstname: j['firstname'] as String? ?? '',
-        lastname: j['lastname'] as String? ?? '',
-      );
+    id: (j['id'] as num).toInt(),
+    firstname: j['firstname'] as String? ?? j['firstName'] as String? ?? '',
+    lastname: j['lastname'] as String? ?? j['lastName'] as String? ?? '',
+  );
 }
 
 class CommunityModel {
@@ -40,13 +44,13 @@ class CommunityModel {
   });
 
   factory CommunityModel.fromJson(Map<String, dynamic> j) => CommunityModel(
-        id: (j['id'] as num).toInt(),
-        name: j['name'] as String? ?? '',
-        description: j['description'] as String? ?? '',
-        photoUrl: j['photoUrl'] as String?,
-        admin: CommunityUser.fromJson(j['admin'] as Map<String, dynamic>),
-        memberCount: (j['memberCount'] as num?)?.toInt() ?? 0,
-      );
+    id: (j['id'] as num).toInt(),
+    name: j['name'] as String? ?? '',
+    description: j['description'] as String? ?? '',
+    photoUrl: j['photoUrl'] as String?,
+    admin: CommunityUser.fromJson(j['admin'] as Map<String, dynamic>),
+    memberCount: (j['memberCount'] as num?)?.toInt() ?? 0,
+  );
 }
 
 class CommunityPostModel {
@@ -66,7 +70,8 @@ class CommunityPostModel {
     required this.likedByMe,
   });
 
-  factory CommunityPostModel.fromJson(Map<String, dynamic> j) => CommunityPostModel(
+  factory CommunityPostModel.fromJson(Map<String, dynamic> j) =>
+      CommunityPostModel(
         id: (j['id'] as num).toInt(),
         content: j['content'] as String? ?? '',
         imageUrl: j['imageUrl'] as String?,
@@ -80,7 +85,9 @@ class CommunityService {
   static Future<List<CommunityModel>> getAll() async {
     final res = await ApiClient.instance.get('/api/communities');
     final list = res.data as List<dynamic>;
-    return list.map((e) => CommunityModel.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => CommunityModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   static Future<void> join(int communityId) async {
@@ -91,24 +98,45 @@ class CommunityService {
     await ApiClient.instance.delete('/api/communities/$communityId/leave');
   }
 
+  static Future<void> deleteCommunity(int communityId) async {
+    await ApiClient.instance.delete('/api/communities/$communityId');
+  }
+
   static Future<List<CommunityPostModel>> getPosts(int communityId) async {
-    final res = await ApiClient.instance.get('/api/communities/$communityId/posts');
+    final res = await ApiClient.instance.get(
+      '/api/communities/$communityId/posts',
+    );
     final list = res.data as List<dynamic>;
-    return list.map((e) => CommunityPostModel.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => CommunityPostModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   static Future<void> createPost(int communityId, String content) async {
     final form = FormData.fromMap({'content': content});
-    await ApiClient.instance.post('/api/communities/$communityId/posts', data: form);
+    await ApiClient.instance.post(
+      '/api/communities/$communityId/posts',
+      data: form,
+    );
   }
 
-  static Future<CommunityPostModel> likePost(int communityId, int postId) async {
-    final res = await ApiClient.instance.post('/api/communities/$communityId/posts/$postId/like');
+  static Future<CommunityPostModel> likePost(
+    int communityId,
+    int postId,
+  ) async {
+    final res = await ApiClient.instance.post(
+      '/api/communities/$communityId/posts/$postId/like',
+    );
     return CommunityPostModel.fromJson(res.data as Map<String, dynamic>);
   }
 
-  static Future<CommunityPostModel> unlikePost(int communityId, int postId) async {
-    final res = await ApiClient.instance.delete('/api/communities/$communityId/posts/$postId/like');
+  static Future<CommunityPostModel> unlikePost(
+    int communityId,
+    int postId,
+  ) async {
+    final res = await ApiClient.instance.delete(
+      '/api/communities/$communityId/posts/$postId/like',
+    );
     return CommunityPostModel.fromJson(res.data as Map<String, dynamic>);
   }
 
@@ -119,8 +147,18 @@ class CommunityService {
   }
 
   static Future<List<CommunityUser>> getMembers(int communityId) async {
-    final res = await ApiClient.instance.get('/api/communities/$communityId/members');
+    final res = await ApiClient.instance.get(
+      '/api/communities/$communityId/members',
+    );
     final list = res.data as List<dynamic>;
-    return list.map((e) => CommunityUser.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => CommunityUser.fromJson(e as Map<String, dynamic>))
+        .toList();
+  }
+
+  static Future<void> deletePost(int communityId, int postId) async {
+    await ApiClient.instance.delete(
+      '/api/communities/$communityId/posts/$postId',
+    );
   }
 }

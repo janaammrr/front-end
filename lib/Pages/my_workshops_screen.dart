@@ -10,10 +10,12 @@ class MyWorkshopsScreen extends StatefulWidget {
   State<MyWorkshopsScreen> createState() => _MyWorkshopsScreenState();
 }
 
-class _MyWorkshopsScreenState extends State<MyWorkshopsScreen> with SingleTickerProviderStateMixin {
+class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
 
   List<WorkshopModel> _booked = [];
+  final Map<int, int> _bookingIds = {};
   List<WorkshopModel> _created = [];
   bool _loading = true;
   String? _error;
@@ -26,13 +28,33 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen> with SingleTicker
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
-      final booked = await WorkshopService.getBooked();
+      final bookedRows = await WorkshopService.getBookedRows();
+      final booked = bookedRows.map((row) {
+        final item = row['item'] as Map<String, dynamic>;
+        final model = WorkshopModel.fromJson(item);
+        _bookingIds[model.id] = (row['bookingId'] as num).toInt();
+        return model;
+      }).toList();
       final created = await WorkshopService.getCreated();
-      if (mounted) setState(() { _booked = booked; _created = created; _loading = false; });
+      if (mounted) {
+        setState(() {
+          _booked = booked;
+          _created = created;
+          _loading = false;
+        });
+      }
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted) {
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -48,8 +70,22 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen> with SingleTicker
       backgroundColor: const Color(0xFF09090B),
       body: Stack(
         children: [
-          Positioned(top: -80, right: -60, child: _GlowOrb(color: const Color(0xFFFF7A18).withValues(alpha: 0.16), size: 200)),
-          Positioned(bottom: -100, left: -60, child: _GlowOrb(color: const Color(0xFF6D28D9).withValues(alpha: 0.14), size: 240)),
+          Positioned(
+            top: -80,
+            right: -60,
+            child: _GlowOrb(
+              color: const Color(0xFFFF7A18).withValues(alpha: 0.16),
+              size: 200,
+            ),
+          ),
+          Positioned(
+            bottom: -100,
+            left: -60,
+            child: _GlowOrb(
+              color: const Color(0xFF6D28D9).withValues(alpha: 0.14),
+              size: 240,
+            ),
+          ),
           SafeArea(
             child: Column(
               children: [
@@ -59,22 +95,58 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen> with SingleTicker
                     children: [
                       _BackButton(onTap: () => Navigator.of(context).pop()),
                       const SizedBox(width: 12),
-                      const Text('My Workshops', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+                      const Text(
+                        'My Workshops',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 if (_loading)
-                  const Expanded(child: Center(child: CircularProgressIndicator(color: Color(0xFFFF7A18))))
+                  const Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFFFF7A18),
+                      ),
+                    ),
+                  )
                 else if (_error != null)
                   Expanded(
                     child: Center(
-                      child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        const Icon(Icons.error_outline, color: Colors.white38, size: 48),
-                        const SizedBox(height: 12),
-                        Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13)),
-                        const SizedBox(height: 16),
-                        ElevatedButton(onPressed: _load, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF7A18)), child: const Text('Retry', style: TextStyle(color: Colors.white))),
-                      ]),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.error_outline,
+                            color: Colors.white38,
+                            size: 48,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            _error!,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              color: Color(0xFFEF4444),
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _load,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFF7A18),
+                            ),
+                            child: const Text(
+                              'Retry',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 else ...[
@@ -95,8 +167,31 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen> with SingleTicker
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        _WorkshopList(items: _booked, emptyMessage: 'No booked workshops yet. Browse and book one!'),
-                        _WorkshopList(items: _created, emptyMessage: 'You haven\'t created any workshops yet.', showManage: true),
+                        _WorkshopList(
+                          items: _booked,
+                          emptyMessage:
+                              'No booked workshops yet. Browse and book one!',
+                          actionLabel: 'Cancel booking',
+                          actionIcon: Icons.event_busy_rounded,
+                          onAction: (item) async {
+                            final bookingId = _bookingIds[item.id];
+                            if (bookingId == null) return;
+                            await WorkshopService.cancelBooking(bookingId);
+                            await _load();
+                          },
+                        ),
+                        _WorkshopList(
+                          items: _created,
+                          emptyMessage:
+                              'You haven\'t created any workshops yet.',
+                          actionLabel: 'Delete workshop',
+                          actionIcon: Icons.delete_outline_rounded,
+                          destructive: true,
+                          onAction: (item) async {
+                            await WorkshopService.deleteWorkshop(item.id);
+                            await _load();
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -111,11 +206,21 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen> with SingleTicker
 }
 
 class _WorkshopList extends StatelessWidget {
-  const _WorkshopList({required this.items, required this.emptyMessage, this.showManage = false});
+  const _WorkshopList({
+    required this.items,
+    required this.emptyMessage,
+    this.actionLabel,
+    this.actionIcon,
+    this.destructive = false,
+    this.onAction,
+  });
 
   final List<WorkshopModel> items;
   final String emptyMessage;
-  final bool showManage;
+  final String? actionLabel;
+  final IconData? actionIcon;
+  final bool destructive;
+  final Future<void> Function(WorkshopModel item)? onAction;
 
   @override
   Widget build(BuildContext context) {
@@ -124,9 +229,17 @@ class _WorkshopList extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.school_outlined, color: Color(0xFF374151), size: 48),
+            const Icon(
+              Icons.school_outlined,
+              color: Color(0xFF374151),
+              size: 48,
+            ),
             const SizedBox(height: 12),
-            Text(emptyMessage, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFF6B7280))),
+            Text(
+              emptyMessage,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Color(0xFF6B7280)),
+            ),
           ],
         ),
       );
@@ -138,20 +251,36 @@ class _WorkshopList extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         itemCount: items.length,
         separatorBuilder: (_, _) => const SizedBox(height: 12),
-        itemBuilder: (_, i) => _WorkshopCard(item: items[i], showManage: showManage),
+        itemBuilder: (_, i) => _WorkshopCard(
+          item: items[i],
+          actionLabel: actionLabel,
+          actionIcon: actionIcon,
+          destructive: destructive,
+          onAction: onAction == null ? null : () => onAction!(items[i]),
+        ),
       ),
     );
   }
 }
 
 class _WorkshopCard extends StatelessWidget {
-  const _WorkshopCard({required this.item, required this.showManage});
+  const _WorkshopCard({
+    required this.item,
+    this.actionLabel,
+    this.actionIcon,
+    this.destructive = false,
+    this.onAction,
+  });
 
   final WorkshopModel item;
-  final bool showManage;
+  final String? actionLabel;
+  final IconData? actionIcon;
+  final bool destructive;
+  final Future<void> Function()? onAction;
 
   @override
   Widget build(BuildContext context) {
+    final price = item.price ?? 0;
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
       child: BackdropFilter(
@@ -169,54 +298,147 @@ class _WorkshopCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(color: const Color(0xFFFF7A18).withValues(alpha: 0.18), borderRadius: BorderRadius.circular(999)),
-                    child: const Text('Workshop', style: TextStyle(color: Color(0xFFFF7A18), fontSize: 11, fontWeight: FontWeight.w700)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF7A18).withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Text(
+                      'Workshop',
+                      style: TextStyle(
+                        color: Color(0xFFFF7A18),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
                   const Spacer(),
-                  if (item.capacity != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.07), borderRadius: BorderRadius.circular(999)),
-                      child: Text('${item.capacity} seats', style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                    ),
+                  if (item.capacity != null) ...[
+                    _MetaChip(text: '${item.capacity} seats'),
+                    const SizedBox(width: 8),
+                  ],
+                  _MetaChip(
+                    text: price <= 0 ? 'Free' : '\$${price.toStringAsFixed(0)}',
+                  ),
                 ],
               ),
               const SizedBox(height: 10),
-              Text(item.title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+              Text(
+                item.title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               if (item.description != null && item.description!.isNotEmpty) ...[
                 const SizedBox(height: 6),
-                Text(item.description!, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 13)),
+                Text(
+                  item.description!,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF9CA3AF),
+                    fontSize: 13,
+                  ),
+                ),
               ],
               if (item.location != null && item.location!.isNotEmpty) ...[
                 const SizedBox(height: 6),
-                _Detail(icon: Icons.language_rounded, text: item.location!),
+                _Detail(icon: Icons.location_on_outlined, text: item.location!),
               ],
-              if (showManage) ...[
+              if (item.date != null && item.date!.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                _Detail(icon: Icons.calendar_today_outlined, text: item.date!),
+              ],
+              if (onAction != null && actionLabel != null) ...[
                 const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {},
-                        style: OutlinedButton.styleFrom(foregroundColor: Colors.white, side: BorderSide(color: Colors.white.withValues(alpha: 0.2)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                        child: const Text('Edit'),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () async {
+                      final ok = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          backgroundColor: const Color(0xFF111827),
+                          title: Text(
+                            actionLabel!,
+                            style: const TextStyle(color: Colors.white),
+                          ),
+                          content: Text(
+                            'Are you sure?',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.7),
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: Text(
+                                actionLabel!,
+                                style: TextStyle(
+                                  color: destructive
+                                      ? const Color(0xFFEF4444)
+                                      : const Color(0xFFFF7A18),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (ok == true) await onAction!();
+                    },
+                    icon: Icon(actionIcon ?? Icons.delete_outline_rounded),
+                    label: Text(actionLabel!),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: destructive
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFFFF7A18),
+                      side: BorderSide(
+                        color:
+                            (destructive
+                                    ? const Color(0xFFEF4444)
+                                    : const Color(0xFFFF7A18))
+                                .withValues(alpha: 0.45),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF7A18), foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                        child: const Text('Manage'),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _MetaChip extends StatelessWidget {
+  const _MetaChip({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.07),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(color: Colors.white70, fontSize: 12),
       ),
     );
   }
@@ -236,7 +458,14 @@ class _Detail extends StatelessWidget {
         children: [
           Icon(icon, size: 14, color: const Color(0xFF9CA3AF)),
           const SizedBox(width: 6),
-          Expanded(child: Text(text, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFFB2B8CB), fontSize: 13))),
+          Expanded(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Color(0xFFB2B8CB), fontSize: 13),
+            ),
+          ),
         ],
       ),
     );
@@ -251,7 +480,15 @@ class _GlowOrb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(width: size, height: size, decoration: BoxDecoration(shape: BoxShape.circle, color: color, boxShadow: [BoxShadow(color: color, blurRadius: 100, spreadRadius: 30)]));
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [BoxShadow(color: color, blurRadius: 100, spreadRadius: 30)],
+      ),
+    );
   }
 }
 
@@ -265,9 +502,18 @@ class _BackButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40, height: 40,
-        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.07), shape: BoxShape.circle, border: Border.all(color: Colors.white.withValues(alpha: 0.12))),
-        child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.07),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: Colors.white,
+          size: 18,
+        ),
       ),
     );
   }

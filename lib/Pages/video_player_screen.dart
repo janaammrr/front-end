@@ -1,9 +1,14 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'comments_screen.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
-  const VideoPlayerScreen({super.key, required this.title, required this.creator, required this.category, required this.gradient});
+  const VideoPlayerScreen({
+    super.key,
+    required this.title,
+    required this.creator,
+    required this.category,
+    required this.gradient,
+  });
 
   final String title;
   final String creator;
@@ -14,7 +19,8 @@ class VideoPlayerScreen extends StatefulWidget {
   State<VideoPlayerScreen> createState() => _VideoPlayerScreenState();
 }
 
-class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTickerProviderStateMixin {
+class _VideoPlayerScreenState extends State<VideoPlayerScreen>
+    with SingleTickerProviderStateMixin {
   bool _isPlaying = false;
   bool _showControls = true;
   bool _liked = false;
@@ -29,8 +35,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
   @override
   void initState() {
     super.initState();
-    _controlsFadeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 300));
-    _controlsFade = _controlsFadeController.drive(CurveTween(curve: Curves.easeOut));
+    _controlsFadeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _controlsFade = _controlsFadeController.drive(
+      CurveTween(curve: Curves.easeOut),
+    );
     _controlsFadeController.forward();
   }
 
@@ -70,9 +81,23 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Container(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: widget.gradient))),
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: widget.gradient,
+                ),
+              ),
+            ),
             Container(color: Colors.black38),
-            const Center(child: Icon(Icons.play_circle_filled_rounded, color: Colors.white24, size: 120)),
+            const Center(
+              child: Icon(
+                Icons.play_circle_filled_rounded,
+                color: Colors.white24,
+                size: 120,
+              ),
+            ),
             FadeTransition(
               opacity: _controlsFade,
               child: Stack(
@@ -83,7 +108,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Colors.black.withValues(alpha: 0.6), Colors.transparent, Colors.transparent, Colors.black.withValues(alpha: 0.8)],
+                        colors: [
+                          Colors.black.withValues(alpha: 0.6),
+                          Colors.transparent,
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.8),
+                        ],
                         stops: const [0, 0.2, 0.6, 1],
                       ),
                     ),
@@ -98,24 +128,53 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                               GestureDetector(
                                 onTap: () => Navigator.of(context).pop(),
                                 child: Container(
-                                  width: 40, height: 40,
-                                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.45), shape: BoxShape.circle),
-                                  child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+                                  width: 40,
+                                  height: 40,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.45),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.arrow_back_ios_new_rounded,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
                                 ),
                               ),
                               const Spacer(),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(color: const Color(0xFFFF7A18), borderRadius: BorderRadius.circular(999)),
-                                child: Text(widget.category, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700)),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFFF7A18),
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: Text(
+                                  widget.category,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                               ),
                               const SizedBox(width: 10),
                               GestureDetector(
                                 onTap: () {},
                                 child: Container(
-                                  width: 36, height: 36,
-                                  decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.45), shape: BoxShape.circle),
-                                  child: const Icon(Icons.more_vert_rounded, color: Colors.white, size: 20),
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withValues(alpha: 0.45),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    Icons.more_vert_rounded,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
                                 ),
                               ),
                             ],
@@ -131,28 +190,71 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                                 children: [
                                   CircleAvatar(
                                     radius: 16,
-                                    backgroundColor: const Color(0xFFFF7A18).withValues(alpha: 0.25),
-                                    child: Text(widget.creator[0], style: const TextStyle(color: Color(0xFFFF7A18), fontWeight: FontWeight.w800)),
+                                    backgroundColor: const Color(
+                                      0xFFFF7A18,
+                                    ).withValues(alpha: 0.25),
+                                    child: Text(
+                                      widget.creator[0],
+                                      style: const TextStyle(
+                                        color: Color(0xFFFF7A18),
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
                                   ),
                                   const SizedBox(width: 8),
-                                  Text(widget.creator, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                                  Text(
+                                    widget.creator,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                                   const SizedBox(width: 10),
                                   GestureDetector(
-                                    onTap: () => setState(() => _following = !_following),
+                                    onTap: () => setState(
+                                      () => _following = !_following,
+                                    ),
                                     child: AnimatedContainer(
-                                      duration: const Duration(milliseconds: 200),
-                                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-                                      decoration: BoxDecoration(
-                                        color: _following ? Colors.white.withValues(alpha: 0.15) : const Color(0xFFFF7A18),
-                                        borderRadius: BorderRadius.circular(999),
+                                      duration: const Duration(
+                                        milliseconds: 200,
                                       ),
-                                      child: Text(_following ? 'Following' : '+ Follow', style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700)),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 5,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: _following
+                                            ? Colors.white.withValues(
+                                                alpha: 0.15,
+                                              )
+                                            : const Color(0xFFFF7A18),
+                                        borderRadius: BorderRadius.circular(
+                                          999,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        _following ? 'Following' : '+ Follow',
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              Text(widget.title, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700, height: 1.3), maxLines: 2),
+                              Text(
+                                widget.title,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  height: 1.3,
+                                ),
+                                maxLines: 2,
+                              ),
                             ],
                           ),
                         ),
@@ -163,22 +265,38 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                             children: [
                               GestureDetector(
                                 onTap: _togglePlay,
-                                child: Icon(_isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded, color: Colors.white, size: 30),
+                                child: Icon(
+                                  _isPlaying
+                                      ? Icons.pause_rounded
+                                      : Icons.play_arrow_rounded,
+                                  color: Colors.white,
+                                  size: 30,
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
                                 child: GestureDetector(
                                   onHorizontalDragUpdate: (d) {
-                                    final width = MediaQuery.sizeOf(context).width - 100;
-                                    setState(() => _progress = (_progress + d.delta.dx / width).clamp(0, 1));
+                                    final width =
+                                        MediaQuery.sizeOf(context).width - 100;
+                                    setState(
+                                      () => _progress =
+                                          (_progress + d.delta.dx / width)
+                                              .clamp(0, 1),
+                                    );
                                   },
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(999),
                                     child: LinearProgressIndicator(
                                       value: _progress,
                                       minHeight: 4,
-                                      backgroundColor: Colors.white.withValues(alpha: 0.2),
-                                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF7A18)),
+                                      backgroundColor: Colors.white.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      valueColor:
+                                          const AlwaysStoppedAnimation<Color>(
+                                            Color(0xFFFF7A18),
+                                          ),
                                     ),
                                   ),
                                 ),
@@ -186,7 +304,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                               const SizedBox(width: 12),
                               Text(
                                 '${(_progress * 60).toInt().toString().padLeft(2, '0')}s / 60s',
-                                style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                style: const TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
@@ -202,9 +323,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                       child: Column(
                         children: [
                           _SideAction(
-                            icon: _liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                            label: _likes >= 1000 ? '${(_likes / 1000).toStringAsFixed(1)}K' : '$_likes',
-                            color: _liked ? const Color(0xFFEF4444) : Colors.white,
+                            icon: _liked
+                                ? Icons.favorite_rounded
+                                : Icons.favorite_border_rounded,
+                            label: _likes >= 1000
+                                ? '${(_likes / 1000).toStringAsFixed(1)}K'
+                                : '$_likes',
+                            color: _liked
+                                ? const Color(0xFFEF4444)
+                                : Colors.white,
                             onTap: _toggleLike,
                           ),
                           const SizedBox(height: 20),
@@ -221,10 +348,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
                           ),
                           const SizedBox(height: 20),
                           _SideAction(
-                            icon: _bookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                            icon: _bookmarked
+                                ? Icons.bookmark_rounded
+                                : Icons.bookmark_border_rounded,
                             label: 'Save',
-                            color: _bookmarked ? const Color(0xFFFF7A18) : Colors.white,
-                            onTap: () => setState(() => _bookmarked = !_bookmarked),
+                            color: _bookmarked
+                                ? const Color(0xFFFF7A18)
+                                : Colors.white,
+                            onTap: () =>
+                                setState(() => _bookmarked = !_bookmarked),
                           ),
                         ],
                       ),
@@ -241,7 +373,12 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> with SingleTicker
 }
 
 class _SideAction extends StatelessWidget {
-  const _SideAction({required this.icon, required this.label, required this.onTap, this.color = Colors.white});
+  const _SideAction({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.color = Colors.white,
+  });
 
   final IconData icon;
   final String label;
@@ -255,12 +392,23 @@ class _SideAction extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            width: 48, height: 48,
-            decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), shape: BoxShape.circle),
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.5),
+              shape: BoxShape.circle,
+            ),
             child: Icon(icon, color: color, size: 26),
           ),
           const SizedBox(height: 4),
-          Text(label, style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ],
       ),
     );

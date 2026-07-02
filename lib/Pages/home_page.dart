@@ -6,6 +6,8 @@ import 'package:video_player/video_player.dart';
 import '../services/reel_service.dart';
 import '../services/auth_service.dart';
 import '../services/follow_service.dart';
+import '../services/chat_service.dart';
+import '../services/user_service.dart';
 import '../auth/auth.dart';
 import 'profile_screen.dart';
 import 'communities_screen.dart';
@@ -412,7 +414,7 @@ class _TopBar extends StatelessWidget {
             children: [
               Image.asset(
                 'assets/images/FLAME_LOGO.png',
-                height: 36,
+                height: 52,
                 fit: BoxFit.contain,
               ),
               const Spacer(),
@@ -658,6 +660,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
       useSafeArea: true,
       isScrollControlled: true,
       builder: (_) => _ShareSheet(
+        reelId: widget.item.id,
         caption: widget.item.caption,
         creatorName: widget.item.creatorName,
         parentContext: context,
@@ -1340,33 +1343,57 @@ class _CreateTile extends StatelessWidget {
 
 class _ShareSheet extends StatelessWidget {
   const _ShareSheet({
+    required this.reelId,
     required this.caption,
     required this.creatorName,
     required this.parentContext,
   });
 
+  final int reelId;
   final String caption;
   final String creatorName;
   final BuildContext parentContext;
 
+  Future<void> _report(BuildContext context) async {
+    Navigator.of(context).pop();
+    try {
+      await ReelService.reportReel(reelId, 'Reported from reel share menu');
+      if (!parentContext.mounted) return;
+      ScaffoldMessenger.of(parentContext).showSnackBar(
+        _shareSnack('Report sent. Thanks for helping keep Flame safe.'),
+      );
+    } catch (e) {
+      if (!parentContext.mounted) return;
+      ScaffoldMessenger.of(parentContext).showSnackBar(
+        SnackBar(
+          content: Text('Could not report reel: $e'),
+          backgroundColor: const Color(0xFFEF4444),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  SnackBar _shareSnack(String message) => SnackBar(
+    content: Row(
+      children: [
+        const Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+        const SizedBox(width: 10),
+        Expanded(child: Text(message)),
+      ],
+    ),
+    backgroundColor: const Color(0xFFFF7A18),
+    behavior: SnackBarBehavior.floating,
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    duration: const Duration(seconds: 2),
+    margin: const EdgeInsets.fromLTRB(12, 0, 12, 20),
+  );
+
   void _copyLink(BuildContext context) {
     Navigator.of(context).pop();
-    ScaffoldMessenger.of(parentContext).showSnackBar(
-      SnackBar(
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-            SizedBox(width: 10),
-            Text('Link copied to clipboard!'),
-          ],
-        ),
-        backgroundColor: const Color(0xFFFF7A18),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
-        margin: const EdgeInsets.fromLTRB(12, 0, 12, 20),
-      ),
-    );
+    ScaffoldMessenger.of(
+      parentContext,
+    ).showSnackBar(_shareSnack('Link copied to clipboard!'));
   }
 
   void _shareToApp(BuildContext context, String appName) {
@@ -1517,6 +1544,7 @@ class _ShareSheet extends StatelessWidget {
                           useSafeArea: true,
                           isScrollControlled: true,
                           builder: (_) => _DmPickerSheet(
+                            reelId: reelId,
                             caption: caption,
                             creatorName: creatorName,
                           ),
@@ -1528,6 +1556,12 @@ class _ShareSheet extends StatelessWidget {
                       label: 'Copy Link',
                       color: Colors.white54,
                       onTap: () => _copyLink(context),
+                    ),
+                    _ShareOption(
+                      icon: Icons.flag_outlined,
+                      label: 'Report',
+                      color: const Color(0xFFEF4444),
+                      onTap: () => _report(context),
                     ),
                   ],
                 ),
@@ -1587,8 +1621,13 @@ class _ShareOption extends StatelessWidget {
 // ─── DM Picker Sheet (TikTok-style "Send to friend") ─────────────────────────
 
 class _DmPickerSheet extends StatefulWidget {
-  const _DmPickerSheet({required this.caption, required this.creatorName});
+  const _DmPickerSheet({
+    required this.reelId,
+    required this.caption,
+    required this.creatorName,
+  });
 
+  final int reelId;
   final String caption;
   final String creatorName;
 
@@ -1599,51 +1638,33 @@ class _DmPickerSheet extends StatefulWidget {
 class _DmPickerSheetState extends State<_DmPickerSheet> {
   final TextEditingController _search = TextEditingController();
   final Set<int> _sentTo = {};
+  int _myId = 0;
+  List<FollowUser> _contacts = [];
+  bool _loading = true;
 
-  static const _contacts = [
-    (
-      initial: 'Z',
-      name: 'Zeina Ahmed',
-      status: 'Online',
-      gradient: [Color(0xFF7C3AED), Color(0xFFA855F7)],
-    ),
-    (
-      initial: 'M',
-      name: 'Mohamed Hassan',
-      status: '2h ago',
-      gradient: [Color(0xFF0F766E), Color(0xFF134E4A)],
-    ),
-    (
-      initial: 'S',
-      name: 'Sara Khaled',
-      status: 'Online',
-      gradient: [Color(0xFF9A3412), Color(0xFF7C2D12)],
-    ),
-    (
-      initial: 'A',
-      name: 'Ahmed Tarek',
-      status: '5h ago',
-      gradient: [Color(0xFF1D4ED8), Color(0xFF1E1B4B)],
-    ),
-    (
-      initial: 'R',
-      name: 'Rania Mohamed',
-      status: 'Yesterday',
-      gradient: [Color(0xFF9D174D), Color(0xFF500724)],
-    ),
-    (
-      initial: 'K',
-      name: 'Karim Nour',
-      status: 'Online',
-      gradient: [Color(0xFF065F46), Color(0xFF064E3B)],
-    ),
-  ];
-
-  List<({String initial, String name, String status, List<Color> gradient})>
-  get _filtered {
+  List<FollowUser> get _filtered {
     final q = _search.text.toLowerCase();
     if (q.isEmpty) return _contacts;
-    return _contacts.where((c) => c.name.toLowerCase().contains(q)).toList();
+    return _contacts
+        .where((c) => c.displayName.toLowerCase().contains(q))
+        .toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadContacts();
+  }
+
+  Future<void> _loadContacts() async {
+    final me = await UserService.getMe();
+    final following = await FollowService.getFollowing(me.id);
+    if (!mounted) return;
+    setState(() {
+      _myId = me.id;
+      _contacts = following;
+      _loading = false;
+    });
   }
 
   @override
@@ -1652,11 +1673,29 @@ class _DmPickerSheetState extends State<_DmPickerSheet> {
     super.dispose();
   }
 
-  void _send(int index) {
+  Future<void> _send(int index) async {
+    if (_myId == 0) return;
+    final c = _filtered[index];
     setState(() => _sentTo.add(index));
-    Future.delayed(const Duration(milliseconds: 1200), () {
-      if (mounted) Navigator.of(context).pop();
-    });
+    try {
+      await ChatService.sendMessage(
+        c.id,
+        'Shared a reel from ${widget.creatorName}: ${widget.caption} #reel-${widget.reelId}',
+        _myId,
+      );
+    } catch (_) {
+      if (mounted) setState(() => _sentTo.remove(index));
+      return;
+    }
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Sent to ${c.displayName}'),
+          backgroundColor: const Color(0xFFFF7A18),
+        ),
+      );
+      Navigator.of(context).pop();
+    }
   }
 
   @override
@@ -1758,28 +1797,43 @@ class _DmPickerSheetState extends State<_DmPickerSheet> {
                   constraints: BoxConstraints(
                     maxHeight: MediaQuery.of(context).size.height * 0.42,
                   ),
-                  child: ListView.separated(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    shrinkWrap: true,
-                    itemCount: filtered.length,
-                    separatorBuilder: (_, __) => Divider(
-                      color: Colors.white.withValues(alpha: 0.06),
-                      height: 1,
-                    ),
-                    itemBuilder: (ctx, i) {
-                      final c = filtered[i];
-                      final originalIndex = _contacts.indexOf(c);
-                      final sent = _sentTo.contains(originalIndex);
-                      return _DmContactTile(
-                        initial: c.initial,
-                        name: c.name,
-                        status: c.status,
-                        gradient: c.gradient,
-                        sent: sent,
-                        onSend: () => _send(originalIndex),
-                      );
-                    },
-                  ),
+                  child: _loading
+                      ? const Center(
+                          child: CircularProgressIndicator(
+                            color: Color(0xFFFF7A18),
+                          ),
+                        )
+                      : _filtered.isEmpty
+                      ? const Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Text(
+                              'Follow someone first to send reels in chat.',
+                              style: TextStyle(color: Colors.white54),
+                            ),
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          shrinkWrap: true,
+                          itemCount: filtered.length,
+                          separatorBuilder: (_, __) => Divider(
+                            color: Colors.white.withValues(alpha: 0.06),
+                            height: 1,
+                          ),
+                          itemBuilder: (ctx, i) {
+                            final c = filtered[i];
+                            final sent = _sentTo.contains(i);
+                            return _DmContactTile(
+                              initial: c.initials.isEmpty ? '?' : c.initials[0],
+                              name: c.displayName,
+                              status: 'Message',
+                              gradient: _dmGradient(i),
+                              sent: sent,
+                              onSend: () => _send(i),
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
@@ -1787,6 +1841,16 @@ class _DmPickerSheetState extends State<_DmPickerSheet> {
         ),
       ),
     );
+  }
+
+  List<Color> _dmGradient(int i) {
+    const gradients = [
+      [Color(0xFF7C3AED), Color(0xFFA855F7)],
+      [Color(0xFF0F766E), Color(0xFF134E4A)],
+      [Color(0xFF9A3412), Color(0xFF7C2D12)],
+      [Color(0xFF1D4ED8), Color(0xFF1E1B4B)],
+    ];
+    return gradients[i % gradients.length];
   }
 }
 

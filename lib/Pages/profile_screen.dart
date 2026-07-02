@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../auth/auth.dart';
 import 'edit_profile_screen.dart';
 import 'settings_screen.dart';
-import 'events_page.dart';
+import 'my_events_screen.dart';
 import 'public_profile_screen.dart';
 import 'my_learning_screen.dart';
 import 'my_workshops_screen.dart';
@@ -348,10 +348,10 @@ class _ProfileHeader extends StatelessWidget {
                                         height: 88,
                                         errorBuilder: (_, __, ___) =>
                                             const Icon(
-                                          Icons.person_rounded,
-                                          color: Colors.white,
-                                          size: 44,
-                                        ),
+                                              Icons.person_rounded,
+                                              color: Colors.white,
+                                              size: 44,
+                                            ),
                                       )
                                     : const Icon(
                                         Icons.person_rounded,
@@ -809,6 +809,7 @@ class _MenuSectionState extends State<_MenuSection> {
   int? _bookedWorkshopsCount;
   int? _createdWorkshopsCount;
   int? _bookedEventsCount;
+  int? _createdEventsCount;
 
   @override
   void initState() {
@@ -824,6 +825,7 @@ class _MenuSectionState extends State<_MenuSection> {
         WorkshopService.getBooked(),
         WorkshopService.getCreated(),
         EventService.getBooked(),
+        EventService.getCreated(),
       ]);
       if (!mounted) return;
       setState(() {
@@ -832,6 +834,7 @@ class _MenuSectionState extends State<_MenuSection> {
         _bookedWorkshopsCount = results[2].length;
         _createdWorkshopsCount = results[3].length;
         _bookedEventsCount = results[4].length;
+        _createdEventsCount = results[5].length;
       });
     } catch (_) {
       if (!mounted) return;
@@ -841,6 +844,7 @@ class _MenuSectionState extends State<_MenuSection> {
         _bookedWorkshopsCount ??= 0;
         _createdWorkshopsCount ??= 0;
         _bookedEventsCount ??= 0;
+        _createdEventsCount ??= 0;
       });
     }
   }
@@ -893,11 +897,12 @@ class _MenuSectionState extends State<_MenuSection> {
         ),
         _MenuItem(
           icon: Icons.event_available_outlined,
-          title: 'Booked Events',
-          subtitle: _countLabel(_bookedEventsCount, 'event', 'events'),
+          title: 'My Events',
+          subtitle:
+              '${_countLabel(_bookedEventsCount, 'booked event', 'booked events')} - ${_countLabel(_createdEventsCount, 'created', 'created')}',
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => const EventsPage()),
+            MaterialPageRoute(builder: (_) => const MyEventsScreen()),
           ),
         ),
         _MenuItem(

@@ -25,6 +25,14 @@ class ReelService {
   static Future<void> toggleSave(int reelId) =>
       ApiClient.instance.post('/api/reels/$reelId/save');
 
+  static Future<void> deleteReel(int reelId) =>
+      ApiClient.instance.delete('/api/reels/$reelId');
+
+  static Future<void> reportReel(int reelId, String reason) =>
+      ApiClient.instance.post('/api/reels/$reelId/report', data: {
+        'reason': reason,
+      });
+
   static Future<List<ReelModel>> getLiked() async {
     final response = await ApiClient.instance.get('/api/reels/liked');
     final list = response.data as List<dynamic>;

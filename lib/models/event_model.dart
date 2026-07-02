@@ -4,6 +4,8 @@ class EventModel {
   final String? description;
   final String? location;
   final int? capacity;
+  final String? date;
+  final double? price;
 
   const EventModel({
     required this.id,
@@ -11,6 +13,8 @@ class EventModel {
     this.description,
     this.location,
     this.capacity,
+    this.date,
+    this.price,
   });
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +24,8 @@ class EventModel {
       description: json['description'] as String?,
       location: json['location'] as String?,
       capacity: (json['capacity'] as num?)?.toInt(),
+      date: json['date'] as String?,
+      price: (json['price'] as num?)?.toDouble(),
     );
   }
 }

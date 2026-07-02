@@ -31,6 +31,16 @@ class ReelModel {
 
   factory ReelModel.fromJson(Map<String, dynamic> json) {
     final creator = json['creator'] as Map<String, dynamic>?;
+    final firstName =
+        creator?['firstName'] as String? ??
+        creator?['firstname'] as String? ??
+        '';
+    final lastName =
+        creator?['lastName'] as String? ??
+        creator?['lastname'] as String? ??
+        '';
+    final creatorName =
+        creator?['name'] as String? ?? '$firstName $lastName'.trim();
     return ReelModel(
       id: (json['id'] as num).toInt(),
       caption: json['caption'] as String? ?? '',
@@ -42,7 +52,7 @@ class ReelModel {
       commentsCount: (json['commentsCount'] as num?)?.toInt() ?? 0,
       likedByMe: json['likedByMe'] as bool? ?? false,
       savedByMe: json['savedByMe'] as bool? ?? false,
-      creatorName: creator?['name'] as String? ?? 'Unknown',
+      creatorName: creatorName.isEmpty ? 'Unknown' : creatorName,
       creatorId: (creator?['id'] as num?)?.toInt(),
     );
   }

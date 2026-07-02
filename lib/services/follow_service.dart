@@ -6,7 +6,12 @@ class FollowUser {
   final String lastname;
   final String? profileUrl;
 
-  FollowUser({required this.id, required this.firstname, required this.lastname, this.profileUrl});
+  FollowUser({
+    required this.id,
+    required this.firstname,
+    required this.lastname,
+    this.profileUrl,
+  });
 
   String get displayName => '$firstname $lastname'.trim();
   String get initials {
@@ -16,11 +21,11 @@ class FollowUser {
   }
 
   factory FollowUser.fromJson(Map<String, dynamic> j) => FollowUser(
-        id: (j['id'] as num).toInt(),
-        firstname: j['firstname'] as String? ?? '',
-        lastname: j['lastname'] as String? ?? '',
-        profileUrl: j['profileUrl'] as String?,
-      );
+    id: (j['id'] as num).toInt(),
+    firstname: j['firstname'] as String? ?? j['firstName'] as String? ?? '',
+    lastname: j['lastname'] as String? ?? j['lastName'] as String? ?? '',
+    profileUrl: j['profileUrl'] as String?,
+  );
 }
 
 class FollowService {
@@ -35,12 +40,16 @@ class FollowService {
   static Future<List<FollowUser>> getFollowers(int userId) async {
     final res = await ApiClient.instance.get('/api/users/$userId/followers');
     final list = res.data as List<dynamic>;
-    return list.map((e) => FollowUser.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => FollowUser.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   static Future<List<FollowUser>> getFollowing(int userId) async {
     final res = await ApiClient.instance.get('/api/users/$userId/following');
     final list = res.data as List<dynamic>;
-    return list.map((e) => FollowUser.fromJson(e as Map<String, dynamic>)).toList();
+    return list
+        .map((e) => FollowUser.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 }

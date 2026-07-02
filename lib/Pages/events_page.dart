@@ -17,6 +17,7 @@ class _EventsPageState extends State<EventsPage> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'All';
   List<_EventItem> _events = [];
+  Set<int> _createdEventIds = {};
   bool _loading = true;
   String? _error;
 
@@ -29,9 +30,15 @@ class _EventsPageState extends State<EventsPage> {
   Future<void> _loadEvents() async {
     try {
       final models = await EventService.getAll();
+      Set<int> createdIds = {};
+      try {
+        final created = await EventService.getCreated();
+        createdIds = created.map((event) => event.id).toSet();
+      } catch (_) {}
       if (!mounted) return;
       setState(() {
         _events = models.map(_EventItem.fromModel).toList();
+        _createdEventIds = createdIds;
         _loading = false;
       });
     } catch (e) {
@@ -80,7 +87,10 @@ class _EventsPageState extends State<EventsPage> {
       transitionDuration: const Duration(milliseconds: 260),
       pageBuilder: (context, _, _) => const SizedBox.shrink(),
       transitionBuilder: (context, animation, _, __) {
-        final curved = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOut,
+        );
         return FadeTransition(
           opacity: curved,
           child: ScaleTransition(
@@ -91,7 +101,10 @@ class _EventsPageState extends State<EventsPage> {
       },
     );
     if (created == true) {
-      setState(() { _loading = true; _error = null; });
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
       _loadEvents();
     }
   }
@@ -112,7 +125,9 @@ class _EventsPageState extends State<EventsPage> {
     if (_loading) {
       return const Scaffold(
         backgroundColor: Color(0xFF07090F),
-        body: Center(child: CircularProgressIndicator(color: Color(0xFFFF7A18))),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFFFF7A18)),
+        ),
       );
     }
     if (_error != null) {
@@ -122,13 +137,25 @@ class _EventsPageState extends State<EventsPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.wifi_off_rounded, color: Colors.white38, size: 48),
+              const Icon(
+                Icons.wifi_off_rounded,
+                color: Colors.white38,
+                size: 48,
+              ),
               const SizedBox(height: 12),
               Text(_error!, style: const TextStyle(color: Colors.white54)),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () { setState(() { _loading = true; _error = null; }); _loadEvents(); },
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF7A18)),
+                onPressed: () {
+                  setState(() {
+                    _loading = true;
+                    _error = null;
+                  });
+                  _loadEvents();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF7A18),
+                ),
                 child: const Text('Retry'),
               ),
             ],
@@ -185,7 +212,10 @@ class _EventsPageState extends State<EventsPage> {
                         const SizedBox(height: 8),
                         const Text(
                           'Discover live events, summits, and community meetups.',
-                          style: TextStyle(color: Color(0xFFC7CCDA), height: 1.3),
+                          style: TextStyle(
+                            color: Color(0xFFC7CCDA),
+                            height: 1.3,
+                          ),
                         ),
                         const SizedBox(height: 18),
                         _SearchInput(
@@ -198,15 +228,17 @@ class _EventsPageState extends State<EventsPage> {
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: _categories.length,
-                            separatorBuilder: (_, _) => const SizedBox(width: 8),
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(width: 8),
                             itemBuilder: (context, index) {
                               final category = _categories[index];
                               final selected = category == _selectedCategory;
                               return _CategoryChip(
                                 label: category,
                                 selected: selected,
-                                onTap: () =>
-                                    setState(() => _selectedCategory = category),
+                                onTap: () => setState(
+                                  () => _selectedCategory = category,
+                                ),
                               );
                             },
                           ),
@@ -249,17 +281,27 @@ class _EventsPageState extends State<EventsPage> {
                   sliver: events.isEmpty
                       ? const SliverToBoxAdapter(child: _EmptyState())
                       : SliverGrid(
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            mainAxisSpacing: 16,
-                            crossAxisSpacing: 16,
-                            childAspectRatio: isMobile ? 0.82 : 0.88,
-                          ),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                mainAxisSpacing: 16,
+                                crossAxisSpacing: 16,
+                                childAspectRatio: isMobile ? 0.72 : 0.78,
+                              ),
                           delegate: SliverChildBuilderDelegate(
                             childCount: events.length,
                             (context, index) => _EventCard(
                               event: events[index],
                               animationDelay: index * 70,
+                              canDelete: _createdEventIds.contains(
+                                events[index].id,
+                              ),
+                              onDelete: () async {
+                                await EventService.deleteEvent(
+                                  events[index].id,
+                                );
+                                await _loadEvents();
+                              },
                             ),
                           ),
                         ),
@@ -301,15 +343,10 @@ class _BrandMark extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [Color(0xFFFF7A18), Color(0xFFB83280)],
-            ),
-          ),
+        Image.asset(
+          'assets/images/FLAME_LOGO.png',
+          height: 36,
+          fit: BoxFit.contain,
         ),
         const SizedBox(width: 10),
         const Text(
@@ -437,10 +474,17 @@ class _CategoryChip extends StatelessWidget {
 // ─── Event Card ───────────────────────────────────────────────────────────────
 
 class _EventCard extends StatefulWidget {
-  const _EventCard({required this.event, required this.animationDelay});
+  const _EventCard({
+    required this.event,
+    required this.animationDelay,
+    required this.canDelete,
+    required this.onDelete,
+  });
 
   final _EventItem event;
   final int animationDelay;
+  final bool canDelete;
+  final Future<void> Function() onDelete;
 
   @override
   State<_EventCard> createState() => _EventCardState();
@@ -450,26 +494,90 @@ class _EventCardState extends State<_EventCard> {
   bool _hovered = false;
   bool _booking = false;
   bool _booked = false;
+  bool _deleting = false;
 
   Future<void> _book() async {
     if (_booking || _booked) return;
     setState(() => _booking = true);
     try {
       await EventService.bookEvent(widget.event.id);
-      if (mounted) setState(() { _booked = true; _booking = false; });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Successfully booked!'),
-          backgroundColor: Color(0xFF10B981),
-        ));
+        setState(() {
+          _booked = true;
+          _booking = false;
+        });
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Successfully booked!'),
+            backgroundColor: Color(0xFF10B981),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
         setState(() => _booking = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Booking failed: ${e.toString()}'),
-          backgroundColor: const Color(0xFFEF4444),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Booking failed: ${e.toString()}'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _delete() async {
+    if (_deleting) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF111827),
+        title: const Text(
+          'Delete event',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Delete ${widget.event.name}?',
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Color(0xFFEF4444)),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    setState(() => _deleting = true);
+    try {
+      await widget.onDelete();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Event deleted'),
+            backgroundColor: Color(0xFF10B981),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _deleting = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Delete failed: ${e.toString()}'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
       }
     }
   }
@@ -502,7 +610,9 @@ class _EventCardState extends State<_EventCard> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.2),
@@ -598,12 +708,41 @@ class _EventCardState extends State<_EventCard> {
                             text: '${item.attendees} attending',
                           ),
                           _CardDetail(
-                            icon: item.isOnline
-                                ? Icons.language_rounded
-                                : Icons.location_on_outlined,
+                            icon: Icons.location_on_outlined,
                             text: item.location,
                           ),
                           const SizedBox(height: 10),
+                          if (widget.canDelete) ...[
+                            SizedBox(
+                              width: double.infinity,
+                              child: OutlinedButton.icon(
+                                onPressed: _deleting ? null : _delete,
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: const Color(0xFFEF4444),
+                                  side: BorderSide(
+                                    color: const Color(
+                                      0xFFEF4444,
+                                    ).withValues(alpha: 0.45),
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                icon: _deleting
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Color(0xFFEF4444),
+                                        ),
+                                      )
+                                    : const Icon(Icons.delete_outline_rounded),
+                                label: const Text('Delete event'),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
                           SizedBox(
                             width: double.infinity,
                             child: ElevatedButton(
@@ -615,7 +754,9 @@ class _EventCardState extends State<_EventCard> {
                                 foregroundColor: Colors.white,
                                 disabledBackgroundColor: _booked
                                     ? const Color(0xFF10B981)
-                                    : const Color(0xFFFF7A18).withValues(alpha: 0.5),
+                                    : const Color(
+                                        0xFFFF7A18,
+                                      ).withValues(alpha: 0.5),
                                 disabledForegroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -626,12 +767,15 @@ class _EventCardState extends State<_EventCard> {
                                       width: 16,
                                       height: 16,
                                       child: CircularProgressIndicator(
-                                          strokeWidth: 2, color: Colors.white),
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
                                     )
                                   : Text(
                                       _booked ? 'Booked ✓' : 'RSVP',
                                       style: const TextStyle(
-                                          fontWeight: FontWeight.w700),
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                             ),
                           ),
@@ -686,7 +830,11 @@ class _PillTag extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = color ?? (solid ? const Color(0xFFFF7A18) : Colors.black.withValues(alpha: 0.45));
+    final bg =
+        color ??
+        (solid
+            ? const Color(0xFFFF7A18)
+            : Colors.black.withValues(alpha: 0.45));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
@@ -746,31 +894,33 @@ class _CreateEventDialog extends StatefulWidget {
 }
 
 class _CreateEventDialogState extends State<_CreateEventDialog> {
-  bool _isPaid = false;
-  bool _isOnline = true;
   bool _creating = false;
 
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
   final _locationController = TextEditingController();
-  final _attendeesController = TextEditingController();
+  final _dateController = TextEditingController();
+  final _priceController = TextEditingController();
 
   @override
   void dispose() {
     _nameController.dispose();
     _descController.dispose();
     _locationController.dispose();
-    _attendeesController.dispose();
+    _dateController.dispose();
+    _priceController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     final title = _nameController.text.trim();
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please enter an event name'),
-        backgroundColor: Color(0xFFEF4444),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter an event name'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
       return;
     }
     setState(() => _creating = true);
@@ -779,16 +929,19 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
         title: title,
         description: _descController.text.trim(),
         location: _locationController.text.trim(),
-        capacity: int.tryParse(_attendeesController.text.trim()) ?? 0,
+        date: _dateController.text.trim(),
+        price: double.tryParse(_priceController.text.trim()) ?? 0,
       );
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
         setState(() => _creating = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Failed to create: ${e.toString()}'),
-          backgroundColor: const Color(0xFFEF4444),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create: ${e.toString()}'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
       }
     }
   }
@@ -797,7 +950,7 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
   Widget build(BuildContext context) {
     final media = MediaQuery.sizeOf(context);
     final width = media.width * 0.8;
-    final height = media.height * 0.82;
+    final height = media.height * 0.72;
 
     return Center(
       child: Dialog(
@@ -857,7 +1010,10 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
                       ],
                     ),
                   ),
-                  Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
+                  Divider(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    height: 1,
+                  ),
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
@@ -868,122 +1024,44 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
                           _FormFieldBlock(
                             label: 'Event name *',
                             child: _StyledTextField(
-                              hint: 'Enter event name',
+                              hint: 'Spring Boot Masterclass',
                               controller: _nameController,
+                              prefixIcon: Icons.event_outlined,
                             ),
                           ),
                           _FormFieldBlock(
                             label: 'Description',
                             wide: true,
                             child: _StyledTextField(
-                              hint: 'What will attendees experience?',
+                              hint: 'Deep dive into Spring',
                               maxLines: 4,
                               controller: _descController,
-                            ),
-                          ),
-                          const _FormFieldBlock(
-                            label: 'Upload cover image',
-                            wide: true,
-                            child: _UploadPlaceholder(),
-                          ),
-                          const _FormFieldBlock(
-                            label: 'Date',
-                            child: _StyledTextField(hint: 'e.g. June 5, 2025'),
-                          ),
-                          const _FormFieldBlock(
-                            label: 'Time',
-                            child: _StyledTextField(hint: 'e.g. 6:00 PM'),
-                          ),
-                          _FormFieldBlock(
-                            label: 'Event format',
-                            wide: true,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: SwitchListTile(
-                                    value: _isOnline,
-                                    onChanged: (v) =>
-                                        setState(() => _isOnline = v),
-                                    title: Text(
-                                      _isOnline ? 'Online event' : 'In-person event',
-                                      style: const TextStyle(color: Colors.white),
-                                    ),
-                                    contentPadding: EdgeInsets.zero,
-                                    activeThumbColor: const Color(0xFFFF7A18),
-                                  ),
-                                ),
-                              ],
+                              prefixIcon: Icons.notes_rounded,
                             ),
                           ),
                           _FormFieldBlock(
-                            label: _isOnline ? 'Meeting link' : 'Venue address',
-                            wide: true,
+                            label: 'Location',
                             child: _StyledTextField(
-                              hint: _isOnline
-                                  ? 'Zoom / Google Meet link'
-                                  : 'Full venue address',
+                              hint: 'Alexandria',
                               controller: _locationController,
-                            ),
-                          ),
-                          const _FormFieldBlock(
-                            label: 'Category',
-                            child: _StyledTextField(
-                              hint: 'Summit / AI / Design / Community',
+                              prefixIcon: Icons.location_on_outlined,
                             ),
                           ),
                           _FormFieldBlock(
-                            label: 'Expected attendees',
+                            label: 'Date',
                             child: _StyledTextField(
-                              hint: 'e.g. 200',
+                              hint: '2026-06-15',
+                              controller: _dateController,
+                              prefixIcon: Icons.calendar_today_outlined,
+                            ),
+                          ),
+                          _FormFieldBlock(
+                            label: 'Price',
+                            child: _StyledTextField(
+                              hint: '300',
                               keyboardType: TextInputType.number,
-                              controller: _attendeesController,
-                            ),
-                          ),
-                          _FormFieldBlock(
-                            label: 'Pricing',
-                            wide: true,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: SwitchListTile(
-                                    value: _isPaid,
-                                    onChanged: (v) =>
-                                        setState(() => _isPaid = v),
-                                    title: Text(
-                                      _isPaid ? 'Paid event' : 'Free event',
-                                      style: const TextStyle(color: Colors.white),
-                                    ),
-                                    contentPadding: EdgeInsets.zero,
-                                    activeThumbColor: const Color(0xFFFF7A18),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (_isPaid)
-                            const _FormFieldBlock(
-                              label: 'Ticket price',
-                              child: _StyledTextField(
-                                hint: 'e.g. 120',
-                                keyboardType: TextInputType.number,
-                              ),
-                            ),
-                          const _FormFieldBlock(
-                            label: 'Additional notes (optional)',
-                            wide: true,
-                            child: _StyledTextField(
-                              hint: 'Schedule, dress code, requirements…',
-                              maxLines: 3,
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(top: 4),
-                            child: Text(
-                              'TODO(firebase): Connect this form to Firebase Auth, Storage, and Firestore when backend is ready.',
-                              style: TextStyle(
-                                color: Color(0xFF919AB1),
-                                fontSize: 12,
-                              ),
+                              controller: _priceController,
+                              prefixIcon: Icons.payments_outlined,
                             ),
                           ),
                         ],
@@ -1005,8 +1083,9 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFF7A18),
                             foregroundColor: Colors.white,
-                            disabledBackgroundColor:
-                                const Color(0xFFFF7A18).withValues(alpha: 0.5),
+                            disabledBackgroundColor: const Color(
+                              0xFFFF7A18,
+                            ).withValues(alpha: 0.5),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 18,
                               vertical: 12,
@@ -1020,7 +1099,9 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
                                   width: 16,
                                   height: 16,
                                   child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: Colors.white),
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
                                 )
                               : const Text('Create Event'),
                         ),
@@ -1053,8 +1134,9 @@ class _FormFieldBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final blockWidth =
-        wide ? width : (width > 900 ? (width * 0.8 - 74) / 2 : width);
+    final blockWidth = wide
+        ? width
+        : (width > 900 ? (width * 0.8 - 74) / 2 : width);
     return SizedBox(
       width: blockWidth,
       child: Column(
@@ -1081,12 +1163,14 @@ class _StyledTextField extends StatelessWidget {
     this.maxLines = 1,
     this.keyboardType,
     this.controller,
+    this.prefixIcon,
   });
 
   final String hint;
   final int maxLines;
   final TextInputType? keyboardType;
   final TextEditingController? controller;
+  final IconData? prefixIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -1098,6 +1182,9 @@ class _StyledTextField extends StatelessWidget {
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(color: Color(0xFF98A0B5)),
+        prefixIcon: prefixIcon == null
+            ? null
+            : Icon(prefixIcon, color: const Color(0xFF98A0B5)),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(
@@ -1111,35 +1198,6 @@ class _StyledTextField extends StatelessWidget {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: Color(0xFFFF7A18)),
-        ),
-      ),
-    );
-  }
-}
-
-class _UploadPlaceholder extends StatelessWidget {
-  const _UploadPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 120,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-      ),
-      child: const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.add_photo_alternate_outlined, color: Colors.white70),
-            SizedBox(height: 8),
-            Text(
-              'Drop image or click to upload',
-              style: TextStyle(color: Color(0xFFC2C8D7)),
-            ),
-          ],
         ),
       ),
     );
@@ -1178,17 +1236,46 @@ class _EventItem {
   final bool isOnline;
 
   factory _EventItem.fromModel(EventModel m) => _EventItem(
-        id: m.id,
-        name: m.title,
-        description: m.description ?? '',
-        organizer: 'Flame',
-        dateTime: 'TBA',
-        location: m.location ?? 'TBA',
-        category: 'Event',
-        imageUrl: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200',
-        attendees: m.capacity ?? 0,
-        isFree: true,
-        price: 0,
-        isOnline: false,
-      );
+    id: m.id,
+    name: m.title,
+    description: m.description ?? '',
+    organizer: 'Flame',
+    dateTime: (m.date == null || m.date!.isEmpty) ? 'TBA' : m.date!,
+    location: m.location ?? 'TBA',
+    category: _categoryFor('${m.title} ${m.description ?? ''}'),
+    imageUrl:
+        'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200',
+    attendees: m.capacity ?? 0,
+    isFree: (m.price ?? 0) <= 0,
+    price: m.price ?? 0,
+    isOnline: false,
+  );
+}
+
+String _categoryFor(String value) {
+  final text = value.toLowerCase();
+  if (text.contains('spring') ||
+      text.contains('boot') ||
+      text.contains('code') ||
+      text.contains('programming') ||
+      text.contains('software')) {
+    return 'Development';
+  }
+  if (text.contains('ai') ||
+      text.contains('data') ||
+      text.contains('machine')) {
+    return 'AI';
+  }
+  if (text.contains('design') || text.contains('ui') || text.contains('ux')) {
+    return 'Design';
+  }
+  if (text.contains('business') ||
+      text.contains('marketing') ||
+      text.contains('startup')) {
+    return 'Business';
+  }
+  if (text.contains('community') || text.contains('meetup')) {
+    return 'Community';
+  }
+  return 'General';
 }

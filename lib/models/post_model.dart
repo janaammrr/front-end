@@ -16,8 +16,10 @@ class PostAuthor {
   factory PostAuthor.fromJson(Map<String, dynamic> json) {
     return PostAuthor(
       id: (json['id'] as num).toInt(),
-      firstName: json['firstName'] as String? ?? '',
-      lastName: json['lastName'] as String? ?? '',
+      firstName:
+          json['firstName'] as String? ?? json['firstname'] as String? ?? '',
+      lastName:
+          json['lastName'] as String? ?? json['lastname'] as String? ?? '',
       email: json['email'] as String? ?? '',
     );
   }
@@ -46,7 +48,11 @@ class PostModel {
     return PostModel(
       id: (json['id'] as num).toInt(),
       content: json['content'] as String? ?? '',
-      author: PostAuthor.fromJson(json['author'] as Map<String, dynamic>),
+      author: PostAuthor.fromJson(
+        json['author'] as Map<String, dynamic>? ??
+            json['user'] as Map<String, dynamic>? ??
+            const {},
+      ),
       createdAt: json['createdAt'] as String? ?? '',
       likeCount: (json['likeCount'] as num?)?.toInt() ?? 0,
       commentCount: (json['commentCount'] as num?)?.toInt() ?? 0,

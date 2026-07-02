@@ -80,7 +80,10 @@ class _WorkshopPageState extends State<WorkshopPage> {
       transitionDuration: const Duration(milliseconds: 260),
       pageBuilder: (context, _, _) => const SizedBox.shrink(),
       transitionBuilder: (context, animation, _, __) {
-        final curved = CurvedAnimation(parent: animation, curve: Curves.easeOut);
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOut,
+        );
         return FadeTransition(
           opacity: curved,
           child: ScaleTransition(
@@ -91,7 +94,10 @@ class _WorkshopPageState extends State<WorkshopPage> {
       },
     );
     if (created == true) {
-      setState(() { _loading = true; _error = null; });
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
       _loadWorkshops();
     }
   }
@@ -107,7 +113,9 @@ class _WorkshopPageState extends State<WorkshopPage> {
     if (_loading) {
       return const Scaffold(
         backgroundColor: Color(0xFF07090F),
-        body: Center(child: CircularProgressIndicator(color: Color(0xFFFF7A18))),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFFFF7A18)),
+        ),
       );
     }
     if (_error != null) {
@@ -117,13 +125,25 @@ class _WorkshopPageState extends State<WorkshopPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.wifi_off_rounded, color: Colors.white38, size: 48),
+              const Icon(
+                Icons.wifi_off_rounded,
+                color: Colors.white38,
+                size: 48,
+              ),
               const SizedBox(height: 12),
               Text(_error!, style: const TextStyle(color: Colors.white54)),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () { setState(() { _loading = true; _error = null; }); _loadWorkshops(); },
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF7A18)),
+                onPressed: () {
+                  setState(() {
+                    _loading = true;
+                    _error = null;
+                  });
+                  _loadWorkshops();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF7A18),
+                ),
                 child: const Text('Retry'),
               ),
             ],
@@ -185,7 +205,10 @@ class _WorkshopPageState extends State<WorkshopPage> {
                         const SizedBox(height: 8),
                         const Text(
                           'Discover, create, and book premium learning experiences.',
-                          style: TextStyle(color: Color(0xFFC7CCDA), height: 1.3),
+                          style: TextStyle(
+                            color: Color(0xFFC7CCDA),
+                            height: 1.3,
+                          ),
                         ),
                         const SizedBox(height: 18),
                         _SearchInput(
@@ -198,7 +221,8 @@ class _WorkshopPageState extends State<WorkshopPage> {
                           child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: _categories.length,
-                            separatorBuilder: (_, _) => const SizedBox(width: 8),
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(width: 8),
                             itemBuilder: (context, index) {
                               final category = _categories[index];
                               final selected = category == _selectedCategory;
@@ -250,12 +274,13 @@ class _WorkshopPageState extends State<WorkshopPage> {
                   sliver: workshops.isEmpty
                       ? const SliverToBoxAdapter(child: _EmptyState())
                       : SliverGrid(
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            mainAxisSpacing: 16,
-                            crossAxisSpacing: 16,
-                            childAspectRatio: isMobile ? 0.86 : 0.92,
-                          ),
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: crossAxisCount,
+                                mainAxisSpacing: 16,
+                                crossAxisSpacing: 16,
+                                childAspectRatio: isMobile ? 0.86 : 0.92,
+                              ),
                           delegate: SliverChildBuilderDelegate(
                             childCount: workshops.length,
                             (context, index) => _WorkshopCard(
@@ -298,13 +323,10 @@ class _BrandMark extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 32,
-          height: 32,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(colors: [Color(0xFFFF7A18), Color(0xFFB83280)]),
-          ),
+        Image.asset(
+          'assets/images/FLAME_LOGO.png',
+          height: 36,
+          fit: BoxFit.contain,
         ),
         const SizedBox(width: 10),
         const Text(
@@ -417,20 +439,29 @@ class _WorkshopCardState extends State<_WorkshopCard> {
     setState(() => _booking = true);
     try {
       await WorkshopService.bookWorkshop(widget.workshop.id);
-      if (mounted) setState(() { _booked = true; _booking = false; });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Workshop booked successfully!'),
-          backgroundColor: Color(0xFF10B981),
-        ));
+        setState(() {
+          _booked = true;
+          _booking = false;
+        });
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Workshop booked successfully!'),
+            backgroundColor: Color(0xFF10B981),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
         setState(() => _booking = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Booking failed: ${e.toString()}'),
-          backgroundColor: const Color(0xFFEF4444),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Booking failed: ${e.toString()}'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
       }
     }
   }
@@ -463,7 +494,9 @@ class _WorkshopCardState extends State<_WorkshopCard> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(22),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.2),
@@ -536,14 +569,21 @@ class _WorkshopCardState extends State<_WorkshopCard> {
                             ),
                           ),
                           const SizedBox(height: 10),
-                          _CardDetail(icon: Icons.person_outline, text: item.creator),
-                          _CardDetail(icon: Icons.schedule_rounded, text: item.dateTime),
                           _CardDetail(
-                            icon: Icons.event_seat_outlined,
-                            text: '${item.availableSeats} seats • ${item.tokenSeats} token seats',
+                            icon: Icons.person_outline,
+                            text: item.creator,
                           ),
                           _CardDetail(
-                            icon: Icons.language_rounded,
+                            icon: Icons.schedule_rounded,
+                            text: item.dateTime,
+                          ),
+                          _CardDetail(
+                            icon: Icons.event_seat_outlined,
+                            text:
+                                '${item.availableSeats} seats • ${item.tokenSeats} token seats',
+                          ),
+                          _CardDetail(
+                            icon: Icons.location_on_outlined,
                             text: item.location,
                           ),
                           const SizedBox(height: 10),
@@ -558,7 +598,9 @@ class _WorkshopCardState extends State<_WorkshopCard> {
                                 foregroundColor: Colors.white,
                                 disabledBackgroundColor: _booked
                                     ? const Color(0xFF10B981)
-                                    : const Color(0xFFFF7A18).withValues(alpha: 0.5),
+                                    : const Color(
+                                        0xFFFF7A18,
+                                      ).withValues(alpha: 0.5),
                                 disabledForegroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -569,12 +611,15 @@ class _WorkshopCardState extends State<_WorkshopCard> {
                                       width: 16,
                                       height: 16,
                                       child: CircularProgressIndicator(
-                                          strokeWidth: 2, color: Colors.white),
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
                                     )
                                   : Text(
                                       _booked ? 'Booked ✓' : 'Book',
                                       style: const TextStyle(
-                                          fontWeight: FontWeight.w700),
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                             ),
                           ),
@@ -665,6 +710,8 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
   final _descController = TextEditingController();
   final _seatsController = TextEditingController();
   final _locationController = TextEditingController();
+  final _dateController = TextEditingController();
+  final _priceController = TextEditingController();
 
   @override
   void dispose() {
@@ -672,16 +719,20 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
     _descController.dispose();
     _seatsController.dispose();
     _locationController.dispose();
+    _dateController.dispose();
+    _priceController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     final title = _nameController.text.trim();
     if (title.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please enter a workshop name'),
-        backgroundColor: Color(0xFFEF4444),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter a workshop name'),
+          backgroundColor: Color(0xFFEF4444),
+        ),
+      );
       return;
     }
     setState(() => _creating = true);
@@ -691,15 +742,19 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
         description: _descController.text.trim(),
         location: _locationController.text.trim(),
         capacity: int.tryParse(_seatsController.text.trim()) ?? 0,
+        date: _dateController.text.trim(),
+        price: _isPaid ? double.tryParse(_priceController.text.trim()) ?? 0 : 0,
       );
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
         setState(() => _creating = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Failed to create: ${e.toString()}'),
-          backgroundColor: const Color(0xFFEF4444),
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create: ${e.toString()}'),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
       }
     }
   }
@@ -754,7 +809,7 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
                               ),
                               SizedBox(height: 4),
                               Text(
-                                'Build your workshop details and publish later with Firebase.',
+                                'Build your workshop details and publish to the backend.',
                                 style: TextStyle(color: Color(0xFFB7BECE)),
                               ),
                             ],
@@ -768,7 +823,10 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
                       ],
                     ),
                   ),
-                  Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
+                  Divider(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    height: 1,
+                  ),
                   Expanded(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
@@ -823,8 +881,12 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
                                     onChanged: (value) =>
                                         setState(() => _isPaid = value),
                                     title: Text(
-                                      _isPaid ? 'Paid workshop' : 'Free workshop',
-                                      style: const TextStyle(color: Colors.white),
+                                      _isPaid
+                                          ? 'Paid workshop'
+                                          : 'Free workshop',
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
                                     ),
                                     contentPadding: EdgeInsets.zero,
                                     activeThumbColor: const Color(0xFFFF7A18),
@@ -838,9 +900,8 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
                               label: 'Payment method',
                               child: _StyledDropdown(
                                 value: _paymentMethod,
-                                onChanged: (value) => setState(
-                                  () => _paymentMethod = value!,
-                                ),
+                                onChanged: (value) =>
+                                    setState(() => _paymentMethod = value!),
                                 items: const [
                                   'Credit card',
                                   'Wallet',
@@ -849,20 +910,26 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
                               ),
                             ),
                           if (_isPaid)
-                            const _FormFieldBlock(
+                            _FormFieldBlock(
                               label: 'Price',
                               child: _StyledTextField(
-                                hint: 'e.g. 49',
+                                hint: '300',
                                 keyboardType: TextInputType.number,
+                                controller: _priceController,
                               ),
                             ),
-                          const _FormFieldBlock(
+                          _FormFieldBlock(
                             label: 'Date and time',
-                            child: _StyledTextField(hint: 'May 10, 5:30 PM'),
+                            child: _StyledTextField(
+                              hint: '2026-06-15',
+                              controller: _dateController,
+                            ),
                           ),
                           const _FormFieldBlock(
                             label: 'Category',
-                            child: _StyledTextField(hint: 'Design / AI / Business'),
+                            child: _StyledTextField(
+                              hint: 'Design / AI / Business',
+                            ),
                           ),
                           _FormFieldBlock(
                             label: 'Location or online link',
@@ -878,16 +945,6 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
                             child: _StyledTextField(
                               hint: 'Any prerequisites or attendee notes',
                               maxLines: 3,
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.only(top: 4),
-                            child: Text(
-                              'TODO(firebase): Connect this form to Firebase Auth, Storage, and Firestore when backend is ready.',
-                              style: TextStyle(
-                                color: Color(0xFF919AB1),
-                                fontSize: 12,
-                              ),
                             ),
                           ),
                         ],
@@ -909,8 +966,9 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFF7A18),
                             foregroundColor: Colors.white,
-                            disabledBackgroundColor:
-                                const Color(0xFFFF7A18).withValues(alpha: 0.5),
+                            disabledBackgroundColor: const Color(
+                              0xFFFF7A18,
+                            ).withValues(alpha: 0.5),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 18,
                               vertical: 12,
@@ -924,7 +982,9 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
                                   width: 16,
                                   height: 16,
                                   child: CircularProgressIndicator(
-                                      strokeWidth: 2, color: Colors.white),
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
                                 )
                               : const Text('Create Workshop'),
                         ),
@@ -955,7 +1015,9 @@ class _FormFieldBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
-    final blockWidth = wide ? width : (width > 900 ? (width * 0.8 - 74) / 2 : width);
+    final blockWidth = wide
+        ? width
+        : (width > 900 ? (width * 0.8 - 74) / 2 : width);
     return SizedBox(
       width: blockWidth,
       child: Column(
@@ -1051,10 +1113,7 @@ class _StyledDropdown extends StatelessWidget {
       onChanged: onChanged,
       items: items
           .map(
-            (item) => DropdownMenuItem<String>(
-              value: item,
-              child: Text(item),
-            ),
+            (item) => DropdownMenuItem<String>(value: item, child: Text(item)),
           )
           .toList(),
     );
@@ -1178,17 +1237,43 @@ class _WorkshopItem {
   final String imageUrl;
 
   factory _WorkshopItem.fromModel(WorkshopModel m) => _WorkshopItem(
-        id: m.id,
-        name: m.title,
-        description: m.description ?? '',
-        creator: 'Flame',
-        dateTime: 'TBA',
-        availableSeats: m.capacity ?? 0,
-        tokenSeats: 0,
-        isFree: true,
-        price: 0,
-        category: 'Workshop',
-        location: m.location ?? 'TBA',
-        imageUrl: 'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1200',
-      );
+    id: m.id,
+    name: m.title,
+    description: m.description ?? '',
+    creator: 'Flame',
+    dateTime: (m.date == null || m.date!.isEmpty) ? 'TBA' : m.date!,
+    availableSeats: m.capacity ?? 0,
+    tokenSeats: 0,
+    isFree: (m.price ?? 0) <= 0,
+    price: m.price ?? 0,
+    category: _categoryFor('${m.title} ${m.description ?? ''}'),
+    location: m.location ?? 'TBA',
+    imageUrl:
+        'https://images.unsplash.com/photo-1517048676732-d65bc937f952?w=1200',
+  );
+}
+
+String _categoryFor(String value) {
+  final text = value.toLowerCase();
+  if (text.contains('spring') ||
+      text.contains('boot') ||
+      text.contains('code') ||
+      text.contains('programming') ||
+      text.contains('software')) {
+    return 'Development';
+  }
+  if (text.contains('ai') ||
+      text.contains('data') ||
+      text.contains('machine')) {
+    return 'AI';
+  }
+  if (text.contains('design') || text.contains('ui') || text.contains('ux')) {
+    return 'Design';
+  }
+  if (text.contains('business') ||
+      text.contains('marketing') ||
+      text.contains('startup')) {
+    return 'Business';
+  }
+  return 'General';
 }
