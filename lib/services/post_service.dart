@@ -3,7 +3,10 @@ import 'api_client.dart';
 
 class PostService {
   static Future<List<PostModel>> getAll() async {
-    final response = await ApiClient.instance.get('/api/posts');
+    final response = await ApiClient.instance.get(
+      '/api/posts',
+      options: ApiClient.publicOptions,
+    );
     final list = response.data as List<dynamic>;
     return list
         .map((json) => PostModel.fromJson(json as Map<String, dynamic>))

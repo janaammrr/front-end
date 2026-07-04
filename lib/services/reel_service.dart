@@ -4,6 +4,8 @@ import 'api_client.dart';
 
 class ReelService {
   static Future<List<ReelModel>> getAll() async {
+    // Deliberately authenticated (not publicOptions): the backend only
+    // returns accurate likedByMe/savedByMe when it knows who's asking.
     final response = await ApiClient.instance.get('/api/reels');
     final list = response.data as List<dynamic>;
     return list
@@ -29,7 +31,9 @@ class ReelService {
       ApiClient.instance.delete('/api/reels/$reelId');
 
   static Future<void> reportReel(int reelId, String reason) =>
-      ApiClient.instance.post('/api/reels/$reelId/report', data: {
+      ApiClient.instance.post('/api/reports', data: {
+        'targetType': 'REEL',
+        'targetId': reelId,
         'reason': reason,
       });
 
@@ -52,16 +56,18 @@ class ReelService {
   static Future<void> upload({
     required String videoPath,
     required String caption,
-    required String preferences,
+    required String category,
   }) async {
     final formData = FormData.fromMap({
       'video': await MultipartFile.fromFile(
         videoPath,
         filename: videoPath.split('/').last,
       ),
-      'caption': caption,
-      'preferences': preferences,
     });
-    await ApiClient.instance.post('/api/reels/upload', data: formData);
+    await ApiClient.instance.post(
+      '/api/reels/upload',
+      data: formData,
+      queryParameters: {'caption': caption, 'categories': category},
+    );
   }
 }

@@ -1,6 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../components/user_avatar.dart';
+import '../models/user_model.dart';
 import '../services/comment_service.dart';
+import '../services/user_service.dart';
 
 class CommentsScreen {
   static Future<void> show(BuildContext context, {int reelId = 0}) {
@@ -29,11 +32,15 @@ class _CommentsSheetState extends State<_CommentsSheet> {
   List<CommentModel> _comments = [];
   bool _loading = true;
   bool _posting = false;
+  UserModel? _me;
 
   @override
   void initState() {
     super.initState();
     _loadComments();
+    UserService.getMe().then((me) {
+      if (mounted) setState(() => _me = me);
+    }).catchError((_) {});
   }
 
   Future<void> _loadComments() async {
@@ -144,21 +151,13 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                 const SizedBox(height: 16),
                             itemBuilder: (_, i) {
                               final c = _comments[i];
-                              final initials = c.user.name.isNotEmpty
-                                  ? c.user.name[0].toUpperCase()
-                                  : '?';
                               return Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  CircleAvatar(
+                                  UserAvatar(
+                                    displayName: c.user.name,
+                                    username: c.user.username,
                                     radius: 18,
-                                    backgroundColor: const Color(0xFFFF7A18)
-                                        .withValues(alpha: 0.2),
-                                    child: Text(initials,
-                                        style: const TextStyle(
-                                            color: Color(0xFFFF7A18),
-                                            fontWeight: FontWeight.w800,
-                                            fontSize: 12)),
                                   ),
                                   const SizedBox(width: 10),
                                   Expanded(
@@ -190,14 +189,10 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                 padding: EdgeInsets.fromLTRB(12, 10, 12, 12 + bottom),
                 child: Row(
                   children: [
-                    const CircleAvatar(
+                    UserAvatar(
+                      displayName: _me?.fullName ?? 'You',
+                      profileUrl: _me?.profileUrl,
                       radius: 18,
-                      backgroundColor: Color(0xFFFF7A18),
-                      child: Text('Y',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 13)),
                     ),
                     const SizedBox(width: 10),
                     Expanded(

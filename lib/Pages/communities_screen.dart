@@ -1,7 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'notifications_screen.dart';
+import 'community_detail_screen.dart';
 import 'messaging_screen.dart';
+import '../components/user_avatar.dart';
 import '../services/community_service.dart';
 import '../services/user_service.dart';
 
@@ -19,6 +20,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
   List<CommunityModel> _all = [];
   final Set<int> _joinedIds = {};
   final Set<int> _joiningIds = {};
+  final Set<int> _requestedIds = {};
   int? _myId;
   bool _loading = true;
   String? _error;
@@ -41,6 +43,11 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
         setState(() {
           _myId = me.id;
           _all = communities;
+          _joinedIds
+            ..clear()
+            ..addAll(
+              communities.where((c) => c.isMember).map((c) => c.id),
+            );
           _loading = false;
         });
       }
@@ -122,12 +129,23 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
   }
 
   Future<void> _toggleJoin(CommunityModel community) async {
-    if (_joiningIds.contains(community.id)) return;
+    if (_joiningIds.contains(community.id) ||
+        _requestedIds.contains(community.id)) {
+      return;
+    }
     setState(() => _joiningIds.add(community.id));
     try {
       if (_joinedIds.contains(community.id)) {
         await CommunityService.leave(community.id);
         if (mounted) setState(() => _joinedIds.remove(community.id));
+      } else if (community.isPrivate) {
+        await CommunityService.requestJoin(community.id);
+        if (mounted) {
+          setState(() => _requestedIds.add(community.id));
+          ScaffoldMessenger.of(context).showSnackBar(
+            _snackBar('Request sent. The admin needs to approve it.'),
+          );
+        }
       } else {
         await CommunityService.join(community.id);
         if (mounted) setState(() => _joinedIds.add(community.id));
@@ -151,6 +169,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
     final nameCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     bool creating = false;
+    bool isPrivate = false;
 
     showModalBottomSheet(
       context: context,
@@ -206,6 +225,34 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                     hint: 'Description',
                     maxLines: 3,
                   ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setSheet(() => isPrivate = false),
+                          child: _PrivacyOption(
+                            icon: Icons.public_rounded,
+                            label: 'Public',
+                            subtitle: 'Anyone can find and join',
+                            selected: !isPrivate,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () => setSheet(() => isPrivate = true),
+                          child: _PrivacyOption(
+                            icon: Icons.lock_outline_rounded,
+                            label: 'Private',
+                            subtitle: 'Approval needed to join',
+                            selected: isPrivate,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
@@ -243,10 +290,15 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                                   final newComm = await CommunityService.create(
                                     nameCtrl.text.trim(),
                                     descCtrl.text.trim(),
+                                    privacyType:
+                                        isPrivate ? 'PRIVATE' : 'PUBLIC',
                                   );
                                   if (ctx.mounted) Navigator.of(ctx).pop();
                                   if (mounted) {
-                                    setState(() => _all = [newComm, ..._all]);
+                                    setState(() {
+                                      _all = [newComm, ..._all];
+                                      _joinedIds.add(newComm.id);
+                                    });
                                   }
                                 } catch (e) {
                                   setSheet(() => creating = false);
@@ -291,13 +343,14 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
     );
   }
 
-  void _showMembersModal(CommunityModel community) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => _MembersSheet(community: community),
+  Future<void> _openCommunity(CommunityModel community) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CommunityDetailScreen(community: community),
+      ),
     );
+    if (mounted) _load();
   }
 
   Widget _buildEmptyState() {
@@ -482,46 +535,6 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                             ),
                           ),
                           const Spacer(),
-                          Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              IconButton(
-                                onPressed: () => Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const NotificationsScreen(),
-                                  ),
-                                ),
-                                icon: const Icon(
-                                  Icons.notifications_outlined,
-                                  size: 24,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              Positioned(
-                                top: 6,
-                                right: 6,
-                                child: Container(
-                                  width: 16,
-                                  height: 16,
-                                  decoration: const BoxDecoration(
-                                    color: Color(0xFFFF7A18),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Center(
-                                    child: Text(
-                                      '1',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
                           IconButton(
                             onPressed: () => Navigator.push(
                               context,
@@ -646,6 +659,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                               return _CommunityCard(
                                 community: c,
                                 isJoined: _joinedIds.contains(c.id),
+                                isRequested: _requestedIds.contains(c.id),
                                 isLoading: _joiningIds.contains(c.id),
                                 canDelete: c.admin.id == _myId,
                                 onJoin: () => _toggleJoin(c),
@@ -653,7 +667,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                                 onShare: () => ScaffoldMessenger.of(
                                   context,
                                 ).showSnackBar(_snackBar('Link copied!')),
-                                onMembersTap: () => _showMembersModal(c),
+                                onOpen: () => _openCommunity(c),
                               );
                             },
                           ),
@@ -674,22 +688,24 @@ class _CommunityCard extends StatelessWidget {
   const _CommunityCard({
     required this.community,
     required this.isJoined,
+    required this.isRequested,
     required this.isLoading,
     required this.canDelete,
     required this.onJoin,
     required this.onDelete,
     required this.onShare,
-    required this.onMembersTap,
+    required this.onOpen,
   });
 
   final CommunityModel community;
   final bool isJoined;
+  final bool isRequested;
   final bool isLoading;
   final bool canDelete;
   final VoidCallback onJoin;
   final VoidCallback onDelete;
   final VoidCallback onShare;
-  final VoidCallback onMembersTap;
+  final VoidCallback onOpen;
 
   // Deterministic gradient based on community id
   List<Color> get _gradient {
@@ -730,6 +746,12 @@ class _CommunityCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                GestureDetector(
+                  onTap: onOpen,
+                  behavior: HitTestBehavior.opaque,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                 Row(
                   children: [
                     Container(
@@ -763,13 +785,59 @@ class _CommunityCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            community.name,
-                            style: const TextStyle(
-                              fontSize: 17,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  community.name,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              if (community.isPrivate) ...[
+                                const SizedBox(width: 6),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 7,
+                                    vertical: 3,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.18,
+                                      ),
+                                    ),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.lock_outline_rounded,
+                                        size: 11,
+                                        color: Colors.white70,
+                                      ),
+                                      SizedBox(width: 3),
+                                      Text(
+                                        'Private',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white70,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ],
                       ),
@@ -789,6 +857,9 @@ class _CommunityCard extends StatelessWidget {
                     ),
                   ),
                 ],
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 12),
                 Container(
                   height: 1,
@@ -797,21 +868,11 @@ class _CommunityCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    CircleAvatar(
+                    UserAvatar(
+                      displayName: community.admin.displayName,
+                      profileUrl: community.admin.profileUrl,
+                      username: community.admin.username,
                       radius: 14,
-                      backgroundColor: const Color(
-                        0xFFFF7A18,
-                      ).withValues(alpha: 0.18),
-                      child: Text(
-                        community.admin.initials.isNotEmpty
-                            ? community.admin.initials[0]
-                            : '?',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          color: Color(0xFFFF7A18),
-                        ),
-                      ),
                     ),
                     const SizedBox(width: 8),
                     Text(
@@ -824,13 +885,15 @@ class _CommunityCard extends StatelessWidget {
                     ),
                     const Spacer(),
                     GestureDetector(
-                      onTap: onMembersTap,
+                      onTap: onOpen,
                       child: Row(
                         children: [
-                          const Icon(
-                            Icons.people_outline,
+                          Icon(
+                            community.isPrivate && !isJoined
+                                ? Icons.lock_outline_rounded
+                                : Icons.people_outline,
                             size: 14,
-                            color: Color(0xFFFF7A18),
+                            color: const Color(0xFFFF7A18),
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -898,9 +961,13 @@ class _CommunityCard extends StatelessWidget {
       );
     }
 
-    if (isJoined) {
+    if (isJoined || isRequested) {
+      // The owner is always a member but can't "leave" their own community
+      // (the backend has no ownership transfer, and rejects it), so their
+      // state here is informational only, not tappable.
+      final isOwner = canDelete;
       return GestureDetector(
-        onTap: onJoin,
+        onTap: (isRequested || isOwner) ? null : onJoin,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 13),
           decoration: BoxDecoration(
@@ -908,14 +975,22 @@ class _CommunityCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
           ),
-          child: const Row(
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.check, color: Color(0xFFFFB073), size: 18),
-              SizedBox(width: 6),
+              Icon(
+                isOwner
+                    ? Icons.shield_outlined
+                    : isRequested
+                    ? Icons.hourglass_top_rounded
+                    : Icons.check,
+                color: const Color(0xFFFFB073),
+                size: 18,
+              ),
+              const SizedBox(width: 6),
               Text(
-                'Joined',
-                style: TextStyle(
+                isOwner ? 'Owner' : (isRequested ? 'Requested' : 'Joined'),
+                style: const TextStyle(
                   color: Color(0xFFFFB073),
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
@@ -946,14 +1021,14 @@ class _CommunityCard extends StatelessWidget {
             ),
           ],
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.person_add_outlined, color: Colors.white, size: 18),
-            SizedBox(width: 6),
+            const Icon(Icons.person_add_outlined, color: Colors.white, size: 18),
+            const SizedBox(width: 6),
             Text(
-              'Join',
-              style: TextStyle(
+              community.isPrivate ? 'Request to Join' : 'Join',
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
@@ -1029,200 +1104,60 @@ class _PillTab extends StatelessWidget {
   }
 }
 
-// ─── Members Sheet ────────────────────────────────────────────────────────────
+class _PrivacyOption extends StatelessWidget {
+  const _PrivacyOption({
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.selected,
+  });
 
-class _MembersSheet extends StatefulWidget {
-  const _MembersSheet({required this.community});
-
-  final CommunityModel community;
-
-  @override
-  State<_MembersSheet> createState() => _MembersSheetState();
-}
-
-class _MembersSheetState extends State<_MembersSheet> {
-  List<CommunityUser> _members = [];
-  bool _loading = true;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    try {
-      final members = await CommunityService.getMembers(widget.community.id);
-      if (mounted) {
-        setState(() {
-          _members = members;
-          _loading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _error = e.toString();
-          _loading = false;
-        });
-      }
-    }
-  }
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final bool selected;
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.65,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: selected
+            ? const Color(0xFFFF7A18).withValues(alpha: 0.14)
+            : Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: selected
+              ? const Color(0xFFFF7A18)
+              : Colors.white.withValues(alpha: 0.12),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            color: selected ? const Color(0xFFFF7A18) : Colors.white70,
+            size: 20,
           ),
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-          decoration: BoxDecoration(
-            color: const Color(0xFF09090B).withValues(alpha: 0.95),
-            border: const Border(top: BorderSide(color: Color(0x1FFFFFFF))),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.people_rounded,
-                      color: Color(0xFFFF7A18),
-                      size: 22,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        '${widget.community.name} members',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Icon(
-                        Icons.close_rounded,
-                        color: Colors.white.withValues(alpha: 0.5),
-                        size: 22,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                if (_loading)
-                  const Padding(
-                    padding: EdgeInsets.all(32),
-                    child: CircularProgressIndicator(color: Color(0xFFFF7A18)),
-                  )
-                else if (_error != null)
-                  Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        const Icon(
-                          Icons.error_outline,
-                          color: Colors.white38,
-                          size: 40,
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          _error!,
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            color: Color(0xFFEF4444),
-                            fontSize: 13,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        TextButton(
-                          onPressed: _load,
-                          child: const Text(
-                            'Retry',
-                            style: TextStyle(color: Color(0xFFFF7A18)),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                else if (_members.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Text(
-                      'No members yet',
-                      style: TextStyle(color: Colors.white54, fontSize: 15),
-                    ),
-                  )
-                else
-                  Flexible(
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      padding: const EdgeInsets.only(bottom: 24),
-                      itemCount: _members.length,
-                      separatorBuilder: (_, __) => Divider(
-                        color: Colors.white.withValues(alpha: 0.07),
-                        height: 1,
-                      ),
-                      itemBuilder: (_, i) {
-                        final m = _members[i];
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 22,
-                                backgroundColor: const Color(
-                                  0xFFFF7A18,
-                                ).withValues(alpha: 0.18),
-                                child: Text(
-                                  m.initials,
-                                  style: const TextStyle(
-                                    color: Color(0xFFFF7A18),
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                m.displayName,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-              ],
+          const SizedBox(height: 6),
+          Text(
+            label,
+            style: TextStyle(
+              color: selected ? Colors.white : Colors.white70,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
             ),
           ),
-        ),
+          const SizedBox(height: 2),
+          Text(
+            subtitle,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 11,
+            ),
+          ),
+        ],
       ),
     );
   }

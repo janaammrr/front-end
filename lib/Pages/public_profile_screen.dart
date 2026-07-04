@@ -2,12 +2,18 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
+import '../auth/auth.dart';
+import '../components/reel_thumbnail.dart';
 import '../models/reel_model.dart';
+import '../services/api_client.dart';
+import '../services/auth_service.dart';
 import '../services/chat_service.dart';
 import '../services/follow_service.dart';
 import '../services/reel_service.dart';
 import '../services/user_service.dart';
 import 'messaging_screen.dart';
+import 'reel_viewer_screen.dart';
+import 'settings_screen.dart';
 
 class PublicProfileScreen extends StatefulWidget {
   const PublicProfileScreen({
@@ -15,11 +21,18 @@ class PublicProfileScreen extends StatefulWidget {
     this.creatorId,
     required this.creatorName,
     required this.gradient,
+    this.profileUrl,
+    this.isRootView = false,
   });
 
   final int? creatorId;
   final String creatorName;
   final List<Color> gradient;
+  final String? profileUrl;
+
+  /// True when this screen is the root of the Profile bottom-nav tab (no
+  /// screen to pop to). Shows a settings-gear icon instead of a back arrow.
+  final bool isRootView;
 
   @override
   State<PublicProfileScreen> createState() => _PublicProfileScreenState();
@@ -58,28 +71,42 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     });
 
     try {
-      final me = await UserService.getMe();
       final results = await Future.wait([
         ReelService.getByUser(creatorId),
         FollowService.getFollowers(creatorId),
         FollowService.getFollowing(creatorId),
-        FollowService.getFollowing(me.id),
       ]);
-      final myFollowing = results[3] as List<FollowUser>;
+      int? myId;
+      var isSelf = false;
+      var isFollowing = false;
+      try {
+        final me = await UserService.getMe();
+        myId = me.id;
+        isSelf = me.id == creatorId;
+        final myFollowing = await FollowService.getFollowing(me.id);
+        isFollowing = myFollowing.any((user) => user.id == creatorId);
+      } catch (e) {
+        if (AuthService.isAuthFailure(e)) {
+          await AuthService.logout();
+        }
+      }
       if (!mounted) return;
       setState(() {
-        _myId = me.id;
-        _isSelf = me.id == creatorId;
+        _myId = myId;
+        _isSelf = isSelf;
         _reels = results[0] as List<ReelModel>;
         _followersCount = (results[1] as List<FollowUser>).length;
         _followingCount = (results[2] as List<FollowUser>).length;
-        _isFollowing = myFollowing.any((user) => user.id == creatorId);
+        _isFollowing = isFollowing;
         _loading = false;
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = e.toString();
+        _error = ApiClient.errorMessage(
+          e,
+          fallback: 'Could not load this profile.',
+        );
         _loading = false;
       });
     }
@@ -88,6 +115,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   Future<void> _toggleFollow() async {
     final creatorId = widget.creatorId;
     if (creatorId == null || _isSelf || _followBusy) return;
+    if (_myId == null) {
+      _openLogin();
+      return;
+    }
 
     final willFollow = !_isFollowing;
     setState(() {
@@ -103,6 +134,11 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         await FollowService.unfollow(creatorId);
       }
     } catch (e) {
+      if (AuthService.isAuthFailure(e)) {
+        await AuthService.logout();
+        if (mounted) _openLogin();
+        return;
+      }
       if (!mounted) return;
       setState(() {
         _isFollowing = !willFollow;
@@ -110,7 +146,9 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Could not update follow: $e'),
+          content: Text(
+            ApiClient.errorMessage(e, fallback: 'Could not update follow.'),
+          ),
           backgroundColor: const Color(0xFFEF4444),
         ),
       );
@@ -125,9 +163,27 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
     var myId = _myId;
     if (myId == null) {
-      final me = await UserService.getMe();
-      myId = me.id;
-      if (mounted) setState(() => _myId = myId);
+      try {
+        final me = await UserService.getMe();
+        myId = me.id;
+        if (mounted) setState(() => _myId = myId);
+      } catch (e) {
+        if (AuthService.isAuthFailure(e)) {
+          await AuthService.logout();
+          if (mounted) _openLogin();
+          return;
+        }
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              ApiClient.errorMessage(e, fallback: 'Could not open messages.'),
+            ),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
+        );
+        return;
+      }
     }
     if (!mounted) return;
 
@@ -144,6 +200,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           myId: myId!,
         ),
       ),
+    );
+  }
+
+  void _openLogin() {
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AuthPage()),
+      (_) => false,
     );
   }
 
@@ -246,10 +309,20 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             Positioned(
               top: topPad + 8,
               left: 12,
-              child: _CircleBtn(
-                icon: Icons.arrow_back_ios_new_rounded,
-                onTap: () => Navigator.of(context).maybePop(),
-              ),
+              child: widget.isRootView
+                  ? _CircleBtn(
+                      icon: Icons.settings_outlined,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsScreen(),
+                        ),
+                      ),
+                    )
+                  : _CircleBtn(
+                      icon: Icons.arrow_back_ios_new_rounded,
+                      onTap: () => Navigator.of(context).maybePop(),
+                    ),
             ),
             Positioned(
               top: topPad + 8,
@@ -273,11 +346,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                       color: const Color(0xFFFF7A18),
                       width: 3,
                     ),
-                    gradient: LinearGradient(
-                      colors: widget.gradient.length >= 2
-                          ? [widget.gradient[0], widget.gradient[1]]
-                          : [widget.gradient[0], widget.gradient[0]],
-                    ),
+                    gradient: widget.profileUrl == null
+                        ? LinearGradient(
+                            colors: widget.gradient.length >= 2
+                                ? [widget.gradient[0], widget.gradient[1]]
+                                : [widget.gradient[0], widget.gradient[0]],
+                          )
+                        : null,
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFFFF7A18).withValues(alpha: 0.4),
@@ -286,15 +361,34 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                       ),
                     ],
                   ),
-                  child: Center(
-                    child: Text(
-                      initial,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 40,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+                  child: ClipOval(
+                    child: widget.profileUrl != null
+                        ? Image.network(
+                            widget.profileUrl!,
+                            fit: BoxFit.cover,
+                            width: 100,
+                            height: 100,
+                            errorBuilder: (_, __, ___) => Center(
+                              child: Text(
+                                initial,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 40,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Text(
+                              initial,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 40,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
                   ),
                 ),
               ),
@@ -311,10 +405,18 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         ),
       ),
       centerTitle: true,
-      leading: _CircleBtn(
-        icon: Icons.arrow_back_ios_new_rounded,
-        onTap: () => Navigator.of(context).maybePop(),
-      ),
+      leading: widget.isRootView
+          ? _CircleBtn(
+              icon: Icons.settings_outlined,
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              ),
+            )
+          : _CircleBtn(
+              icon: Icons.arrow_back_ios_new_rounded,
+              onTap: () => Navigator.of(context).maybePop(),
+            ),
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 8),
@@ -559,24 +661,21 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       ) {
         final reel = _reels[i];
         final colors = _thumbGradients[i % _thumbGradients.length];
-        return Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: colors,
+        return GestureDetector(
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ReelViewerScreen(reels: _reels, initialIndex: i),
             ),
           ),
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Center(
-                child: Icon(
-                  Icons.play_circle_fill_rounded,
-                  color: Colors.white.withValues(alpha: 0.35),
-                  size: 36,
-                ),
+              ReelThumbnail(
+                thumbnailUrl: reel.thumbnailUrl,
+                fallbackGradient: colors,
               ),
+              Container(color: Colors.black.withValues(alpha: 0.12)),
               Positioned(
                 left: 6,
                 right: 6,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../services/api_client.dart';
 import '../services/reel_service.dart';
 
 class VideoUploadScreen extends StatefulWidget {
@@ -11,11 +12,8 @@ class VideoUploadScreen extends StatefulWidget {
 
 class _VideoUploadScreenState extends State<VideoUploadScreen> {
   final _titleController = TextEditingController();
-  final _descController = TextEditingController();
-  final _tagsController = TextEditingController();
   String _selectedCategory = 'AI';
   XFile? _videoFile;
-  bool _thumbnailSelected = false;
   bool _uploading = false;
 
   final List<String> _categories = ['AI', 'Design', 'Business', 'Finance', 'Tech', 'Science', 'Education', 'Health'];
@@ -23,8 +21,6 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
   @override
   void dispose() {
     _titleController.dispose();
-    _descController.dispose();
-    _tagsController.dispose();
     super.dispose();
   }
 
@@ -36,7 +32,7 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
   Future<void> _publish() async {
     if (_titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a title'), backgroundColor: Color(0xFF374151)),
+        const SnackBar(content: Text('Please enter a caption'), backgroundColor: Color(0xFF374151)),
       );
       return;
     }
@@ -51,7 +47,7 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
       await ReelService.upload(
         videoPath: _videoFile!.path,
         caption: _titleController.text.trim(),
-        preferences: _selectedCategory,
+        category: _selectedCategory,
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -59,11 +55,14 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
         );
         Navigator.of(context).pop(true);
       }
-    } catch (_) {
+    } catch (e) {
       if (mounted) {
         setState(() => _uploading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Upload failed. Please try again.'), backgroundColor: Color(0xFFEF4444)),
+          SnackBar(
+            content: Text(ApiClient.errorMessage(e, fallback: 'Upload failed.')),
+            backgroundColor: const Color(0xFFEF4444),
+          ),
         );
       }
     }
@@ -87,11 +86,6 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
                       _BackButton(onTap: () => Navigator.of(context).pop()),
                       const SizedBox(width: 12),
                       const Text('Upload Reel', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
-                      const Spacer(),
-                      TextButton(
-                        onPressed: _uploading ? null : () => Navigator.of(context).pop(),
-                        child: const Text('Save Draft', style: TextStyle(color: Color(0xFF9CA3AF), fontWeight: FontWeight.w600)),
-                      ),
                     ],
                   ),
                 ),
@@ -139,11 +133,8 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
                           ),
                         ),
                         const SizedBox(height: 20),
-                        _Label('Title *'),
+                        _Label('Caption *'),
                         _Field(controller: _titleController, hint: 'What will people learn from this video?'),
-                        const SizedBox(height: 16),
-                        _Label('Description'),
-                        _Field(controller: _descController, hint: 'Add more context or key takeaways…', maxLines: 3),
                         const SizedBox(height: 16),
                         _Label('Category'),
                         const SizedBox(height: 10),
@@ -165,33 +156,6 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
                               ),
                             );
                           }).toList(),
-                        ),
-                        const SizedBox(height: 16),
-                        _Label('Tags'),
-                        _Field(controller: _tagsController, hint: 'e.g. AI, productivity, learning (comma separated)'),
-                        const SizedBox(height: 16),
-                        _Label('Thumbnail'),
-                        GestureDetector(
-                          onTap: () => setState(() => _thumbnailSelected = true),
-                          child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 200),
-                            height: 100,
-                            decoration: BoxDecoration(
-                              color: _thumbnailSelected ? const Color(0xFFFF7A18).withValues(alpha: 0.08) : Colors.white.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(color: _thumbnailSelected ? const Color(0xFFFF7A18) : Colors.white.withValues(alpha: 0.12)),
-                            ),
-                            child: Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(_thumbnailSelected ? Icons.check_circle_outline_rounded : Icons.add_photo_alternate_outlined, color: _thumbnailSelected ? const Color(0xFFFF7A18) : Colors.white38, size: 30),
-                                  const SizedBox(height: 6),
-                                  Text(_thumbnailSelected ? 'Thumbnail selected ✓' : 'Upload thumbnail (optional)', style: TextStyle(color: _thumbnailSelected ? const Color(0xFFFF7A18) : Colors.white38, fontSize: 13)),
-                                ],
-                              ),
-                            ),
-                          ),
                         ),
                         const SizedBox(height: 28),
                         Container(
@@ -254,17 +218,15 @@ class _Label extends StatelessWidget {
 }
 
 class _Field extends StatelessWidget {
-  const _Field({required this.controller, required this.hint, this.maxLines = 1});
+  const _Field({required this.controller, required this.hint});
 
   final TextEditingController controller;
   final String hint;
-  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
-      maxLines: maxLines,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hint,

@@ -13,6 +13,7 @@ class ReelModel {
   final bool savedByMe;
   final String creatorName;
   final int? creatorId;
+  final String? creatorUsername;
 
   const ReelModel({
     required this.id,
@@ -27,6 +28,7 @@ class ReelModel {
     required this.savedByMe,
     required this.creatorName,
     this.creatorId,
+    this.creatorUsername,
   });
 
   factory ReelModel.fromJson(Map<String, dynamic> json) {
@@ -54,6 +56,7 @@ class ReelModel {
       savedByMe: json['savedByMe'] as bool? ?? false,
       creatorName: creatorName.isEmpty ? 'Unknown' : creatorName,
       creatorId: (creator?['id'] as num?)?.toInt(),
+      creatorUsername: creator?['username'] as String?,
     );
   }
 }

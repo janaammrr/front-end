@@ -42,9 +42,12 @@ class InboxItem {
   });
 
   factory InboxItem.fromJson(Map<String, dynamic> j) => InboxItem(
-    otherUser: ChatUser.fromJson(j['otherUser'] as Map<String, dynamic>),
+    otherUser: ChatUser.fromJson(
+      j['user'] as Map<String, dynamic>? ??
+          j['otherUser'] as Map<String, dynamic>,
+    ),
     lastMessage: j['lastMessage'] as String? ?? '',
-    isRead: j['isRead'] as bool? ?? true,
+    isRead: j['read'] as bool? ?? j['isRead'] as bool? ?? true,
     unreadCount: (j['unreadCount'] as num?)?.toInt() ?? 0,
   );
 }

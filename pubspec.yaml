@@ -13,7 +13,8 @@ dependencies:
   cupertino_icons: ^1.0.8
   dio: ^5.7.0
   flutter_secure_storage: ^9.2.2
-  image_picker: ^1.0.7
+  image_picker: 1.0.7
+  image_picker_android: 0.8.12+17
   video_player: ^2.9.2
 
 dev_dependencies:

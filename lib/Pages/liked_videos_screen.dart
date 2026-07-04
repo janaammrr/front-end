@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../components/reel_thumbnail.dart';
 import '../services/reel_service.dart';
 import '../models/reel_model.dart';
+import 'reel_viewer_screen.dart';
 
 class LikedVideosScreen extends StatefulWidget {
   const LikedVideosScreen({super.key});
@@ -99,9 +101,18 @@ class _LikedVideosScreenState extends State<LikedVideosScreen> {
                                       crossAxisCount: 2, mainAxisSpacing: 12, crossAxisSpacing: 12, childAspectRatio: 0.72,
                                     ),
                                     itemCount: _videos.length,
-                                    itemBuilder: (_, i) => _VideoCard(
+                                    itemBuilder: (context, i) => _VideoCard(
                                       video: _videos[i],
                                       gradient: _gradients[i % _gradients.length],
+                                      onTap: () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (_) => ReelViewerScreen(
+                                            reels: _videos,
+                                            initialIndex: i,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -116,10 +127,11 @@ class _LikedVideosScreenState extends State<LikedVideosScreen> {
 }
 
 class _VideoCard extends StatelessWidget {
-  const _VideoCard({required this.video, required this.gradient});
+  const _VideoCard({required this.video, required this.gradient, required this.onTap});
 
   final ReelModel video;
   final List<Color> gradient;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -128,9 +140,8 @@ class _VideoCard extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Container(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: gradient))),
+          ReelThumbnail(thumbnailUrl: video.thumbnailUrl, fallbackGradient: gradient),
           Container(color: Colors.black26),
-          const Center(child: Icon(Icons.play_circle_outline_rounded, color: Colors.white54, size: 40)),
           Positioned(
             top: 10, right: 10,
             child: Container(
@@ -160,7 +171,7 @@ class _VideoCard extends StatelessWidget {
               ),
             ),
           ),
-          Positioned.fill(child: Material(color: Colors.transparent, child: InkWell(onTap: () {}))),
+          Positioned.fill(child: Material(color: Colors.transparent, child: InkWell(onTap: onTap))),
         ],
       ),
     );

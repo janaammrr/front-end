@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../auth/auth.dart';
 import 'profile_screen.dart';
 import '../models/event_model.dart';
+import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/event_service.dart';
 
@@ -53,7 +54,7 @@ class _EventsPageState extends State<EventsPage> {
         return;
       }
       setState(() {
-        _error = 'Could not load events. Check your connection.';
+        _error = ApiClient.errorMessage(e, fallback: 'Could not load events.');
         _loading = false;
       });
     }
@@ -182,11 +183,6 @@ class _EventsPageState extends State<EventsPage> {
                           children: [
                             const _BrandMark(),
                             const Spacer(),
-                            _GlassIconButton(
-                              icon: Icons.notifications_none_rounded,
-                              onPressed: () {},
-                            ),
-                            const SizedBox(width: 10),
                             _GlassIconButton(
                               icon: Icons.person_outline_rounded,
                               onPressed: () {

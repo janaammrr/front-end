@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 
 import '../services/reel_service.dart';
+import '../services/api_client.dart';
+import '../components/reel_moderation_sheet.dart';
+import '../components/user_avatar.dart';
 import '../services/auth_service.dart';
 import '../services/follow_service.dart';
 import '../services/chat_service.dart';
@@ -13,7 +16,6 @@ import 'profile_screen.dart';
 import 'communities_screen.dart';
 import 'workshop_page.dart';
 import 'events_page.dart';
-import 'notifications_screen.dart';
 import 'messaging_screen.dart';
 import 'search_screen.dart';
 import 'video_upload_screen.dart';
@@ -28,6 +30,7 @@ class _VideoItem {
     required this.id,
     required this.creatorName,
     this.creatorId,
+    this.creatorUsername,
     required this.caption,
     required this.category,
     required this.likes,
@@ -41,6 +44,7 @@ class _VideoItem {
   final int id;
   final String creatorName;
   final int? creatorId;
+  final String? creatorUsername;
   final String caption;
   final String category;
   final int likes;
@@ -207,6 +211,7 @@ class _FeedViewState extends State<_FeedView> {
   List<_VideoItem> _videos = [];
   bool _loading = true;
   String? _error;
+  int? _myId;
 
   static const _gradients = [
     [Color(0xFF7C2D12), Color(0xFF9A3412), Color(0xFF09090B)],
@@ -220,6 +225,13 @@ class _FeedViewState extends State<_FeedView> {
   void initState() {
     super.initState();
     _loadReels();
+    UserService.getMe().then((me) {
+      if (mounted) setState(() => _myId = me.id);
+    }).catchError((_) {});
+  }
+
+  void _removeReelAt(int index) {
+    setState(() => _videos.removeAt(index));
   }
 
   Future<void> _loadReels() async {
@@ -234,6 +246,7 @@ class _FeedViewState extends State<_FeedView> {
             id: reel.id,
             creatorName: reel.creatorName,
             creatorId: reel.creatorId,
+            creatorUsername: reel.creatorUsername,
             caption: reel.caption,
             category: 'Educational',
             likes: reel.likesCount,
@@ -260,7 +273,7 @@ class _FeedViewState extends State<_FeedView> {
         return;
       }
       setState(() {
-        _error = 'Could not load feed. Check your connection.';
+        _error = ApiClient.errorMessage(e, fallback: 'Could not load feed.');
         _loading = false;
       });
     }
@@ -352,20 +365,18 @@ class _FeedViewState extends State<_FeedView> {
           itemCount: _videos.length,
           onPageChanged: (page) => setState(() => _currentPage = page),
           itemBuilder: (context, index) => _VideoCard(
-            key: ValueKey(index),
+            key: ValueKey(_videos[index].id),
             item: _videos[index],
             isActive: index == _currentPage,
+            myId: _myId,
             onVideoEnd: _goToNextPage,
+            onDeleted: () => _removeReelAt(index),
           ),
         ),
         _TopBar(
           onSearchTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const SearchScreen()),
-          ),
-          onNotificationTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const NotificationsScreen()),
           ),
           onMessageTap: () => Navigator.push(
             context,
@@ -383,13 +394,11 @@ class _FeedViewState extends State<_FeedView> {
 class _TopBar extends StatelessWidget {
   const _TopBar({
     required this.onSearchTap,
-    required this.onNotificationTap,
     required this.onMessageTap,
     required this.onCreateTap,
   });
 
   final VoidCallback onSearchTap;
-  final VoidCallback onNotificationTap;
   final VoidCallback onMessageTap;
   final VoidCallback onCreateTap;
 
@@ -421,11 +430,6 @@ class _TopBar extends StatelessWidget {
               _TopBtn(icon: Icons.add_rounded, onTap: onCreateTap),
               const SizedBox(width: 8),
               _TopBtn(icon: Icons.search_rounded, onTap: onSearchTap),
-              const SizedBox(width: 8),
-              _TopBtn(
-                icon: Icons.notifications_outlined,
-                onTap: onNotificationTap,
-              ),
               const SizedBox(width: 8),
               _TopBtn(icon: Icons.send_outlined, onTap: onMessageTap),
             ],
@@ -466,12 +470,16 @@ class _VideoCard extends StatefulWidget {
     super.key,
     required this.item,
     required this.isActive,
+    required this.myId,
     required this.onVideoEnd,
+    required this.onDeleted,
   });
 
   final _VideoItem item;
   final bool isActive;
+  final int? myId;
   final VoidCallback onVideoEnd;
+  final VoidCallback onDeleted;
 
   @override
   State<_VideoCard> createState() => _VideoCardState();
@@ -602,13 +610,23 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
     super.dispose();
   }
 
-  void _toggleLike() {
+  Future<void> _toggleLike() async {
+    final wasLiked = _isLiked;
     setState(() {
       _isLiked = !_isLiked;
       _likeCount += _isLiked ? 1 : -1;
     });
     _likeCtrl.forward(from: 0);
-    ReelService.toggleLike(widget.item.id);
+    try {
+      await ReelService.toggleLike(widget.item.id);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLiked = wasLiked;
+        _likeCount += wasLiked ? 1 : -1;
+      });
+      _showActionError(e, fallback: 'Could not update like.');
+    }
   }
 
   void _togglePause() {
@@ -627,9 +645,16 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
     }
   }
 
-  void _toggleSave() {
+  Future<void> _toggleSave() async {
+    final wasSaved = _isSaved;
     setState(() => _isSaved = !_isSaved);
-    ReelService.toggleSave(widget.item.id);
+    try {
+      await ReelService.toggleSave(widget.item.id);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isSaved = wasSaved);
+      _showActionError(e, fallback: 'Could not update save.');
+    }
   }
 
   Future<void> _toggleFollow() async {
@@ -645,11 +670,36 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
       } else {
         await FollowService.unfollow(widget.item.creatorId!);
       }
-    } catch (_) {
-      if (mounted) setState(() => _isFollowing = !willFollow);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isFollowing = !willFollow);
+        _showActionError(e, fallback: 'Could not update follow.');
+      }
     } finally {
       if (mounted) setState(() => _followBusy = false);
     }
+  }
+
+  Future<void> _showActionError(
+    Object error, {
+    required String fallback,
+  }) async {
+    if (AuthService.isAuthFailure(error)) {
+      await AuthService.logout();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const AuthPage()),
+        (_) => false,
+      );
+      return;
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(ApiClient.errorMessage(error, fallback: fallback)),
+        backgroundColor: const Color(0xFFEF4444),
+      ),
+    );
   }
 
   void _share() {
@@ -785,6 +835,13 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
                 context,
                 MaterialPageRoute(builder: (_) => const AIChatbotScreen()),
               ),
+              onMore: () => showReelActionsSheet(
+                context,
+                reelId: widget.item.id,
+                isMine:
+                    widget.myId != null && widget.myId == widget.item.creatorId,
+                onDeleted: widget.onDeleted,
+              ),
             ),
           ),
 
@@ -830,6 +887,7 @@ class _ActionRail extends StatelessWidget {
     required this.onComment,
     required this.onShare,
     required this.onAI,
+    required this.onMore,
   });
 
   final bool isLiked;
@@ -842,6 +900,7 @@ class _ActionRail extends StatelessWidget {
   final VoidCallback onComment;
   final VoidCallback onShare;
   final VoidCallback onAI;
+  final VoidCallback onMore;
 
   @override
   Widget build(BuildContext context) {
@@ -909,6 +968,19 @@ class _ActionRail extends StatelessWidget {
               color: isSaved ? const Color(0xFFFF7A18) : Colors.white,
               size: 26,
             ),
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // More (delete own reel / report others')
+        _RailBtn(
+          onTap: onMore,
+          label: 'More',
+          child: const Icon(
+            Icons.more_horiz_rounded,
+            color: Colors.white,
+            size: 26,
           ),
         ),
 
@@ -1042,19 +1114,10 @@ class _CreatorCard extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: onCreatorTap,
-                    child: CircleAvatar(
+                    child: UserAvatar(
+                      displayName: item.creatorName,
+                      username: item.creatorUsername,
                       radius: 15,
-                      backgroundColor: const Color(
-                        0xFFFF7A18,
-                      ).withValues(alpha: 0.25),
-                      child: Text(
-                        item.creatorName[0],
-                        style: const TextStyle(
-                          color: Color(0xFFFF7A18),
-                          fontWeight: FontWeight.w800,
-                          fontSize: 13,
-                        ),
-                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -1354,26 +1417,6 @@ class _ShareSheet extends StatelessWidget {
   final String creatorName;
   final BuildContext parentContext;
 
-  Future<void> _report(BuildContext context) async {
-    Navigator.of(context).pop();
-    try {
-      await ReelService.reportReel(reelId, 'Reported from reel share menu');
-      if (!parentContext.mounted) return;
-      ScaffoldMessenger.of(parentContext).showSnackBar(
-        _shareSnack('Report sent. Thanks for helping keep Flame safe.'),
-      );
-    } catch (e) {
-      if (!parentContext.mounted) return;
-      ScaffoldMessenger.of(parentContext).showSnackBar(
-        SnackBar(
-          content: Text('Could not report reel: $e'),
-          backgroundColor: const Color(0xFFEF4444),
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    }
-  }
-
   SnackBar _shareSnack(String message) => SnackBar(
     content: Row(
       children: [
@@ -1394,30 +1437,6 @@ class _ShareSheet extends StatelessWidget {
     ScaffoldMessenger.of(
       parentContext,
     ).showSnackBar(_shareSnack('Link copied to clipboard!'));
-  }
-
-  void _shareToApp(BuildContext context, String appName) {
-    Navigator.of(context).pop();
-    ScaffoldMessenger.of(parentContext).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(
-              Icons.check_circle_rounded,
-              color: Colors.white,
-              size: 18,
-            ),
-            const SizedBox(width: 10),
-            Text('Opening $appName...'),
-          ],
-        ),
-        backgroundColor: const Color(0xFFFF7A18),
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        duration: const Duration(seconds: 2),
-        margin: const EdgeInsets.fromLTRB(12, 0, 12, 20),
-      ),
-    );
   }
 
   @override
@@ -1520,18 +1539,6 @@ class _ShareSheet extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     _ShareOption(
-                      icon: Icons.chat_rounded,
-                      label: 'WhatsApp',
-                      color: const Color(0xFF25D366),
-                      onTap: () => _shareToApp(context, 'WhatsApp'),
-                    ),
-                    _ShareOption(
-                      icon: Icons.facebook_rounded,
-                      label: 'Facebook',
-                      color: const Color(0xFF1877F2),
-                      onTap: () => _shareToApp(context, 'Facebook'),
-                    ),
-                    _ShareOption(
                       icon: Icons.auto_awesome_rounded,
                       label: 'Flame DM',
                       color: const Color(0xFFFF7A18),
@@ -1556,12 +1563,6 @@ class _ShareSheet extends StatelessWidget {
                       label: 'Copy Link',
                       color: Colors.white54,
                       onTap: () => _copyLink(context),
-                    ),
-                    _ShareOption(
-                      icon: Icons.flag_outlined,
-                      label: 'Report',
-                      color: const Color(0xFFEF4444),
-                      onTap: () => _report(context),
                     ),
                   ],
                 ),

@@ -24,8 +24,13 @@ class EventModel {
       description: json['description'] as String?,
       location: json['location'] as String?,
       capacity: (json['capacity'] as num?)?.toInt(),
-      date: json['date'] as String?,
+      date: _formatDate(json['date'] as String? ?? json['startDate'] as String?),
       price: (json['price'] as num?)?.toDouble(),
     );
   }
+}
+
+String? _formatDate(String? isoDateTime) {
+  if (isoDateTime == null || isoDateTime.isEmpty) return null;
+  return isoDateTime.split('T').first;
 }

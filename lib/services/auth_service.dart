@@ -33,14 +33,23 @@ class AuthService {
 
   static Future<void> logout() => ApiClient.clearToken();
 
+  static Future<void> changePassword({
+    required String oldPassword,
+    required String newPassword,
+  }) async {
+    await ApiClient.instance.put(
+      '/api/users/me/password',
+      data: {'oldPassword': oldPassword, 'newPassword': newPassword},
+    );
+  }
+
   static Future<bool> isLoggedIn() async {
     final token = await ApiClient.getToken();
     return token != null;
   }
 
   static bool isAuthFailure(Object error) {
-    return error is DioException &&
-        (error.response?.statusCode == 401 || error.response?.statusCode == 403);
+    return error is DioException && error.response?.statusCode == 401;
   }
 
   static String mapDioError(DioException e) {

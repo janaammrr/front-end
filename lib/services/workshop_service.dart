@@ -3,14 +3,15 @@ import 'api_client.dart';
 
 class WorkshopService {
   static Future<List<Map<String, dynamic>>> getBookedRows() async {
-    final response = await ApiClient.instance.get(
-      '/api/customer/workshops/booked',
-    );
+    final response = await ApiClient.instance.get('/api/workshops/bookings');
     return (response.data as List<dynamic>).cast<Map<String, dynamic>>();
   }
 
   static Future<List<WorkshopModel>> getAll() async {
-    final response = await ApiClient.instance.get('/api/workshops');
+    final response = await ApiClient.instance.get(
+      '/api/workshops',
+      options: ApiClient.publicOptions,
+    );
     final list = response.data as List<dynamic>;
     return list
         .map((json) => WorkshopModel.fromJson(json as Map<String, dynamic>))
@@ -18,13 +19,16 @@ class WorkshopService {
   }
 
   static Future<WorkshopModel> getById(int id) async {
-    final response = await ApiClient.instance.get('/api/workshops/$id');
+    final response = await ApiClient.instance.get(
+      '/api/workshops/$id',
+      options: ApiClient.publicOptions,
+    );
     return WorkshopModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   static Future<void> bookWorkshop(int workshopId) async {
     await ApiClient.instance.post(
-      '/api/customer/workshops/$workshopId/book',
+      '/api/workshops/$workshopId/book',
       data: {'ticketCount': 1},
     );
   }
@@ -38,13 +42,13 @@ class WorkshopService {
     double price = 0,
   }) async {
     await ApiClient.instance.post(
-      '/api/provider/workshops',
+      '/api/workshops',
       data: {
         'title': title,
         'description': description,
         'location': location,
-        'capacity': capacity,
-        'date': date,
+        'capacity': capacity > 0 ? capacity : null,
+        'startDate': _toIsoDateTime(date),
         'price': price,
       },
     );
@@ -59,7 +63,9 @@ class WorkshopService {
   }
 
   static Future<List<WorkshopModel>> getCreated() async {
-    final response = await ApiClient.instance.get('/api/provider/workshops');
+    final response = await ApiClient.instance.get(
+      '/api/users/listings/workshops',
+    );
     final list = response.data as List<dynamic>;
     return list
         .map((json) => WorkshopModel.fromJson(json as Map<String, dynamic>))
@@ -67,8 +73,14 @@ class WorkshopService {
   }
 
   static Future<void> cancelBooking(int bookingId) =>
-      ApiClient.instance.delete('/api/customer/workshops/bookings/$bookingId');
+      ApiClient.instance.delete('/api/workshops/bookings/$bookingId');
 
   static Future<void> deleteWorkshop(int workshopId) =>
-      ApiClient.instance.delete('/api/provider/workshops/$workshopId');
+      ApiClient.instance.delete('/api/workshops/$workshopId');
+}
+
+String? _toIsoDateTime(String date) {
+  final trimmed = date.trim();
+  if (trimmed.isEmpty) return null;
+  return trimmed.contains('T') ? trimmed : '${trimmed}T00:00:00';
 }

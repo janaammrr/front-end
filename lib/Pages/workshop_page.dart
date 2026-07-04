@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../auth/auth.dart';
 import 'profile_screen.dart';
 import '../models/workshop_model.dart';
+import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/workshop_service.dart';
 
@@ -17,6 +18,7 @@ class _WorkshopPageState extends State<WorkshopPage> {
   final TextEditingController _searchController = TextEditingController();
   String _selectedCategory = 'All';
   List<_WorkshopItem> _workshops = [];
+  Set<int> _createdWorkshopIds = {};
   bool _loading = true;
   String? _error;
 
@@ -29,9 +31,15 @@ class _WorkshopPageState extends State<WorkshopPage> {
   Future<void> _loadWorkshops() async {
     try {
       final models = await WorkshopService.getAll();
+      Set<int> createdIds = {};
+      try {
+        final created = await WorkshopService.getCreated();
+        createdIds = created.map((workshop) => workshop.id).toSet();
+      } catch (_) {}
       if (!mounted) return;
       setState(() {
         _workshops = models.map(_WorkshopItem.fromModel).toList();
+        _createdWorkshopIds = createdIds;
         _loading = false;
       });
     } catch (e) {
@@ -46,7 +54,10 @@ class _WorkshopPageState extends State<WorkshopPage> {
         return;
       }
       setState(() {
-        _error = 'Could not load workshops. Check your connection.';
+        _error = ApiClient.errorMessage(
+          e,
+          fallback: 'Could not load workshops.',
+        );
         _loading = false;
       });
     }
@@ -176,11 +187,6 @@ class _WorkshopPageState extends State<WorkshopPage> {
                             const _BrandMark(),
                             const Spacer(),
                             _GlassIconButton(
-                              icon: Icons.notifications_none_rounded,
-                              onPressed: () {},
-                            ),
-                            const SizedBox(width: 10),
-                            _GlassIconButton(
                               icon: Icons.person_outline_rounded,
                               onPressed: () {
                                 Navigator.push(
@@ -286,6 +292,10 @@ class _WorkshopPageState extends State<WorkshopPage> {
                             (context, index) => _WorkshopCard(
                               workshop: workshops[index],
                               animationDelay: index * 70,
+                              canDelete: _createdWorkshopIds.contains(
+                                workshops[index].id,
+                              ),
+                              onDelete: () => _deleteWorkshop(workshops[index]),
                             ),
                           ),
                         ),
@@ -296,6 +306,70 @@ class _WorkshopPageState extends State<WorkshopPage> {
         ],
       ),
     );
+  }
+
+  Future<void> _deleteWorkshop(_WorkshopItem workshop) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        backgroundColor: const Color(0xFF111827),
+        title: const Text(
+          'Delete workshop',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'Delete ${workshop.name}?',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: Color(0xFFEF4444)),
+            ),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    try {
+      await WorkshopService.deleteWorkshop(workshop.id);
+      if (!mounted) return;
+      setState(() {
+        _workshops.removeWhere((item) => item.id == workshop.id);
+        _createdWorkshopIds.remove(workshop.id);
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Workshop deleted.'),
+          backgroundColor: Color(0xFF10B981),
+        ),
+      );
+    } catch (e) {
+      if (AuthService.isAuthFailure(e)) {
+        await AuthService.logout();
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthPage()),
+          (_) => false,
+        );
+        return;
+      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            ApiClient.errorMessage(e, fallback: 'Could not delete workshop.'),
+          ),
+          backgroundColor: const Color(0xFFEF4444),
+        ),
+      );
+    }
   }
 }
 
@@ -420,10 +494,17 @@ class _CategoryChip extends StatelessWidget {
 }
 
 class _WorkshopCard extends StatefulWidget {
-  const _WorkshopCard({required this.workshop, required this.animationDelay});
+  const _WorkshopCard({
+    required this.workshop,
+    required this.animationDelay,
+    required this.canDelete,
+    required this.onDelete,
+  });
 
   final _WorkshopItem workshop;
   final int animationDelay;
+  final bool canDelete;
+  final Future<void> Function() onDelete;
 
   @override
   State<_WorkshopCard> createState() => _WorkshopCardState();
@@ -433,6 +514,7 @@ class _WorkshopCardState extends State<_WorkshopCard> {
   bool _hovered = false;
   bool _booking = false;
   bool _booked = false;
+  bool _deleting = false;
 
   Future<void> _book() async {
     if (_booking || _booked) return;
@@ -454,16 +536,34 @@ class _WorkshopCardState extends State<_WorkshopCard> {
         );
       }
     } catch (e) {
+      if (AuthService.isAuthFailure(e)) {
+        await AuthService.logout();
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthPage()),
+          (_) => false,
+        );
+        return;
+      }
       if (mounted) {
         setState(() => _booking = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Booking failed: ${e.toString()}'),
+            content: Text(
+              ApiClient.errorMessage(e, fallback: 'Booking failed.'),
+            ),
             backgroundColor: const Color(0xFFEF4444),
           ),
         );
       }
     }
+  }
+
+  Future<void> _delete() async {
+    if (_deleting) return;
+    setState(() => _deleting = true);
+    await widget.onDelete();
+    if (mounted) setState(() => _deleting = false);
   }
 
   @override
@@ -530,6 +630,33 @@ class _WorkshopCardState extends State<_WorkshopCard> {
                             right: 12,
                             child: _PillTag(label: item.category),
                           ),
+                          if (widget.canDelete)
+                            Positioned(
+                              top: 12,
+                              left: 12,
+                              child: Material(
+                                color: Colors.black.withValues(alpha: 0.45),
+                                shape: const CircleBorder(),
+                                child: IconButton(
+                                  tooltip: 'Delete workshop',
+                                  onPressed: _deleting ? null : _delete,
+                                  icon: _deleting
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white,
+                                          ),
+                                        )
+                                      : const Icon(
+                                          Icons.delete_outline_rounded,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                ),
+                              ),
+                            ),
                           Positioned(
                             left: 12,
                             bottom: 12,
@@ -702,13 +829,10 @@ class _CreateWorkshopDialog extends StatefulWidget {
 }
 
 class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
-  bool _isPaid = false;
-  String _paymentMethod = 'Credit card';
   bool _creating = false;
 
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
-  final _seatsController = TextEditingController();
   final _locationController = TextEditingController();
   final _dateController = TextEditingController();
   final _priceController = TextEditingController();
@@ -717,7 +841,6 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
   void dispose() {
     _nameController.dispose();
     _descController.dispose();
-    _seatsController.dispose();
     _locationController.dispose();
     _dateController.dispose();
     _priceController.dispose();
@@ -741,17 +864,27 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
         title: title,
         description: _descController.text.trim(),
         location: _locationController.text.trim(),
-        capacity: int.tryParse(_seatsController.text.trim()) ?? 0,
         date: _dateController.text.trim(),
-        price: _isPaid ? double.tryParse(_priceController.text.trim()) ?? 0 : 0,
+        price: double.tryParse(_priceController.text.trim()) ?? 0,
       );
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
+      if (AuthService.isAuthFailure(e)) {
+        await AuthService.logout();
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthPage()),
+          (_) => false,
+        );
+        return;
+      }
       if (mounted) {
         setState(() => _creating = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to create: ${e.toString()}'),
+            content: Text(
+              ApiClient.errorMessage(e, fallback: 'Failed to create workshop.'),
+            ),
             backgroundColor: const Color(0xFFEF4444),
           ),
         );
@@ -835,116 +968,41 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
                         runSpacing: 14,
                         children: [
                           _FormFieldBlock(
-                            label: 'Workshop name *',
+                            label: 'Title *',
                             child: _StyledTextField(
-                              hint: 'Enter workshop name',
+                              hint: 'Spring Boot Masterclass',
                               controller: _nameController,
                             ),
                           ),
                           _FormFieldBlock(
-                            label: 'Workshop description',
+                            label: 'Description',
                             wide: true,
                             child: _StyledTextField(
-                              hint: 'Describe what participants will learn',
+                              hint: 'Deep dive into Spring',
                               maxLines: 4,
                               controller: _descController,
                             ),
                           ),
-                          const _FormFieldBlock(
-                            label: 'Upload cover image',
-                            wide: true,
-                            child: _UploadPlaceholder(),
-                          ),
                           _FormFieldBlock(
-                            label: 'Number of seats',
+                            label: 'Location',
                             child: _StyledTextField(
-                              hint: 'e.g. 30',
-                              keyboardType: TextInputType.number,
-                              controller: _seatsController,
-                            ),
-                          ),
-                          const _FormFieldBlock(
-                            label: 'Token seats',
-                            child: _StyledTextField(
-                              hint: 'e.g. 5',
-                              keyboardType: TextInputType.number,
+                              hint: 'Alexandria',
+                              controller: _locationController,
                             ),
                           ),
                           _FormFieldBlock(
-                            label: 'Pricing',
-                            wide: true,
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: SwitchListTile(
-                                    value: _isPaid,
-                                    onChanged: (value) =>
-                                        setState(() => _isPaid = value),
-                                    title: Text(
-                                      _isPaid
-                                          ? 'Paid workshop'
-                                          : 'Free workshop',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                    contentPadding: EdgeInsets.zero,
-                                    activeThumbColor: const Color(0xFFFF7A18),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (_isPaid)
-                            _FormFieldBlock(
-                              label: 'Payment method',
-                              child: _StyledDropdown(
-                                value: _paymentMethod,
-                                onChanged: (value) =>
-                                    setState(() => _paymentMethod = value!),
-                                items: const [
-                                  'Credit card',
-                                  'Wallet',
-                                  'Bank transfer',
-                                ],
-                              ),
-                            ),
-                          if (_isPaid)
-                            _FormFieldBlock(
-                              label: 'Price',
-                              child: _StyledTextField(
-                                hint: '300',
-                                keyboardType: TextInputType.number,
-                                controller: _priceController,
-                              ),
-                            ),
-                          _FormFieldBlock(
-                            label: 'Date and time',
+                            label: 'Date',
                             child: _StyledTextField(
                               hint: '2026-06-15',
                               controller: _dateController,
                             ),
                           ),
-                          const _FormFieldBlock(
-                            label: 'Category',
-                            child: _StyledTextField(
-                              hint: 'Design / AI / Business',
-                            ),
-                          ),
                           _FormFieldBlock(
-                            label: 'Location or online link',
-                            wide: true,
+                            label: 'Price',
                             child: _StyledTextField(
-                              hint: 'Venue address or meeting link',
-                              controller: _locationController,
-                            ),
-                          ),
-                          const _FormFieldBlock(
-                            label: 'Requirements / notes (optional)',
-                            wide: true,
-                            child: _StyledTextField(
-                              hint: 'Any prerequisites or attendee notes',
-                              maxLines: 3,
+                              hint: '300',
+                              keyboardType: TextInputType.number,
+                              controller: _priceController,
                             ),
                           ),
                         ],
@@ -1074,75 +1132,6 @@ class _StyledTextField extends StatelessWidget {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: Color(0xFFFF7A18)),
-        ),
-      ),
-    );
-  }
-}
-
-class _StyledDropdown extends StatelessWidget {
-  const _StyledDropdown({
-    required this.value,
-    required this.onChanged,
-    required this.items,
-  });
-
-  final String value;
-  final ValueChanged<String?> onChanged;
-  final List<String> items;
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
-      initialValue: value,
-      dropdownColor: const Color(0xFF101521),
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-      ),
-      iconEnabledColor: Colors.white,
-      onChanged: onChanged,
-      items: items
-          .map(
-            (item) => DropdownMenuItem<String>(value: item, child: Text(item)),
-          )
-          .toList(),
-    );
-  }
-}
-
-class _UploadPlaceholder extends StatelessWidget {
-  const _UploadPlaceholder();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 120,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-      ),
-      child: const Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.add_photo_alternate_outlined, color: Colors.white70),
-            SizedBox(height: 8),
-            Text(
-              'Drop image or click to upload',
-              style: TextStyle(color: Color(0xFFC2C8D7)),
-            ),
-          ],
         ),
       ),
     );

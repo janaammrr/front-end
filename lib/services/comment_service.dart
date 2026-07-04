@@ -3,8 +3,9 @@ import 'api_client.dart';
 class CommentAuthor {
   final int id;
   final String name;
+  final String? username;
 
-  CommentAuthor({required this.id, required this.name});
+  CommentAuthor({required this.id, required this.name, this.username});
 
   factory CommentAuthor.fromJson(Map<String, dynamic> json) {
     final firstName =
@@ -14,6 +15,7 @@ class CommentAuthor {
     return CommentAuthor(
       id: (json['id'] as num).toInt(),
       name: json['name'] as String? ?? '$firstName $lastName'.trim(),
+      username: json['username'] as String?,
     );
   }
 }

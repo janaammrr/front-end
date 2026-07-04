@@ -3,14 +3,15 @@ import 'api_client.dart';
 
 class EventService {
   static Future<List<Map<String, dynamic>>> getBookedRows() async {
-    final response = await ApiClient.instance.get(
-      '/api/customer/events/booked',
-    );
+    final response = await ApiClient.instance.get('/api/events/bookings');
     return (response.data as List<dynamic>).cast<Map<String, dynamic>>();
   }
 
   static Future<List<EventModel>> getAll() async {
-    final response = await ApiClient.instance.get('/api/events');
+    final response = await ApiClient.instance.get(
+      '/api/events',
+      options: ApiClient.publicOptions,
+    );
     final list = response.data as List<dynamic>;
     return list
         .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
@@ -18,13 +19,16 @@ class EventService {
   }
 
   static Future<EventModel> getById(int id) async {
-    final response = await ApiClient.instance.get('/api/events/$id');
+    final response = await ApiClient.instance.get(
+      '/api/events/$id',
+      options: ApiClient.publicOptions,
+    );
     return EventModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   static Future<void> bookEvent(int eventId) async {
     await ApiClient.instance.post(
-      '/api/customer/events/$eventId/book',
+      '/api/events/$eventId/book',
       data: {'ticketCount': 1},
     );
   }
@@ -37,12 +41,12 @@ class EventService {
     double price = 0,
   }) async {
     await ApiClient.instance.post(
-      '/api/provider/events',
+      '/api/events',
       data: {
         'title': title,
         'description': description,
         'location': location,
-        'date': date,
+        'startDate': _toIsoDateTime(date),
         'price': price,
       },
     );
@@ -57,7 +61,9 @@ class EventService {
   }
 
   static Future<List<EventModel>> getCreated() async {
-    final response = await ApiClient.instance.get('/api/provider/events');
+    final response = await ApiClient.instance.get(
+      '/api/users/listings/events',
+    );
     final list = response.data as List<dynamic>;
     return list
         .map((json) => EventModel.fromJson(json as Map<String, dynamic>))
@@ -65,8 +71,14 @@ class EventService {
   }
 
   static Future<void> cancelBooking(int bookingId) =>
-      ApiClient.instance.delete('/api/customer/events/bookings/$bookingId');
+      ApiClient.instance.delete('/api/events/bookings/$bookingId');
 
   static Future<void> deleteEvent(int eventId) =>
-      ApiClient.instance.delete('/api/provider/events/$eventId');
+      ApiClient.instance.delete('/api/events/$eventId');
+}
+
+String? _toIsoDateTime(String date) {
+  final trimmed = date.trim();
+  if (trimmed.isEmpty) return null;
+  return trimmed.contains('T') ? trimmed : '${trimmed}T00:00:00';
 }

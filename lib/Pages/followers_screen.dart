@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../components/user_avatar.dart';
 import '../services/follow_service.dart';
 import '../services/user_service.dart';
+import 'public_profile_screen.dart';
 
 class FollowersScreen extends StatefulWidget {
   const FollowersScreen({super.key, this.initialTab = 0});
@@ -209,14 +211,38 @@ class _UserList extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 24,
-                    backgroundColor: const Color(0xFFFF7A18).withValues(alpha: 0.2),
-                    child: Text(u.initials.isNotEmpty ? u.initials : '?', style: const TextStyle(color: Color(0xFFFF7A18), fontWeight: FontWeight.w800, fontSize: 18)),
-                  ),
-                  const SizedBox(width: 12),
                   Expanded(
-                    child: Text(u.displayName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => PublicProfileScreen(
+                            creatorId: u.id,
+                            creatorName: u.displayName,
+                            profileUrl: u.profileUrl,
+                            gradient: const [
+                              Color(0xFF7C2D12),
+                              Color(0xFF9A3412),
+                              Color(0xFF09090B),
+                            ],
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          UserAvatar(
+                            displayName: u.displayName,
+                            profileUrl: u.profileUrl,
+                            radius: 24,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(u.displayName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                   if (!isMe) ...[
                     const SizedBox(width: 8),

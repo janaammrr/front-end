@@ -1,7 +1,17 @@
 import 'package:flutter/material.dart';
 
+import '../services/api_client.dart';
 import '../services/auth_service.dart';
+import '../services/event_service.dart';
+import '../services/reel_service.dart';
+import '../services/workshop_service.dart';
 import '../auth/auth.dart';
+import 'edit_profile_screen.dart';
+import 'liked_videos_screen.dart';
+import 'my_events_screen.dart';
+import 'my_workshops_screen.dart';
+import 'preferences_screen.dart';
+import 'saved_content_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -11,12 +21,211 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  bool _privateAccount = false;
-  bool _pushNotifications = true;
-  bool _emailNotifications = false;
-  bool _workshopReminders = true;
-  bool _newFollowers = true;
-  bool _likesComments = true;
+  int? _likedCount;
+  int? _savedCount;
+  int? _bookedWorkshopsCount;
+  int? _createdWorkshopsCount;
+  int? _bookedEventsCount;
+  int? _createdEventsCount;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCounts();
+  }
+
+  Future<void> _loadCounts() async {
+    try {
+      final results = await Future.wait([
+        ReelService.getLiked(),
+        ReelService.getSaved(),
+        WorkshopService.getBooked(),
+        WorkshopService.getCreated(),
+        EventService.getBooked(),
+        EventService.getCreated(),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _likedCount = results[0].length;
+        _savedCount = results[1].length;
+        _bookedWorkshopsCount = results[2].length;
+        _createdWorkshopsCount = results[3].length;
+        _bookedEventsCount = results[4].length;
+        _createdEventsCount = results[5].length;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _likedCount ??= 0;
+        _savedCount ??= 0;
+        _bookedWorkshopsCount ??= 0;
+        _createdWorkshopsCount ??= 0;
+        _bookedEventsCount ??= 0;
+        _createdEventsCount ??= 0;
+      });
+    }
+  }
+
+  String _countLabel(int? count, String singular, String plural) {
+    if (count == null) return 'Loading...';
+    return '$count ${count == 1 ? singular : plural}';
+  }
+
+  Future<void> _showChangePasswordSheet() async {
+    final oldCtrl = TextEditingController();
+    final newCtrl = TextEditingController();
+    bool saving = false;
+    String? error;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) => Padding(
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: const Color(0xFF111827),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(24),
+              ),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Change Password',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: oldCtrl,
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: _fieldDecoration('Current password'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: newCtrl,
+                  obscureText: true,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: _fieldDecoration('New password'),
+                ),
+                if (error != null) ...[
+                  const SizedBox(height: 10),
+                  Text(
+                    error!,
+                    style: const TextStyle(
+                      color: Color(0xFFEF4444),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 18),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: saving
+                        ? null
+                        : () async {
+                            if (oldCtrl.text.isEmpty || newCtrl.text.isEmpty) {
+                              setSheet(
+                                () => error = 'Both fields are required.',
+                              );
+                              return;
+                            }
+                            setSheet(() {
+                              saving = true;
+                              error = null;
+                            });
+                            try {
+                              await AuthService.changePassword(
+                                oldPassword: oldCtrl.text,
+                                newPassword: newCtrl.text,
+                              );
+                              if (ctx.mounted) Navigator.of(ctx).pop();
+                              if (mounted) {
+                                ScaffoldMessenger.of(
+                                  context,
+                                ).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Password updated.'),
+                                    backgroundColor: Color(0xFFFF7A18),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              setSheet(() {
+                                saving = false;
+                                error = ApiClient.errorMessage(
+                                  e,
+                                  fallback: 'Could not update password.',
+                                );
+                              });
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF7A18),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                    ),
+                    child: saving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Update Password',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  InputDecoration _fieldDecoration(String hint) => InputDecoration(
+    hintText: hint,
+    hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+    filled: true,
+    fillColor: Colors.white.withValues(alpha: 0.06),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+    ),
+    enabledBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+    ),
+    focusedBorder: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(14),
+      borderSide: const BorderSide(color: Color(0xFFFF7A18), width: 1.1),
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -68,128 +277,102 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _SettingsTile(
                         icon: Icons.person_outline_rounded,
                         title: 'Edit Profile',
-                        onTap: () => Navigator.of(context).pop(),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EditProfileScreen(),
+                          ),
+                        ),
                       ),
                       _SettingsTile(
                         icon: Icons.lock_outline_rounded,
                         title: 'Change Password',
-                        onTap: () {},
-                      ),
-                      _SettingsTile(
-                        icon: Icons.link_rounded,
-                        title: 'Linked Accounts',
-                        onTap: () {},
-                      ),
-                      _SettingsTile(
-                        icon: Icons.language_rounded,
-                        title: 'Language',
-                        trailing: const Text(
-                          'English',
-                          style: TextStyle(
-                            color: Color(0xFF9CA3AF),
-                            fontSize: 13,
-                          ),
-                        ),
-                        onTap: () {},
+                        onTap: _showChangePasswordSheet,
                       ),
                       const SizedBox(height: 20),
-                      _SectionHeader('Privacy'),
-                      _SettingsToggle(
-                        icon: Icons.visibility_off_outlined,
-                        title: 'Private Account',
-                        subtitle:
-                            'Only approved followers can see your content',
-                        value: _privateAccount,
-                        onChanged: (v) => setState(() => _privateAccount = v),
-                      ),
+                      _SectionHeader('My Content'),
                       _SettingsTile(
-                        icon: Icons.block_rounded,
-                        title: 'Blocked Users',
-                        onTap: () {},
-                      ),
-                      _SettingsTile(
-                        icon: Icons.comment_bank_outlined,
-                        title: 'Who can comment',
-                        trailing: const Text(
-                          'Everyone',
-                          style: TextStyle(
-                            color: Color(0xFF9CA3AF),
-                            fontSize: 13,
-                          ),
-                        ),
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: 20),
-                      _SectionHeader('Notifications'),
-                      _SettingsToggle(
-                        icon: Icons.notifications_outlined,
-                        title: 'Push Notifications',
-                        value: _pushNotifications,
-                        onChanged: (v) =>
-                            setState(() => _pushNotifications = v),
-                      ),
-                      _SettingsToggle(
-                        icon: Icons.email_outlined,
-                        title: 'Email Notifications',
-                        value: _emailNotifications,
-                        onChanged: (v) =>
-                            setState(() => _emailNotifications = v),
-                      ),
-                      _SettingsToggle(
                         icon: Icons.school_outlined,
-                        title: 'Workshop Reminders',
-                        value: _workshopReminders,
-                        onChanged: (v) =>
-                            setState(() => _workshopReminders = v),
+                        title: 'My Workshops',
+                        trailing: Text(
+                          '${_countLabel(_bookedWorkshopsCount, 'booked', 'booked')} · ${_countLabel(_createdWorkshopsCount, 'created', 'created')}',
+                          style: const TextStyle(
+                            color: Color(0xFF9CA3AF),
+                            fontSize: 11,
+                          ),
+                        ),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MyWorkshopsScreen(),
+                          ),
+                        ),
                       ),
-                      _SettingsToggle(
-                        icon: Icons.person_add_outlined,
-                        title: 'New Followers',
-                        value: _newFollowers,
-                        onChanged: (v) => setState(() => _newFollowers = v),
+                      _SettingsTile(
+                        icon: Icons.event_available_outlined,
+                        title: 'My Events',
+                        trailing: Text(
+                          '${_countLabel(_bookedEventsCount, 'booked', 'booked')} · ${_countLabel(_createdEventsCount, 'created', 'created')}',
+                          style: const TextStyle(
+                            color: Color(0xFF9CA3AF),
+                            fontSize: 11,
+                          ),
+                        ),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const MyEventsScreen(),
+                          ),
+                        ),
                       ),
-                      _SettingsToggle(
-                        icon: Icons.favorite_border_rounded,
-                        title: 'Likes & Comments',
-                        value: _likesComments,
-                        onChanged: (v) => setState(() => _likesComments = v),
+                      _SettingsTile(
+                        icon: Icons.favorite_border,
+                        title: 'Liked Videos',
+                        trailing: Text(
+                          _countLabel(_likedCount, 'video', 'videos'),
+                          style: const TextStyle(
+                            color: Color(0xFF9CA3AF),
+                            fontSize: 12,
+                          ),
+                        ),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LikedVideosScreen(),
+                          ),
+                        ),
+                      ),
+                      _SettingsTile(
+                        icon: Icons.bookmark_border,
+                        title: 'Saved Content',
+                        trailing: Text(
+                          _countLabel(_savedCount, 'reel', 'reels'),
+                          style: const TextStyle(
+                            color: Color(0xFF9CA3AF),
+                            fontSize: 12,
+                          ),
+                        ),
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SavedContentScreen(),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 20),
-                      _SectionHeader('Content Preferences'),
+                      _SectionHeader('Preferences'),
                       _SettingsTile(
                         icon: Icons.category_outlined,
                         title: 'Preferred Categories',
-                        onTap: () {},
-                      ),
-                      _SettingsTile(
-                        icon: Icons.tune_rounded,
-                        title: 'Feed Preferences',
-                        onTap: () {},
-                      ),
-                      const SizedBox(height: 20),
-                      _SectionHeader('Support'),
-                      _SettingsTile(
-                        icon: Icons.help_outline_rounded,
-                        title: 'Help Center',
-                        onTap: () {},
-                      ),
-                      _SettingsTile(
-                        icon: Icons.flag_outlined,
-                        title: 'Report a Problem',
-                        onTap: () {},
-                      ),
-                      _SettingsTile(
-                        icon: Icons.info_outline_rounded,
-                        title: 'About Flame',
-                        onTap: () {},
-                      ),
-                      _SettingsTile(
-                        icon: Icons.privacy_tip_outlined,
-                        title: 'Privacy Policy',
-                        onTap: () {},
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const PreferencesScreen(),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 20),
-                      _SectionHeader('Danger Zone'),
+                      _SectionHeader('Account'),
                       _DangerTile(
                         icon: Icons.logout_rounded,
                         title: 'Sign Out',
@@ -211,18 +394,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               );
                             }
                           }
-                        },
-                      ),
-                      _DangerTile(
-                        icon: Icons.delete_forever_rounded,
-                        title: 'Delete Account',
-                        onTap: () async {
-                          await _confirmDialog(
-                            context,
-                            'Delete Account',
-                            'This action is permanent and cannot be undone.',
-                            'Delete',
-                          );
                         },
                       ),
                       const SizedBox(height: 40),
@@ -346,64 +517,6 @@ class _SettingsTile extends StatelessWidget {
               size: 14,
             ),
         onTap: onTap,
-      ),
-    );
-  }
-}
-
-class _SettingsToggle extends StatelessWidget {
-  const _SettingsToggle({
-    required this.icon,
-    required this.title,
-    required this.value,
-    required this.onChanged,
-    this.subtitle,
-  });
-
-  final IconData icon;
-  final String title;
-  final String? subtitle;
-  final bool value;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return _GlassTile(
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
-        leading: Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: const Color(0xFFFF7A18).withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: const Color(0xFFFF7A18), size: 20),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-        ),
-        subtitle: subtitle != null
-            ? Text(
-                subtitle!,
-                style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12),
-              )
-            : null,
-        trailing: Switch(
-          value: value,
-          onChanged: onChanged,
-          activeThumbColor: const Color(0xFFFF7A18),
-          trackColor: WidgetStateProperty.resolveWith(
-            (s) => s.contains(WidgetState.selected)
-                ? const Color(0xFFFF7A18).withValues(alpha: 0.3)
-                : Colors.white12,
-          ),
-        ),
       ),
     );
   }

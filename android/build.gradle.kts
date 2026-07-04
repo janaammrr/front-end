@@ -3,6 +3,15 @@ allprojects {
         google()
         mavenCentral()
     }
+
+    configurations.all {
+        resolutionStrategy {
+            force("androidx.activity:activity:1.8.1")
+            force("androidx.annotation:annotation:1.9.1")
+            force("androidx.exifinterface:exifinterface:1.4.1")
+            force("androidx.profileinstaller:profileinstaller:1.4.0")
+        }
+    }
 }
 
 val newBuildDir: Directory =
