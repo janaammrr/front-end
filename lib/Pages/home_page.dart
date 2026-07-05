@@ -60,6 +60,8 @@ class _VideoItem {
 
 // ─── Home Page (Root Shell) ───────────────────────────────────────────────────
 
+enum _CreateAction { reel, post }
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -70,6 +72,40 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _tabIndex = 0;
   int _profileRefreshKey = 0;
+  int _feedRefreshKey = 0;
+
+  Future<void> _openQuickCreateMenu() async {
+    final action = await showModalBottomSheet<_CreateAction>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black54,
+      useSafeArea: true,
+      isScrollControlled: true,
+      builder: (_) => const _CreateMenuSheet(),
+    );
+
+    if (!mounted || action == null) return;
+    if (action == _CreateAction.reel) {
+      final created = await Navigator.push<bool>(
+        context,
+        MaterialPageRoute(builder: (_) => const VideoUploadScreen()),
+      );
+      if (created == true && mounted) {
+        setState(() => _feedRefreshKey++);
+      }
+      return;
+    }
+
+    final created = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const ComposePostSheet(),
+    );
+    if (created == true && mounted) {
+      setState(() => _feedRefreshKey++);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,10 +114,9 @@ class _HomePageState extends State<HomePage> {
       body: IndexedStack(
         index: _tabIndex,
         children: [
-          const _FeedView(),
+          _FeedView(key: ValueKey(_feedRefreshKey)),
           const WorkshopPage(),
           const EventsPage(),
-          const TrendingScreen(),
           const CommunitiesScreen(),
           ProfileScreen(key: ValueKey(_profileRefreshKey)),
         ],
@@ -90,8 +125,9 @@ class _HomePageState extends State<HomePage> {
         currentIndex: _tabIndex,
         onTap: (i) => setState(() {
           _tabIndex = i;
-          if (i == 5) _profileRefreshKey++;
+          if (i == 4) _profileRefreshKey++;
         }),
+        onCreateTap: _openQuickCreateMenu,
       ),
     );
   }
@@ -100,74 +136,147 @@ class _HomePageState extends State<HomePage> {
 // ─── Main Nav Bar ─────────────────────────────────────────────────────────────
 
 class _MainNav extends StatelessWidget {
-  const _MainNav({required this.currentIndex, required this.onTap});
+  const _MainNav({
+    required this.currentIndex,
+    required this.onTap,
+    required this.onCreateTap,
+  });
 
   final int currentIndex;
   final ValueChanged<int> onTap;
+  final VoidCallback onCreateTap;
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
-        decoration: BoxDecoration(
-          color: AppColors.bg.withValues(alpha: 0.9),
-          border: Border(
-            top: BorderSide(color: AppColors.border),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 10),
+        child: SizedBox(
+          height: 78,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.topCenter,
+            children: [
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                    child: Container(
+                      height: 62,
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xE5121518),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.08),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.32),
+                            blurRadius: 22,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _NavItem(
+                              icon: Icons.home_rounded,
+                              label: 'Home',
+                              active: currentIndex == 0,
+                              onTap: () => onTap(0),
+                            ),
+                          ),
+                          Expanded(
+                            child: _NavItem(
+                              icon: Icons.school_outlined,
+                              label: 'Learn',
+                              active: currentIndex == 1,
+                              onTap: () => onTap(1),
+                            ),
+                          ),
+                          const SizedBox(width: 76),
+                          Expanded(
+                            child: _NavItem(
+                              icon: Icons.event_outlined,
+                              label: 'Events',
+                              active: currentIndex == 2,
+                              onTap: () => onTap(2),
+                            ),
+                          ),
+                          Expanded(
+                            child: _NavItem(
+                              icon: Icons.groups_2_outlined,
+                              label: 'Groups',
+                              active: currentIndex == 3,
+                              onTap: () => onTap(3),
+                            ),
+                          ),
+                          Expanded(
+                            child: _NavItem(
+                              icon: Icons.person_outline_rounded,
+                              label: 'Profile',
+                              active: currentIndex == 4,
+                              onTap: () => onTap(4),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 0,
+                child: GestureDetector(
+                  onTap: onCreateTap,
+                  child: Container(
+                    width: 68,
+                    height: 68,
+                    padding: const EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.bg,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.08),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.45),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: AppColors.accentGradient,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.amber.withValues(alpha: 0.38),
+                            blurRadius: 16,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.add_rounded,
+                        color: Colors.white,
+                        size: 34,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: _NavItem(
-                icon: Icons.home_outlined,
-                label: 'Home',
-                active: currentIndex == 0,
-                onTap: () => onTap(0),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.school_outlined,
-                label: 'Workshops',
-                active: currentIndex == 1,
-                onTap: () => onTap(1),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.event_outlined,
-                label: 'Events',
-                active: currentIndex == 2,
-                onTap: () => onTap(2),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.local_fire_department_outlined,
-                label: 'Trending',
-                active: currentIndex == 3,
-                onTap: () => onTap(3),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.groups_outlined,
-                label: 'Communities',
-                active: currentIndex == 4,
-                onTap: () => onTap(4),
-              ),
-            ),
-            Expanded(
-              child: _NavItem(
-                icon: Icons.person_outline,
-                label: 'Profile',
-                active: currentIndex == 5,
-                onTap: () => onTap(5),
-              ),
-            ),
-          ],
         ),
       ),
     );
@@ -191,26 +300,62 @@ class _NavItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = active
         ? AppColors.amber
-        : Colors.white.withValues(alpha: 0.5);
+        : Colors.white.withValues(alpha: 0.48);
     return InkWell(
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      child: SizedBox(
+        height: 58,
+        child: Stack(
+          alignment: Alignment.center,
           children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 1),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: color,
-                fontSize: 10,
-                fontWeight: active ? FontWeight.w700 : FontWeight.w400,
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              left: active ? 16 : 22,
+              right: active ? 16 : 22,
+              bottom: 2,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                height: 3,
+                decoration: BoxDecoration(
+                  color: active ? AppColors.amber : Colors.transparent,
+                  borderRadius: BorderRadius.circular(999),
+                ),
               ),
+            ),
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  width: 30,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: active
+                        ? AppColors.amber.withValues(alpha: 0.12)
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, color: color, size: 19),
+                ),
+                const SizedBox(height: 2),
+                SizedBox(
+                  width: 52,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      style: TextStyle(
+                        color: color,
+                        fontSize: 10,
+                        fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -222,7 +367,7 @@ class _NavItem extends StatelessWidget {
 // ─── Feed View (Home Tab) ─────────────────────────────────────────────────────
 
 class _FeedView extends StatefulWidget {
-  const _FeedView();
+  const _FeedView({super.key});
 
   @override
   State<_FeedView> createState() => _FeedViewState();
@@ -230,7 +375,9 @@ class _FeedView extends StatefulWidget {
 
 class _FeedViewState extends State<_FeedView> {
   final PageController _pageController = PageController();
+  final PageController _horizontalController = PageController();
   int _currentPage = 0;
+  int _feedModeIndex = 0;
   List<_VideoItem> _videos = [];
   bool _loading = true;
   String? _error;
@@ -251,9 +398,11 @@ class _FeedViewState extends State<_FeedView> {
   void initState() {
     super.initState();
     _loadReels();
-    UserService.getMe().then((me) {
-      if (mounted) setState(() => _myId = me.id);
-    }).catchError((_) {});
+    UserService.getMe()
+        .then((me) {
+          if (mounted) setState(() => _myId = me.id);
+        })
+        .catchError((_) {});
   }
 
   void _removeReelAt(int index) {
@@ -308,7 +457,24 @@ class _FeedViewState extends State<_FeedView> {
   @override
   void dispose() {
     _pageController.dispose();
+    _horizontalController.dispose();
     super.dispose();
+  }
+
+  void _goToTrending() {
+    _horizontalController.animateToPage(
+      1,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void _goToForYou() {
+    _horizontalController.animateToPage(
+      0,
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOut,
+    );
   }
 
   void _goToNextPage() {
@@ -320,32 +486,33 @@ class _FeedViewState extends State<_FeedView> {
     }
   }
 
-  Future<void> _openCreateMenu() async {
-    final created = await showModalBottomSheet<bool>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      barrierColor: Colors.black54,
-      useSafeArea: true,
-      isScrollControlled: true,
-      builder: (_) => const _CreateMenuSheet(),
-    );
-    if (created == true && mounted) {
-      setState(() {
-        _loading = true;
-        _error = null;
-      });
-      await _loadReels();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    // Horizontal swipe: page 0 is the reels feed, page 1 is Trending —
+    // matches the web app's separate Home/Trending destinations while
+    // keeping it a single swipeable gesture on mobile.
+    return Stack(
+      children: [
+        PageView(
+          controller: _horizontalController,
+          scrollDirection: Axis.horizontal,
+          onPageChanged: (page) => setState(() => _feedModeIndex = page),
+          children: [_buildFeedPage(), const TrendingScreen()],
+        ),
+        _FeedModeTabs(
+          currentIndex: _feedModeIndex,
+          onForYouTap: _goToForYou,
+          onTrendingTap: _goToTrending,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFeedPage() {
     if (_loading) {
       return const ColoredBox(
         color: AppColors.bg,
-        child: Center(
-          child: CircularProgressIndicator(color: AppColors.amber),
-        ),
+        child: Center(child: CircularProgressIndicator(color: AppColors.amber)),
       );
     }
     if (_error != null) {
@@ -412,7 +579,6 @@ class _FeedViewState extends State<_FeedView> {
             context,
             MaterialPageRoute(builder: (_) => const MessagingScreen()),
           ),
-          onCreateTap: _openCreateMenu,
         ),
       ],
     );
@@ -426,13 +592,11 @@ class _TopBar extends StatelessWidget {
     required this.onPostsTap,
     required this.onSearchTap,
     required this.onMessageTap,
-    required this.onCreateTap,
   });
 
   final VoidCallback onPostsTap;
   final VoidCallback onSearchTap;
   final VoidCallback onMessageTap;
-  final VoidCallback onCreateTap;
 
   @override
   Widget build(BuildContext context) {
@@ -451,21 +615,24 @@ class _TopBar extends StatelessWidget {
         ),
         child: SafeArea(
           bottom: false,
-          child: Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Image.asset(
-                'assets/images/FLAME_LOGO.png',
-                height: 52,
-                fit: BoxFit.contain,
+              Row(
+                children: [
+                  Image.asset(
+                    'assets/images/FLAME_LOGO.png',
+                    height: 52,
+                    fit: BoxFit.contain,
+                  ),
+                  const Spacer(),
+                  _TopBtn(icon: Icons.article_outlined, onTap: onPostsTap),
+                  const SizedBox(width: 8),
+                  _TopBtn(icon: Icons.search_rounded, onTap: onSearchTap),
+                  const SizedBox(width: 8),
+                  _TopBtn(icon: Icons.send_outlined, onTap: onMessageTap),
+                ],
               ),
-              const Spacer(),
-              _TopBtn(icon: Icons.add_rounded, onTap: onCreateTap),
-              const SizedBox(width: 8),
-              _TopBtn(icon: Icons.dynamic_feed_rounded, onTap: onPostsTap),
-              const SizedBox(width: 8),
-              _TopBtn(icon: Icons.search_rounded, onTap: onSearchTap),
-              const SizedBox(width: 8),
-              _TopBtn(icon: Icons.send_outlined, onTap: onMessageTap),
             ],
           ),
         ),
@@ -879,7 +1046,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
             ),
           ),
 
-          // ── Creator info card ────────────────────────────────────────────
+          // ── Trending shortcut + creator info card ───────────────────────
           Positioned(
             left: 12,
             right: 70,
@@ -1244,6 +1411,97 @@ class _CreatorCard extends StatelessWidget {
   }
 }
 
+// ─── Trending Chip (swipe-left shortcut) ──────────────────────────────────────
+
+class _FeedModeTabs extends StatelessWidget {
+  const _FeedModeTabs({
+    required this.currentIndex,
+    required this.onForYouTap,
+    required this.onTrendingTap,
+  });
+
+  final int currentIndex;
+  final VoidCallback onForYouTap;
+  final VoidCallback onTrendingTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      top: 0,
+      left: 0,
+      right: 0,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 58),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _FeedModeTab(
+                label: 'For You',
+                active: currentIndex == 0,
+                onTap: onForYouTap,
+              ),
+              const SizedBox(width: 26),
+              _FeedModeTab(
+                label: 'Trendings',
+                active: currentIndex == 1,
+                onTap: onTrendingTap,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FeedModeTab extends StatelessWidget {
+  const _FeedModeTab({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool active;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active
+        ? AppColors.amber
+        : Colors.white.withValues(alpha: 0.72);
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 5),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            width: active ? 28 : 0,
+            height: 3,
+            decoration: BoxDecoration(
+              color: AppColors.amber,
+              borderRadius: BorderRadius.circular(999),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 // ─── Create Menu Sheet ────────────────────────────────────────────────────────
 
 class _CreateMenuSheet extends StatelessWidget {
@@ -1291,64 +1549,13 @@ class _CreateMenuSheet extends StatelessWidget {
                   icon: Icons.video_library_outlined,
                   title: 'Create a Reel',
                   subtitle: 'Share a quick educational video.',
-                  onTap: () async {
-                    final created = await Navigator.push<bool>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const VideoUploadScreen(),
-                      ),
-                    );
-                    if (context.mounted) {
-                      Navigator.of(context).pop(created == true);
-                    }
-                  },
+                  onTap: () => Navigator.of(context).pop(_CreateAction.reel),
                 ),
                 _CreateTile(
-                  icon: Icons.menu_book_outlined,
-                  title: 'Host a Workshop',
-                  subtitle: 'Lead a structured live learning session.',
-                  onTap: () => Navigator.of(context).pop(),
-                ),
-                _CreateTile(
-                  icon: Icons.event_available_outlined,
-                  title: 'Create an Event',
-                  subtitle: 'Schedule a live or in-person event.',
-                  onTap: () => Navigator.of(context).pop(),
-                ),
-                _CreateTile(
-                  icon: Icons.diversity_3_outlined,
-                  title: 'Create a Community',
-                  subtitle: 'Start a focused knowledge group.',
-                  onTap: () => Navigator.of(context).pop(),
-                ),
-                _CreateTile(
-                  icon: Icons.auto_awesome_rounded,
-                  title: 'Ask Flame AI',
-                  subtitle: 'Get help from your AI learning assistant.',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AIChatbotScreen(),
-                      ),
-                    );
-                  },
-                ),
-                _CreateTile(
-                  icon: Icons.logout_rounded,
-                  title: 'Sign out',
-                  subtitle: 'Sign out of your Flame account.',
-                  onTap: () async {
-                    Navigator.of(context).pop();
-                    await AuthService.logout();
-                    if (context.mounted) {
-                      Navigator.of(context).pushAndRemoveUntil(
-                        MaterialPageRoute(builder: (_) => const AuthPage()),
-                        (_) => false,
-                      );
-                    }
-                  },
+                  icon: Icons.article_outlined,
+                  title: 'Add Post',
+                  subtitle: 'Write and publish a text post.',
+                  onTap: () => Navigator.of(context).pop(_CreateAction.post),
                 ),
               ],
             ),
