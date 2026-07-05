@@ -6,6 +6,7 @@ import '../models/workshop_model.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/workshop_service.dart';
+import '../theme/app_theme.dart';
 
 class WorkshopPage extends StatefulWidget {
   const WorkshopPage({super.key});
@@ -123,15 +124,15 @@ class _WorkshopPageState extends State<WorkshopPage> {
   Widget build(BuildContext context) {
     if (_loading) {
       return const Scaffold(
-        backgroundColor: Color(0xFF07090F),
+        backgroundColor: AppColors.bg,
         body: Center(
-          child: CircularProgressIndicator(color: Color(0xFFFF7A18)),
+          child: CircularProgressIndicator(color: AppColors.amber),
         ),
       );
     }
     if (_error != null) {
       return Scaffold(
-        backgroundColor: const Color(0xFF07090F),
+        backgroundColor: AppColors.bg,
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -153,7 +154,7 @@ class _WorkshopPageState extends State<WorkshopPage> {
                   _loadWorkshops();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF7A18),
+                  backgroundColor: AppColors.amber,
                 ),
                 child: const Text('Retry'),
               ),
@@ -169,7 +170,7 @@ class _WorkshopPageState extends State<WorkshopPage> {
     final workshops = _filteredWorkshops;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF07090F),
+      backgroundColor: AppColors.bg,
       body: Stack(
         children: [
           const _BackgroundGradient(),
@@ -212,7 +213,7 @@ class _WorkshopPageState extends State<WorkshopPage> {
                         const Text(
                           'Discover, create, and book premium learning experiences.',
                           style: TextStyle(
-                            color: Color(0xFFC7CCDA),
+                            color: AppColors.text2,
                             height: 1.3,
                           ),
                         ),
@@ -256,7 +257,7 @@ class _WorkshopPageState extends State<WorkshopPage> {
                             ElevatedButton.icon(
                               onPressed: _openCreateWorkshopPanel,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFF7A18),
+                                backgroundColor: AppColors.amber,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
@@ -312,7 +313,7 @@ class _WorkshopPageState extends State<WorkshopPage> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF111827),
+        backgroundColor: AppColors.surface2,
         title: const Text(
           'Delete workshop',
           style: TextStyle(color: Colors.white),
@@ -330,7 +331,7 @@ class _WorkshopPageState extends State<WorkshopPage> {
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
               'Delete',
-              style: TextStyle(color: Color(0xFFEF4444)),
+              style: TextStyle(color: AppColors.error),
             ),
           ),
         ],
@@ -366,7 +367,7 @@ class _WorkshopPageState extends State<WorkshopPage> {
           content: Text(
             ApiClient.errorMessage(e, fallback: 'Could not delete workshop.'),
           ),
-          backgroundColor: const Color(0xFFEF4444),
+          backgroundColor: AppColors.error,
         ),
       );
     }
@@ -383,7 +384,7 @@ class _BackgroundGradient extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF0F172A), Color(0xFF09090B), Color(0xFF09090B)],
+          colors: [AppColors.surface, AppColors.bg, AppColors.bg],
         ),
       ),
     );
@@ -430,8 +431,8 @@ class _SearchInput extends StatelessWidget {
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: 'Search workshops, creators, or topics',
-        hintStyle: const TextStyle(color: Color(0xFFB2B8CB)),
-        prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFFB2B8CB)),
+        hintStyle: const TextStyle(color: AppColors.text2),
+        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.text2),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.06),
         border: OutlineInputBorder(
@@ -444,7 +445,7 @@ class _SearchInput extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFFF7A18), width: 1.1),
+          borderSide: const BorderSide(color: AppColors.amber, width: 1.1),
         ),
       ),
     );
@@ -472,19 +473,19 @@ class _CategoryChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFFFF7A18).withValues(alpha: 0.24)
+              ? AppColors.amber.withValues(alpha: 0.24)
               : Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
             color: selected
-                ? const Color(0xFFFFB073)
+                ? AppColors.amberSoft
                 : Colors.white.withValues(alpha: 0.11),
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : const Color(0xFFC7CCDA),
+            color: selected ? Colors.white : AppColors.text2,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -552,7 +553,7 @@ class _WorkshopCardState extends State<_WorkshopCard> {
             content: Text(
               ApiClient.errorMessage(e, fallback: 'Booking failed.'),
             ),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -691,7 +692,7 @@ class _WorkshopCardState extends State<_WorkshopCard> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: Color(0xFFC2C8D7),
+                              color: AppColors.text2,
                               height: 1.3,
                             ),
                           ),
@@ -721,13 +722,11 @@ class _WorkshopCardState extends State<_WorkshopCard> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: _booked
                                     ? const Color(0xFF10B981)
-                                    : const Color(0xFFFF7A18),
+                                    : AppColors.amber,
                                 foregroundColor: Colors.white,
                                 disabledBackgroundColor: _booked
                                     ? const Color(0xFF10B981)
-                                    : const Color(
-                                        0xFFFF7A18,
-                                      ).withValues(alpha: 0.5),
+                                    : AppColors.amber.withValues(alpha: 0.5),
                                 disabledForegroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -776,14 +775,14 @@ class _CardDetail extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: const Color(0xFFBFC5D5)),
+          Icon(icon, size: 16, color: AppColors.text2),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Color(0xFFBFC5D5), fontSize: 12.5),
+              style: const TextStyle(color: AppColors.text2, fontSize: 12.5),
             ),
           ),
         ],
@@ -804,7 +803,7 @@ class _PillTag extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         color: solid
-            ? const Color(0xFFFF7A18)
+            ? AppColors.amber
             : Colors.black.withValues(alpha: 0.45),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
@@ -853,7 +852,7 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter a workshop name'),
-          backgroundColor: Color(0xFFEF4444),
+          backgroundColor: AppColors.error,
         ),
       );
       return;
@@ -885,7 +884,7 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
             content: Text(
               ApiClient.errorMessage(e, fallback: 'Failed to create workshop.'),
             ),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -911,7 +910,7 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
               width: width,
               height: height,
               decoration: BoxDecoration(
-                color: const Color(0xFF0E1119).withValues(alpha: 0.95),
+                color: AppColors.surface.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(26),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.11)),
                 boxShadow: const [
@@ -943,7 +942,7 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
                               SizedBox(height: 4),
                               Text(
                                 'Build your workshop details and publish to the backend.',
-                                style: TextStyle(color: Color(0xFFB7BECE)),
+                                style: TextStyle(color: AppColors.text2),
                               ),
                             ],
                           ),
@@ -1022,11 +1021,9 @@ class _CreateWorkshopDialogState extends State<_CreateWorkshopDialog> {
                         ElevatedButton(
                           onPressed: _creating ? null : _submit,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFF7A18),
+                            backgroundColor: AppColors.amber,
                             foregroundColor: Colors.white,
-                            disabledBackgroundColor: const Color(
-                              0xFFFF7A18,
-                            ).withValues(alpha: 0.5),
+                            disabledBackgroundColor: AppColors.amber.withValues(alpha: 0.5),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 18,
                               vertical: 12,
@@ -1118,7 +1115,7 @@ class _StyledTextField extends StatelessWidget {
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFF98A0B5)),
+        hintStyle: const TextStyle(color: AppColors.text3),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(
@@ -1131,7 +1128,7 @@ class _StyledTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFFF7A18)),
+          borderSide: const BorderSide(color: AppColors.amber),
         ),
       ),
     );
@@ -1187,7 +1184,7 @@ class _EmptyState extends StatelessWidget {
           Expanded(
             child: Text(
               'No workshops found for this search. Try another category or query.',
-              style: TextStyle(color: Color(0xFFC7CCDA)),
+              style: TextStyle(color: AppColors.text2),
             ),
           ),
         ],

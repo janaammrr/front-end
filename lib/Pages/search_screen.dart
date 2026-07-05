@@ -12,6 +12,7 @@ import '../services/follow_service.dart';
 import '../services/reel_service.dart';
 import '../services/user_service.dart';
 import '../services/workshop_service.dart';
+import '../theme/app_theme.dart';
 import 'events_page.dart';
 import 'public_profile_screen.dart';
 import 'reel_viewer_screen.dart';
@@ -124,11 +125,11 @@ class _SearchScreenState extends State<SearchScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       body: Stack(
         children: [
-          Positioned(top: -60, right: -50, child: _GlowOrb(color: const Color(0xFFFF7A18).withValues(alpha: 0.15), size: 200)),
-          Positioned(bottom: -80, left: -50, child: _GlowOrb(color: const Color(0xFF6D28D9).withValues(alpha: 0.15), size: 220)),
+          Positioned(top: -60, right: -50, child: _GlowOrb(color: AppColors.amber.withValues(alpha: 0.15), size: 200)),
+          Positioned(bottom: -80, left: -50, child: _GlowOrb(color: AppColors.amberSoft.withValues(alpha: 0.15), size: 220)),
           SafeArea(
             child: Column(
               children: [
@@ -146,11 +147,11 @@ class _SearchScreenState extends State<SearchScreen>
                           onChanged: _onQueryChanged,
                           decoration: InputDecoration(
                             hintText: 'Search videos, creators, workshops…',
-                            hintStyle: const TextStyle(color: Color(0xFF6B7280), fontSize: 14),
-                            prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF6B7280)),
+                            hintStyle: const TextStyle(color: AppColors.text3, fontSize: 14),
+                            prefixIcon: const Icon(Icons.search_rounded, color: AppColors.text3),
                             suffixIcon: _query.isNotEmpty
                                 ? IconButton(
-                                    icon: const Icon(Icons.close_rounded, color: Color(0xFF6B7280)),
+                                    icon: const Icon(Icons.close_rounded, color: AppColors.text3),
                                     onPressed: () { _controller.clear(); _onQueryChanged(''); },
                                   )
                                 : null,
@@ -167,7 +168,7 @@ class _SearchScreenState extends State<SearchScreen>
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(14),
-                              borderSide: const BorderSide(color: Color(0xFFFF7A18), width: 1.2),
+                              borderSide: const BorderSide(color: AppColors.amber, width: 1.2),
                             ),
                           ),
                         ),
@@ -179,10 +180,10 @@ class _SearchScreenState extends State<SearchScreen>
                   controller: _tabController,
                   isScrollable: true,
                   tabAlignment: TabAlignment.start,
-                  indicatorColor: const Color(0xFFFF7A18),
+                  indicatorColor: AppColors.amber,
                   indicatorWeight: 2,
                   labelColor: Colors.white,
-                  unselectedLabelColor: const Color(0xFF6B7280),
+                  unselectedLabelColor: AppColors.text3,
                   labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                   dividerColor: Colors.white.withValues(alpha: 0.08),
                   tabs: const [Tab(text: 'Videos'), Tab(text: 'Creators'), Tab(text: 'Workshops'), Tab(text: 'Events')],
@@ -223,7 +224,7 @@ class _LoadingState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const Center(
-      child: CircularProgressIndicator(color: Color(0xFFFF7A18)),
+      child: CircularProgressIndicator(color: AppColors.amber),
     );
   }
 }
@@ -262,9 +263,9 @@ class _VideoTab extends StatelessWidget {
                     children: [
                       Text(v.caption, maxLines: 2, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12, height: 1.3)),
                       const SizedBox(height: 4),
-                      Text(v.creatorName, style: const TextStyle(color: Color(0xFFD1D5DB), fontSize: 11)),
+                      Text(v.creatorName, style: const TextStyle(color: AppColors.text2, fontSize: 11)),
                       const SizedBox(height: 2),
-                      Row(children: [const Icon(Icons.favorite_rounded, color: Color(0xFFFF7A18), size: 12), const SizedBox(width: 4), Text('${v.likesCount}', style: const TextStyle(color: Color(0xFFD1D5DB), fontSize: 11))]),
+                      Row(children: [const Icon(Icons.favorite_rounded, color: AppColors.amber, size: 12), const SizedBox(width: 4), Text('${v.likesCount}', style: const TextStyle(color: AppColors.text2, fontSize: 11))]),
                     ],
                   ),
                 ),
@@ -316,11 +317,7 @@ class _CreatorsTab extends StatelessWidget {
                     creatorId: c.id,
                     creatorName: c.displayName,
                     profileUrl: c.profileUrl,
-                    gradient: const [
-                      Color(0xFF7C2D12),
-                      Color(0xFF9A3412),
-                      Color(0xFF09090B),
-                    ],
+                    gradient: AppColors.profileHeaderGradient,
                   ),
                 ),
               ),
@@ -342,7 +339,7 @@ class _CreatorsTab extends StatelessWidget {
                     Expanded(
                       child: Text(c.displayName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                     ),
-                    const Icon(Icons.arrow_forward_ios_rounded, color: Color(0xFF4B5563), size: 14),
+                    const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.border, size: 14),
                   ],
                 ),
               ),
@@ -375,7 +372,7 @@ class _WorkshopsTab extends StatelessWidget {
           sub1: w.location ?? 'Workshop',
           sub2: w.date ?? 'TBA',
           badge: price <= 0 ? 'Free' : '\$${price.toStringAsFixed(0)}',
-          badgeColor: price <= 0 ? const Color(0xFF10B981) : const Color(0xFFFF7A18),
+          badgeColor: price <= 0 ? const Color(0xFF10B981) : AppColors.amber,
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const WorkshopPage()),
@@ -407,7 +404,7 @@ class _EventsTab extends StatelessWidget {
           sub1: e.location ?? 'Event',
           sub2: e.date ?? 'TBA',
           badge: price <= 0 ? 'Free' : '\$${price.toStringAsFixed(0)}',
-          badgeColor: price <= 0 ? const Color(0xFF10B981) : const Color(0xFFFF7A18),
+          badgeColor: price <= 0 ? const Color(0xFF10B981) : AppColors.amber,
           onTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const EventsPage()),
@@ -453,8 +450,8 @@ class _ResultTile extends StatelessWidget {
               children: [
                 Container(
                   width: 44, height: 44,
-                  decoration: BoxDecoration(color: const Color(0xFFFF7A18).withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
-                  child: Icon(icon, color: const Color(0xFFFF7A18), size: 22),
+                  decoration: BoxDecoration(color: AppColors.amber.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
+                  child: Icon(icon, color: AppColors.amber, size: 22),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -463,7 +460,7 @@ class _ResultTile extends StatelessWidget {
                     children: [
                       Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
                       const SizedBox(height: 3),
-                      Text('$sub1  ·  $sub2', style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12)),
+                      Text('$sub1  ·  $sub2', style: const TextStyle(color: AppColors.text3, fontSize: 12)),
                     ],
                   ),
                 ),
@@ -493,9 +490,9 @@ class _EmptySearch extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.search_off_rounded, color: Color(0xFF374151), size: 48),
+          const Icon(Icons.search_off_rounded, color: AppColors.border, size: 48),
           const SizedBox(height: 12),
-          Text(message, style: const TextStyle(color: Color(0xFF6B7280), fontSize: 16, fontWeight: FontWeight.w600)),
+          Text(message, style: const TextStyle(color: AppColors.text3, fontSize: 16, fontWeight: FontWeight.w600)),
         ],
       ),
     );

@@ -3,6 +3,7 @@ import '../components/reel_thumbnail.dart';
 import '../services/reel_service.dart';
 import '../models/reel_model.dart';
 import 'reel_viewer_screen.dart';
+import '../theme/app_theme.dart';
 
 class LikedVideosScreen extends StatefulWidget {
   const LikedVideosScreen({super.key});
@@ -16,12 +17,14 @@ class _LikedVideosScreenState extends State<LikedVideosScreen> {
   bool _loading = true;
   String? _error;
 
+  // On-brand fallback thumbnails, replacing the previous unrelated
+  // brown/teal/navy/purple hues with variations of the site's palette.
   static const _gradients = [
-    [Color(0xFF7C2D12), Color(0xFF1A0A00)],
-    [Color(0xFF78350F), Color(0xFF1A0A00)],
-    [Color(0xFF134E4A), Color(0xFF001A18)],
-    [Color(0xFF1E3A5F), Color(0xFF001020)],
-    [Color(0xFF4C1D95), Color(0xFF0A0020)],
+    [AppColors.amber, AppColors.bg],
+    [AppColors.amberSoft, AppColors.bg],
+    [AppColors.surface2, AppColors.bg],
+    [AppColors.borderHi, AppColors.bg],
+    [AppColors.surface, AppColors.bg],
   ];
 
   @override
@@ -43,11 +46,11 @@ class _LikedVideosScreenState extends State<LikedVideosScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       body: Stack(
         children: [
-          Positioned(top: -80, right: -60, child: _GlowOrb(color: const Color(0xFFEF4444).withValues(alpha: 0.16), size: 200)),
-          Positioned(bottom: -100, left: -60, child: _GlowOrb(color: const Color(0xFF6D28D9).withValues(alpha: 0.14), size: 240)),
+          Positioned(top: -80, right: -60, child: _GlowOrb(color: AppColors.error.withValues(alpha: 0.16), size: 200)),
+          Positioned(bottom: -100, left: -60, child: _GlowOrb(color: AppColors.amberSoft.withValues(alpha: 0.14), size: 240)),
           SafeArea(
             child: Column(
               children: [
@@ -61,25 +64,25 @@ class _LikedVideosScreenState extends State<LikedVideosScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('Liked Videos', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
-                          Text('${_videos.length} videos', style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 13)),
+                          Text('${_videos.length} videos', style: const TextStyle(color: AppColors.text3, fontSize: 13)),
                         ],
                       ),
                       const Spacer(),
-                      const Icon(Icons.favorite_rounded, color: Color(0xFFEF4444), size: 24),
+                      const Icon(Icons.favorite_rounded, color: AppColors.error, size: 24),
                     ],
                   ),
                 ),
                 Expanded(
                   child: _loading
-                      ? const Center(child: CircularProgressIndicator(color: Color(0xFFEF4444)))
+                      ? const Center(child: CircularProgressIndicator(color: AppColors.error))
                       : _error != null
                           ? Center(
                               child: Column(mainAxisSize: MainAxisSize.min, children: [
                                 const Icon(Icons.error_outline, color: Colors.white38, size: 48),
                                 const SizedBox(height: 12),
-                                Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13)),
+                                Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.error, fontSize: 13)),
                                 const SizedBox(height: 16),
-                                ElevatedButton(onPressed: _load, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFEF4444)), child: const Text('Retry', style: TextStyle(color: Colors.white))),
+                                ElevatedButton(onPressed: _load, style: ElevatedButton.styleFrom(backgroundColor: AppColors.error), child: const Text('Retry', style: TextStyle(color: Colors.white))),
                               ]),
                             )
                           : _videos.isEmpty
@@ -94,7 +97,7 @@ class _LikedVideosScreenState extends State<LikedVideosScreen> {
                                 )
                               : RefreshIndicator(
                                   onRefresh: _load,
-                                  color: const Color(0xFFEF4444),
+                                  color: AppColors.error,
                                   child: GridView.builder(
                                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
                                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -146,7 +149,7 @@ class _VideoCard extends StatelessWidget {
             top: 10, right: 10,
             child: Container(
               width: 28, height: 28,
-              decoration: BoxDecoration(color: const Color(0xFFEF4444).withValues(alpha: 0.85), shape: BoxShape.circle),
+              decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.85), shape: BoxShape.circle),
               child: const Icon(Icons.favorite_rounded, color: Colors.white, size: 16),
             ),
           ),
@@ -160,12 +163,12 @@ class _VideoCard extends StatelessWidget {
                 children: [
                   Text(video.caption, maxLines: 2, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w700, height: 1.3)),
                   const SizedBox(height: 3),
-                  Text(video.creatorName, style: const TextStyle(color: Color(0xFFD1D5DB), fontSize: 11)),
+                  Text(video.creatorName, style: const TextStyle(color: AppColors.text2, fontSize: 11)),
                   const SizedBox(height: 3),
                   Row(children: [
-                    const Icon(Icons.favorite_rounded, color: Color(0xFFEF4444), size: 12),
+                    const Icon(Icons.favorite_rounded, color: AppColors.error, size: 12),
                     const SizedBox(width: 3),
-                    Text('${video.likesCount}', style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 11)),
+                    Text('${video.likesCount}', style: const TextStyle(color: AppColors.text3, fontSize: 11)),
                   ]),
                 ],
               ),

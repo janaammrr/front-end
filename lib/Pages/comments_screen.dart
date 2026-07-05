@@ -4,6 +4,7 @@ import '../components/user_avatar.dart';
 import '../models/user_model.dart';
 import '../services/comment_service.dart';
 import '../services/user_service.dart';
+import '../theme/app_theme.dart';
 
 class CommentsScreen {
   static Future<void> show(BuildContext context, {int reelId = 0}) {
@@ -91,7 +92,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           constraints:
               BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
           decoration: BoxDecoration(
-            color: const Color(0xFF0E1119).withValues(alpha: 0.97),
+            color: AppColors.surface.withValues(alpha: 0.97),
             borderRadius:
                 const BorderRadius.vertical(top: Radius.circular(26)),
             border:
@@ -137,11 +138,11 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                 child: _loading
                     ? const Center(
                         child: CircularProgressIndicator(
-                            color: Color(0xFFFF7A18)))
+                            color: AppColors.amber))
                     : _comments.isEmpty
                         ? const Center(
                             child: Text('No comments yet',
-                                style: TextStyle(color: Color(0xFF6B7280))))
+                                style: TextStyle(color: AppColors.text3)))
                         : ListView.separated(
                             controller: _scrollController,
                             padding:
@@ -173,7 +174,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                                         const SizedBox(height: 4),
                                         Text(c.content,
                                             style: const TextStyle(
-                                                color: Color(0xFFD1D5DB),
+                                                color: AppColors.text2,
                                                 fontSize: 13.5,
                                                 height: 1.4)),
                                       ],
@@ -203,7 +204,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                         decoration: InputDecoration(
                           hintText: 'Add a comment…',
                           hintStyle: const TextStyle(
-                              color: Color(0xFF6B7280), fontSize: 14),
+                              color: AppColors.text3, fontSize: 14),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.07),
                           contentPadding: const EdgeInsets.symmetric(
@@ -217,7 +218,7 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                           focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(22),
                               borderSide: const BorderSide(
-                                  color: Color(0xFFFF7A18), width: 1.2)),
+                                  color: AppColors.amber, width: 1.2)),
                         ),
                         onSubmitted: (_) => _sendComment(),
                       ),
@@ -230,8 +231,8 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                         height: 38,
                         decoration: BoxDecoration(
                           color: _posting
-                              ? const Color(0xFFFF7A18).withValues(alpha: 0.5)
-                              : const Color(0xFFFF7A18),
+                              ? AppColors.amber.withValues(alpha: 0.5)
+                              : AppColors.amber,
                           shape: BoxShape.circle,
                         ),
                         child: _posting

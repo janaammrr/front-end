@@ -119,4 +119,23 @@ class ChatService {
     );
     return ChatMessage.fromJson(res.data as Map<String, dynamic>, myUserId);
   }
+
+  /// Shares a reel or post into a conversation. [sharedTargetType] is
+  /// 'REEL' or 'POST'.
+  static Future<void> shareToChat({
+    required int receiverId,
+    required int sharedTargetId,
+    required String sharedTargetType,
+    String? content,
+  }) {
+    return ApiClient.instance.post(
+      '/api/chat/share',
+      data: {
+        'receiverId': receiverId,
+        'sharedTargetId': sharedTargetId,
+        'sharedTargetType': sharedTargetType,
+        'content': content ?? '',
+      },
+    );
+  }
 }

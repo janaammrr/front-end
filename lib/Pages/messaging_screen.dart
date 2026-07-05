@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/chat_service.dart';
 import '../services/user_service.dart';
 import '../services/follow_service.dart';
+import '../theme/app_theme.dart';
 
 class MessagingScreen extends StatefulWidget {
   const MessagingScreen({super.key});
@@ -89,14 +90,14 @@ class _MessagingScreenState extends State<MessagingScreen> {
   Widget build(BuildContext context) {
     final convos = _filtered;
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       body: Stack(
         children: [
           Positioned(
             top: -80,
             right: -60,
             child: _GlowOrb(
-              color: const Color(0xFF3B82F6).withValues(alpha: 0.14),
+              color: AppColors.amber.withValues(alpha: 0.14),
               size: 200,
             ),
           ),
@@ -104,7 +105,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
             bottom: -100,
             left: -60,
             child: _GlowOrb(
-              color: const Color(0xFF6D28D9).withValues(alpha: 0.14),
+              color: AppColors.amberSoft.withValues(alpha: 0.14),
               size: 240,
             ),
           ),
@@ -137,10 +138,10 @@ class _MessagingScreenState extends State<MessagingScreen> {
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: 'Search messages',
-                      hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+                      hintStyle: const TextStyle(color: AppColors.text3),
                       prefixIcon: const Icon(
                         Icons.search_rounded,
-                        color: Color(0xFF6B7280),
+                        color: AppColors.text3,
                       ),
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.06),
@@ -160,7 +161,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: const BorderSide(
-                          color: Color(0xFFFF7A18),
+                          color: AppColors.amber,
                           width: 1.1,
                         ),
                       ),
@@ -172,7 +173,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   child: _loading
                       ? const Center(
                           child: CircularProgressIndicator(
-                            color: Color(0xFFFF7A18),
+                            color: AppColors.amber,
                           ),
                         )
                       : _error != null
@@ -189,7 +190,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                               Text(
                                 _error!,
                                 style: const TextStyle(
-                                  color: Color(0xFFEF4444),
+                                  color: AppColors.error,
                                   fontSize: 13,
                                 ),
                               ),
@@ -197,7 +198,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                               ElevatedButton(
                                 onPressed: _load,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFFF7A18),
+                                  backgroundColor: AppColors.amber,
                                 ),
                                 child: const Text(
                                   'Retry',
@@ -211,12 +212,12 @@ class _MessagingScreenState extends State<MessagingScreen> {
                       ? const Center(
                           child: Text(
                             'No conversations yet',
-                            style: TextStyle(color: Color(0xFF6B7280)),
+                            style: TextStyle(color: AppColors.text3),
                           ),
                         )
                       : RefreshIndicator(
                           onRefresh: _load,
-                          color: const Color(0xFFFF7A18),
+                          color: AppColors.amber,
                           child: ListView.separated(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             itemCount: convos.length,
@@ -260,11 +261,11 @@ class _ConvoTile extends StatelessWidget {
       onTap: onTap,
       leading: CircleAvatar(
         radius: 26,
-        backgroundColor: const Color(0xFFFF7A18).withValues(alpha: 0.2),
+        backgroundColor: AppColors.amber.withValues(alpha: 0.2),
         child: Text(
           item.otherUser.initials,
           style: const TextStyle(
-            color: Color(0xFFFF7A18),
+            color: AppColors.amber,
             fontWeight: FontWeight.w800,
             fontSize: 16,
           ),
@@ -283,8 +284,8 @@ class _ConvoTile extends StatelessWidget {
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
           color: item.unreadCount > 0
-              ? const Color(0xFFD1D5DB)
-              : const Color(0xFF6B7280),
+              ? AppColors.text2
+              : AppColors.text3,
           fontSize: 13,
         ),
       ),
@@ -293,7 +294,7 @@ class _ConvoTile extends StatelessWidget {
               width: 20,
               height: 20,
               decoration: const BoxDecoration(
-                color: Color(0xFFFF7A18),
+                color: AppColors.amber,
                 shape: BoxShape.circle,
               ),
               child: Center(
@@ -392,7 +393,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to send: $e'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -410,7 +411,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     final bottom = MediaQuery.viewInsetsOf(context).bottom;
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -429,13 +430,11 @@ class _ChatScreenState extends State<ChatScreen> {
                   const SizedBox(width: 10),
                   CircleAvatar(
                     radius: 20,
-                    backgroundColor: const Color(
-                      0xFFFF7A18,
-                    ).withValues(alpha: 0.2),
+                    backgroundColor: AppColors.amber.withValues(alpha: 0.2),
                     child: Text(
                       widget.otherUser.initials,
                       style: const TextStyle(
-                        color: Color(0xFFFF7A18),
+                        color: AppColors.amber,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
@@ -455,7 +454,7 @@ class _ChatScreenState extends State<ChatScreen> {
               child: _loading
                   ? const Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFFFF7A18),
+                        color: AppColors.amber,
                       ),
                     )
                   : ListView.builder(
@@ -476,7 +475,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       decoration: InputDecoration(
                         hintText: 'Message…',
                         hintStyle: const TextStyle(
-                          color: Color(0xFF6B7280),
+                          color: AppColors.text3,
                           fontSize: 14,
                         ),
                         filled: true,
@@ -492,7 +491,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(22),
                           borderSide: const BorderSide(
-                            color: Color(0xFFFF7A18),
+                            color: AppColors.amber,
                             width: 1.2,
                           ),
                         ),
@@ -507,7 +506,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       width: 42,
                       height: 42,
                       decoration: const BoxDecoration(
-                        color: Color(0xFFFF7A18),
+                        color: AppColors.amber,
                         shape: BoxShape.circle,
                       ),
                       child: _sending
@@ -554,13 +553,13 @@ class _ChatBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!msg.isMine) ...[
-            const CircleAvatar(
+            CircleAvatar(
               radius: 14,
-              backgroundColor: Color(0x33FF7A18),
-              child: Text(
+              backgroundColor: AppColors.amber.withValues(alpha: 0.2),
+              child: const Text(
                 '?',
                 style: TextStyle(
-                  color: Color(0xFFFF7A18),
+                  color: AppColors.amber,
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
                 ),
@@ -581,7 +580,7 @@ class _ChatBubble extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: msg.isMine
-                        ? const Color(0xFFFF7A18)
+                        ? AppColors.amber
                         : Colors.white.withValues(alpha: 0.09),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(18),
@@ -595,7 +594,7 @@ class _ChatBubble extends StatelessWidget {
                     style: TextStyle(
                       color: msg.isMine
                           ? Colors.white
-                          : const Color(0xFFD1D5DB),
+                          : AppColors.text2,
                       fontSize: 14,
                       height: 1.4,
                     ),
@@ -605,7 +604,7 @@ class _ChatBubble extends StatelessWidget {
                 Text(
                   msg.sentAt,
                   style: const TextStyle(
-                    color: Color(0xFF4B5563),
+                    color: AppColors.border,
                     fontSize: 11,
                   ),
                 ),

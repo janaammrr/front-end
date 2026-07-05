@@ -14,6 +14,7 @@ import '../services/user_service.dart';
 import 'messaging_screen.dart';
 import 'reel_viewer_screen.dart';
 import 'settings_screen.dart';
+import '../theme/app_theme.dart';
 
 class PublicProfileScreen extends StatefulWidget {
   const PublicProfileScreen({
@@ -22,6 +23,7 @@ class PublicProfileScreen extends StatefulWidget {
     required this.creatorName,
     required this.gradient,
     this.profileUrl,
+    this.username,
     this.isRootView = false,
   });
 
@@ -29,6 +31,10 @@ class PublicProfileScreen extends StatefulWidget {
   final String creatorName;
   final List<Color> gradient;
   final String? profileUrl;
+
+  /// The account's real username (from the backend). When absent, a handle
+  /// is derived from the display name as a fallback.
+  final String? username;
 
   /// True when this screen is the root of the Profile bottom-nav tab (no
   /// screen to pop to). Shows a settings-gear icon instead of a back arrow.
@@ -49,8 +55,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   bool _followBusy = false;
   String? _error;
 
-  String get _handle =>
-      '@${widget.creatorName.toLowerCase().replaceAll(' ', '_').replaceAll('.', '')}';
+  String get _handle {
+    if (widget.username != null && widget.username!.trim().isNotEmpty) {
+      return '@${widget.username}';
+    }
+    return '@${widget.creatorName.toLowerCase().replaceAll(' ', '_').replaceAll('.', '')}';
+  }
 
   @override
   void initState() {
@@ -149,7 +159,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           content: Text(
             ApiClient.errorMessage(e, fallback: 'Could not update follow.'),
           ),
-          backgroundColor: const Color(0xFFEF4444),
+          backgroundColor: AppColors.error,
         ),
       );
     } finally {
@@ -179,7 +189,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             content: Text(
               ApiClient.errorMessage(e, fallback: 'Could not open messages.'),
             ),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: AppColors.error,
           ),
         );
         return;
@@ -214,7 +224,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${widget.creatorName} profile link copied'),
-        backgroundColor: const Color(0xFFFF7A18),
+        backgroundColor: AppColors.amber,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         duration: const Duration(seconds: 2),
@@ -231,14 +241,14 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       body: CustomScrollView(
         slivers: [
           _buildHeader(context),
           if (_loading)
             const SliverFillRemaining(
               child: Center(
-                child: CircularProgressIndicator(color: Color(0xFFFF7A18)),
+                child: CircularProgressIndicator(color: AppColors.amber),
               ),
             )
           else if (_error != null)
@@ -279,7 +289,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     return SliverAppBar(
       expandedHeight: 260,
       pinned: true,
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       automaticallyImplyLeading: false,
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
@@ -343,7 +353,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
-                      color: const Color(0xFFFF7A18),
+                      color: AppColors.amber,
                       width: 3,
                     ),
                     gradient: widget.profileUrl == null
@@ -355,7 +365,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                         : null,
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFF7A18).withValues(alpha: 0.4),
+                        color: AppColors.amber.withValues(alpha: 0.4),
                         blurRadius: 20,
                         spreadRadius: 2,
                       ),
@@ -445,7 +455,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           Text(
             _handle,
             style: const TextStyle(
-              color: Color(0xFFFF7A18),
+              color: AppColors.amber,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
@@ -508,11 +518,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 duration: const Duration(milliseconds: 220),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  gradient: _isFollowing
-                      ? null
-                      : const LinearGradient(
-                          colors: [Color(0xFFFF7A18), Color(0xFFFFB073)],
-                        ),
+                  gradient: _isFollowing ? null : AppColors.accentGradient,
                   color: _isFollowing
                       ? Colors.white.withValues(alpha: 0.08)
                       : null,
@@ -613,16 +619,16 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: const Color(0xFFFF7A18).withValues(alpha: 0.13),
+              color: AppColors.amber.withValues(alpha: 0.13),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
-                color: const Color(0xFFFF7A18).withValues(alpha: 0.4),
+                color: AppColors.amber.withValues(alpha: 0.4),
               ),
             ),
             child: Text(
               '${_reels.length} total',
               style: const TextStyle(
-                color: Color(0xFFFFB073),
+                color: AppColors.amberSoft,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
               ),
@@ -706,13 +712,15 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
     );
   }
 
+  // On-brand fallback thumbnails, replacing the previous unrelated
+  // purple/teal/indigo/maroon hues with variations of the site's palette.
   static const _thumbGradients = [
-    [Color(0xFF7C2D12), Color(0xFF9A3412)],
-    [Color(0xFF134E4A), Color(0xFF0F766E)],
-    [Color(0xFF1E1B4B), Color(0xFF4338CA)],
-    [Color(0xFF500724), Color(0xFF9F1239)],
-    [Color(0xFF78350F), Color(0xFF9D174D)],
-    [Color(0xFF064E3B), Color(0xFF065F46)],
+    [AppColors.amber, AppColors.surface2],
+    [AppColors.surface2, AppColors.surface],
+    [AppColors.borderHi, AppColors.surface2],
+    [AppColors.amberSoft, AppColors.surface2],
+    [AppColors.surface, AppColors.bg],
+    [AppColors.amber, AppColors.borderHi],
   ];
 }
 
@@ -735,13 +743,13 @@ class _ErrorState extends StatelessWidget {
             Text(
               error,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13),
+              style: const TextStyle(color: AppColors.error, fontSize: 13),
             ),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: onRetry,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF7A18),
+                backgroundColor: AppColors.amber,
               ),
               child: const Text('Retry', style: TextStyle(color: Colors.white)),
             ),

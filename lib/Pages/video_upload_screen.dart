@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/api_client.dart';
 import '../services/reel_service.dart';
+import '../theme/app_theme.dart';
 
 class VideoUploadScreen extends StatefulWidget {
   const VideoUploadScreen({super.key});
@@ -32,13 +33,13 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
   Future<void> _publish() async {
     if (_titleController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a caption'), backgroundColor: Color(0xFF374151)),
+        const SnackBar(content: Text('Please enter a caption'), backgroundColor: AppColors.border),
       );
       return;
     }
     if (_videoFile == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a video'), backgroundColor: Color(0xFF374151)),
+        const SnackBar(content: Text('Please select a video'), backgroundColor: AppColors.border),
       );
       return;
     }
@@ -61,7 +62,7 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(ApiClient.errorMessage(e, fallback: 'Upload failed.')),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -71,11 +72,11 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       body: Stack(
         children: [
-          Positioned(top: -80, right: -60, child: _GlowOrb(color: const Color(0xFFFF7A18).withValues(alpha: 0.18), size: 200)),
-          Positioned(bottom: -100, left: -60, child: _GlowOrb(color: const Color(0xFF6D28D9).withValues(alpha: 0.14), size: 240)),
+          Positioned(top: -80, right: -60, child: _GlowOrb(color: AppColors.amber.withValues(alpha: 0.18), size: 200)),
+          Positioned(bottom: -100, left: -60, child: _GlowOrb(color: AppColors.amberSoft.withValues(alpha: 0.14), size: 240)),
           SafeArea(
             child: Column(
               children: [
@@ -101,10 +102,10 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
                             duration: const Duration(milliseconds: 200),
                             height: 180,
                             decoration: BoxDecoration(
-                              color: _videoFile != null ? const Color(0xFFFF7A18).withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.05),
+                              color: _videoFile != null ? AppColors.amber.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(
-                                color: _videoFile != null ? const Color(0xFFFF7A18) : Colors.white.withValues(alpha: 0.15),
+                                color: _videoFile != null ? AppColors.amber : Colors.white.withValues(alpha: 0.15),
                                 width: _videoFile != null ? 1.5 : 1,
                                 style: BorderStyle.solid,
                               ),
@@ -115,17 +116,17 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
                                 children: [
                                   Icon(
                                     _videoFile != null ? Icons.check_circle_rounded : Icons.video_call_rounded,
-                                    color: _videoFile != null ? const Color(0xFFFF7A18) : Colors.white38,
+                                    color: _videoFile != null ? AppColors.amber : Colors.white38,
                                     size: 48,
                                   ),
                                   const SizedBox(height: 12),
                                   Text(
                                     _videoFile != null ? 'Video selected ✓' : 'Tap to select video',
-                                    style: TextStyle(color: _videoFile != null ? const Color(0xFFFF7A18) : Colors.white54, fontWeight: FontWeight.w600, fontSize: 15),
+                                    style: TextStyle(color: _videoFile != null ? AppColors.amber : Colors.white54, fontWeight: FontWeight.w600, fontSize: 15),
                                   ),
                                   if (_videoFile == null) ...[
                                     const SizedBox(height: 6),
-                                    const Text('MP4, MOV — Max 60 seconds', style: TextStyle(color: Color(0xFF6B7280), fontSize: 12)),
+                                    const Text('MP4, MOV — Max 60 seconds', style: TextStyle(color: AppColors.text3, fontSize: 12)),
                                   ],
                                 ],
                               ),
@@ -148,11 +149,11 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
                                 duration: const Duration(milliseconds: 180),
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: sel ? const Color(0xFFFF7A18).withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.06),
+                                  color: sel ? AppColors.amber.withValues(alpha: 0.2) : Colors.white.withValues(alpha: 0.06),
                                   borderRadius: BorderRadius.circular(999),
-                                  border: Border.all(color: sel ? const Color(0xFFFF7A18) : Colors.white.withValues(alpha: 0.1)),
+                                  border: Border.all(color: sel ? AppColors.amber : Colors.white.withValues(alpha: 0.1)),
                                 ),
-                                child: Text(cat, style: TextStyle(color: sel ? Colors.white : const Color(0xFFB2B8CB), fontWeight: FontWeight.w600, fontSize: 13)),
+                                child: Text(cat, style: TextStyle(color: sel ? Colors.white : AppColors.text2, fontWeight: FontWeight.w600, fontSize: 13)),
                               ),
                             );
                           }).toList(),
@@ -165,7 +166,7 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
                             children: [
                               Icon(Icons.shield_outlined, color: Color(0xFF10B981), size: 18),
                               SizedBox(width: 10),
-                              Expanded(child: Text('Your video will be reviewed by our moderation team before going live.', style: TextStyle(color: Color(0xFF9CA3AF), fontSize: 12, height: 1.4))),
+                              Expanded(child: Text('Your video will be reviewed by our moderation team before going live.', style: TextStyle(color: AppColors.text3, fontSize: 12, height: 1.4))),
                             ],
                           ),
                         ),
@@ -175,11 +176,11 @@ class _VideoUploadScreenState extends State<VideoUploadScreen> {
                           child: ElevatedButton(
                             onPressed: _uploading ? null : _publish,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFF7A18),
+                              backgroundColor: AppColors.amber,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 14),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              disabledBackgroundColor: const Color(0xFFFF7A18).withValues(alpha: 0.4),
+                              disabledBackgroundColor: AppColors.amber.withValues(alpha: 0.4),
                             ),
                             child: _uploading
                                 ? const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
@@ -230,12 +231,12 @@ class _Field extends StatelessWidget {
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+        hintStyle: const TextStyle(color: AppColors.text3),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.06),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFFF7A18), width: 1.2)),
+        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.amber, width: 1.2)),
       ),
     );
   }

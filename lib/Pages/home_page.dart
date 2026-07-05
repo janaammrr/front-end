@@ -9,7 +9,6 @@ import '../components/reel_moderation_sheet.dart';
 import '../components/user_avatar.dart';
 import '../services/auth_service.dart';
 import '../services/follow_service.dart';
-import '../services/chat_service.dart';
 import '../services/user_service.dart';
 import '../auth/auth.dart';
 import 'profile_screen.dart';
@@ -22,6 +21,10 @@ import 'video_upload_screen.dart';
 import 'comments_screen.dart';
 import 'ai_chatbot_screen.dart';
 import 'public_profile_screen.dart';
+import 'posts_screen.dart';
+import 'trending_screen.dart';
+import '../components/dm_picker_sheet.dart';
+import '../theme/app_theme.dart';
 
 // ─── Data Model ───────────────────────────────────────────────────────────────
 
@@ -71,13 +74,14 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       body: IndexedStack(
         index: _tabIndex,
         children: [
           const _FeedView(),
           const WorkshopPage(),
           const EventsPage(),
+          const TrendingScreen(),
           const CommunitiesScreen(),
           ProfileScreen(key: ValueKey(_profileRefreshKey)),
         ],
@@ -86,7 +90,7 @@ class _HomePageState extends State<HomePage> {
         currentIndex: _tabIndex,
         onTap: (i) => setState(() {
           _tabIndex = i;
-          if (i == 4) _profileRefreshKey++;
+          if (i == 5) _profileRefreshKey++;
         }),
       ),
     );
@@ -108,43 +112,60 @@ class _MainNav extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.fromLTRB(8, 8, 8, 10),
         decoration: BoxDecoration(
-          color: const Color(0xE509090B),
+          color: AppColors.bg.withValues(alpha: 0.9),
           border: Border(
-            top: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+            top: BorderSide(color: AppColors.border),
           ),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _NavItem(
-              icon: Icons.home_outlined,
-              label: 'Home',
-              active: currentIndex == 0,
-              onTap: () => onTap(0),
+            Expanded(
+              child: _NavItem(
+                icon: Icons.home_outlined,
+                label: 'Home',
+                active: currentIndex == 0,
+                onTap: () => onTap(0),
+              ),
             ),
-            _NavItem(
-              icon: Icons.school_outlined,
-              label: 'Workshops',
-              active: currentIndex == 1,
-              onTap: () => onTap(1),
+            Expanded(
+              child: _NavItem(
+                icon: Icons.school_outlined,
+                label: 'Workshops',
+                active: currentIndex == 1,
+                onTap: () => onTap(1),
+              ),
             ),
-            _NavItem(
-              icon: Icons.event_outlined,
-              label: 'Events',
-              active: currentIndex == 2,
-              onTap: () => onTap(2),
+            Expanded(
+              child: _NavItem(
+                icon: Icons.event_outlined,
+                label: 'Events',
+                active: currentIndex == 2,
+                onTap: () => onTap(2),
+              ),
             ),
-            _NavItem(
-              icon: Icons.groups_outlined,
-              label: 'Communities',
-              active: currentIndex == 3,
-              onTap: () => onTap(3),
+            Expanded(
+              child: _NavItem(
+                icon: Icons.local_fire_department_outlined,
+                label: 'Trending',
+                active: currentIndex == 3,
+                onTap: () => onTap(3),
+              ),
             ),
-            _NavItem(
-              icon: Icons.person_outline,
-              label: 'Profile',
-              active: currentIndex == 4,
-              onTap: () => onTap(4),
+            Expanded(
+              child: _NavItem(
+                icon: Icons.groups_outlined,
+                label: 'Communities',
+                active: currentIndex == 4,
+                onTap: () => onTap(4),
+              ),
+            ),
+            Expanded(
+              child: _NavItem(
+                icon: Icons.person_outline,
+                label: 'Profile',
+                active: currentIndex == 5,
+                onTap: () => onTap(5),
+              ),
             ),
           ],
         ),
@@ -169,13 +190,13 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = active
-        ? const Color(0xFFFF7A18)
+        ? AppColors.amber
         : Colors.white.withValues(alpha: 0.5);
     return InkWell(
       borderRadius: BorderRadius.circular(10),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -183,6 +204,8 @@ class _NavItem extends StatelessWidget {
             const SizedBox(height: 1),
             Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: color,
                 fontSize: 10,
@@ -213,12 +236,15 @@ class _FeedViewState extends State<_FeedView> {
   String? _error;
   int? _myId;
 
+  // On-brand fallback backgrounds for reel cards with no thumbnail — kept
+  // within the website's amber/neutral palette instead of the previous
+  // unrelated purple/teal/indigo hues.
   static const _gradients = [
-    [Color(0xFF7C2D12), Color(0xFF9A3412), Color(0xFF09090B)],
-    [Color(0xFF78350F), Color(0xFF9D174D), Color(0xFF09090B)],
-    [Color(0xFF134E4A), Color(0xFF0F766E), Color(0xFF09090B)],
-    [Color(0xFF1E1B4B), Color(0xFF4338CA), Color(0xFF09090B)],
-    [Color(0xFF500724), Color(0xFF9F1239), Color(0xFF09090B)],
+    [AppColors.amber, AppColors.surface2, AppColors.bg],
+    [AppColors.amberSoft, AppColors.surface2, AppColors.bg],
+    [AppColors.borderHi, AppColors.surface2, AppColors.bg],
+    [AppColors.surface2, AppColors.surface, AppColors.bg],
+    [AppColors.amber, AppColors.borderHi, AppColors.bg],
   ];
 
   @override
@@ -316,15 +342,15 @@ class _FeedViewState extends State<_FeedView> {
   Widget build(BuildContext context) {
     if (_loading) {
       return const ColoredBox(
-        color: Color(0xFF09090B),
+        color: AppColors.bg,
         child: Center(
-          child: CircularProgressIndicator(color: Color(0xFFFF7A18)),
+          child: CircularProgressIndicator(color: AppColors.amber),
         ),
       );
     }
     if (_error != null) {
       return ColoredBox(
-        color: const Color(0xFF09090B),
+        color: AppColors.bg,
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -341,7 +367,7 @@ class _FeedViewState extends State<_FeedView> {
                 },
                 child: const Text(
                   'Retry',
-                  style: TextStyle(color: Color(0xFFFF7A18)),
+                  style: TextStyle(color: AppColors.amber),
                 ),
               ),
             ],
@@ -351,7 +377,7 @@ class _FeedViewState extends State<_FeedView> {
     }
     if (_videos.isEmpty) {
       return const ColoredBox(
-        color: Color(0xFF09090B),
+        color: AppColors.bg,
         child: Center(
           child: Text('No videos yet', style: TextStyle(color: Colors.white54)),
         ),
@@ -374,6 +400,10 @@ class _FeedViewState extends State<_FeedView> {
           ),
         ),
         _TopBar(
+          onPostsTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const PostsScreen()),
+          ),
           onSearchTap: () => Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => const SearchScreen()),
@@ -393,11 +423,13 @@ class _FeedViewState extends State<_FeedView> {
 
 class _TopBar extends StatelessWidget {
   const _TopBar({
+    required this.onPostsTap,
     required this.onSearchTap,
     required this.onMessageTap,
     required this.onCreateTap,
   });
 
+  final VoidCallback onPostsTap;
   final VoidCallback onSearchTap;
   final VoidCallback onMessageTap;
   final VoidCallback onCreateTap;
@@ -428,6 +460,8 @@ class _TopBar extends StatelessWidget {
               ),
               const Spacer(),
               _TopBtn(icon: Icons.add_rounded, onTap: onCreateTap),
+              const SizedBox(width: 8),
+              _TopBtn(icon: Icons.dynamic_feed_rounded, onTap: onPostsTap),
               const SizedBox(width: 8),
               _TopBtn(icon: Icons.search_rounded, onTap: onSearchTap),
               const SizedBox(width: 8),
@@ -697,7 +731,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(ApiClient.errorMessage(error, fallback: fallback)),
-        backgroundColor: const Color(0xFFEF4444),
+        backgroundColor: AppColors.error,
       ),
     );
   }
@@ -809,7 +843,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
                 value: _progressValue,
                 backgroundColor: Colors.white.withValues(alpha: 0.18),
                 valueColor: const AlwaysStoppedAnimation<Color>(
-                  Color(0xFFFF7A18),
+                  AppColors.amber,
                 ),
                 minHeight: 3,
               ),
@@ -861,6 +895,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
                   builder: (_) => PublicProfileScreen(
                     creatorId: widget.item.creatorId,
                     creatorName: widget.item.creatorName,
+                    username: widget.item.creatorUsername,
                     gradient: widget.item.gradient,
                   ),
                 ),
@@ -920,7 +955,7 @@ class _ActionRail extends StatelessWidget {
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
                 key: ValueKey(isLiked),
-                color: isLiked ? const Color(0xFFFF4757) : Colors.white,
+                color: isLiked ? AppColors.amber : Colors.white,
                 size: 28,
               ),
             ),
@@ -965,7 +1000,7 @@ class _ActionRail extends StatelessWidget {
             child: Icon(
               isSaved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
               key: ValueKey(isSaved),
-              color: isSaved ? const Color(0xFFFF7A18) : Colors.white,
+              color: isSaved ? AppColors.amber : Colors.white,
               size: 26,
             ),
           ),
@@ -997,14 +1032,10 @@ class _ActionRail extends StatelessWidget {
                 height: 52,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFFFF7A18), Color(0xFFB83280)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: AppColors.accentGradient,
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFFFF7A18).withValues(alpha: 0.45),
+                      color: AppColors.amber.withValues(alpha: 0.45),
                       blurRadius: 14,
                       offset: const Offset(0, 3),
                     ),
@@ -1145,7 +1176,7 @@ class _CreatorCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: isFollowing
                             ? Colors.white.withValues(alpha: 0.12)
-                            : const Color(0xFFFF7A18),
+                            : AppColors.amber,
                         borderRadius: BorderRadius.circular(999),
                         border: isFollowing
                             ? Border.all(
@@ -1179,16 +1210,16 @@ class _CreatorCard extends StatelessWidget {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.18),
+                      color: AppColors.amber.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(999),
                       border: Border.all(
-                        color: Colors.orange.withValues(alpha: 0.4),
+                        color: AppColors.amber.withValues(alpha: 0.4),
                       ),
                     ),
                     child: Text(
                       item.category,
                       style: const TextStyle(
-                        color: Color(0xFFFED7AA),
+                        color: AppColors.amberSoft,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
                       ),
@@ -1227,7 +1258,7 @@ class _CreateMenuSheet extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           decoration: BoxDecoration(
-            color: const Color(0xFF09090B).withValues(alpha: 0.93),
+            color: AppColors.bg.withValues(alpha: 0.93),
             border: const Border(top: BorderSide(color: Color(0x1AFFFFFF))),
           ),
           child: SafeArea(
@@ -1359,10 +1390,10 @@ class _CreateTile extends StatelessWidget {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF7A18).withValues(alpha: 0.14),
+                    color: AppColors.amber.withValues(alpha: 0.14),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(icon, color: const Color(0xFFFF7A18), size: 22),
+                  child: Icon(icon, color: AppColors.amber, size: 22),
                 ),
                 const SizedBox(width: 14),
                 Expanded(
@@ -1425,7 +1456,7 @@ class _ShareSheet extends StatelessWidget {
         Expanded(child: Text(message)),
       ],
     ),
-    backgroundColor: const Color(0xFFFF7A18),
+    backgroundColor: AppColors.amber,
     behavior: SnackBarBehavior.floating,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     duration: const Duration(seconds: 2),
@@ -1448,7 +1479,7 @@ class _ShareSheet extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           decoration: BoxDecoration(
-            color: const Color(0xFF09090B).withValues(alpha: 0.93),
+            color: AppColors.bg.withValues(alpha: 0.93),
             border: const Border(top: BorderSide(color: Color(0x1AFFFFFF))),
           ),
           child: SafeArea(
@@ -1490,9 +1521,7 @@ class _ShareSheet extends StatelessWidget {
                             height: 48,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(10),
-                              gradient: const LinearGradient(
-                                colors: [Color(0xFFFF7A18), Color(0xFF9A3412)],
-                              ),
+                              gradient: AppColors.accentGradient,
                             ),
                             child: const Icon(
                               Icons.play_arrow_rounded,
@@ -1519,7 +1548,7 @@ class _ShareSheet extends StatelessWidget {
                                 Text(
                                   creatorName,
                                   style: const TextStyle(
-                                    color: Color(0xFFFF7A18),
+                                    color: AppColors.amber,
                                     fontSize: 12,
                                   ),
                                 ),
@@ -1541,7 +1570,7 @@ class _ShareSheet extends StatelessWidget {
                     _ShareOption(
                       icon: Icons.auto_awesome_rounded,
                       label: 'Flame DM',
-                      color: const Color(0xFFFF7A18),
+                      color: AppColors.amber,
                       onTap: () {
                         Navigator.of(context).pop();
                         showModalBottomSheet<void>(
@@ -1550,10 +1579,10 @@ class _ShareSheet extends StatelessWidget {
                           barrierColor: Colors.black54,
                           useSafeArea: true,
                           isScrollControlled: true,
-                          builder: (_) => _DmPickerSheet(
-                            reelId: reelId,
-                            caption: caption,
-                            creatorName: creatorName,
+                          builder: (_) => DmPickerSheet(
+                            sharedTargetId: reelId,
+                            sharedTargetType: 'REEL',
+                            shareContent: caption,
                           ),
                         );
                       },
@@ -1619,386 +1648,5 @@ class _ShareOption extends StatelessWidget {
   }
 }
 
-// ─── DM Picker Sheet (TikTok-style "Send to friend") ─────────────────────────
-
-class _DmPickerSheet extends StatefulWidget {
-  const _DmPickerSheet({
-    required this.reelId,
-    required this.caption,
-    required this.creatorName,
-  });
-
-  final int reelId;
-  final String caption;
-  final String creatorName;
-
-  @override
-  State<_DmPickerSheet> createState() => _DmPickerSheetState();
-}
-
-class _DmPickerSheetState extends State<_DmPickerSheet> {
-  final TextEditingController _search = TextEditingController();
-  final Set<int> _sentTo = {};
-  int _myId = 0;
-  List<FollowUser> _contacts = [];
-  bool _loading = true;
-
-  List<FollowUser> get _filtered {
-    final q = _search.text.toLowerCase();
-    if (q.isEmpty) return _contacts;
-    return _contacts
-        .where((c) => c.displayName.toLowerCase().contains(q))
-        .toList();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadContacts();
-  }
-
-  Future<void> _loadContacts() async {
-    final me = await UserService.getMe();
-    final following = await FollowService.getFollowing(me.id);
-    if (!mounted) return;
-    setState(() {
-      _myId = me.id;
-      _contacts = following;
-      _loading = false;
-    });
-  }
-
-  @override
-  void dispose() {
-    _search.dispose();
-    super.dispose();
-  }
-
-  Future<void> _send(int index) async {
-    if (_myId == 0) return;
-    final c = _filtered[index];
-    setState(() => _sentTo.add(index));
-    try {
-      await ChatService.sendMessage(
-        c.id,
-        'Shared a reel from ${widget.creatorName}: ${widget.caption} #reel-${widget.reelId}',
-        _myId,
-      );
-    } catch (_) {
-      if (mounted) setState(() => _sentTo.remove(index));
-      return;
-    }
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Sent to ${c.displayName}'),
-          backgroundColor: const Color(0xFFFF7A18),
-        ),
-      );
-      Navigator.of(context).pop();
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final filtered = _filtered;
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-          decoration: BoxDecoration(
-            color: const Color(0xFF09090B).withValues(alpha: 0.95),
-            border: const Border(top: BorderSide(color: Color(0x1AFFFFFF))),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Handle
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                ),
-
-                // Title
-                Row(
-                  children: [
-                    const Text(
-                      'Send to',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => Navigator.of(context).pop(),
-                      child: Icon(
-                        Icons.close_rounded,
-                        color: Colors.white.withValues(alpha: 0.5),
-                        size: 22,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // Search field
-                TextField(
-                  controller: _search,
-                  onChanged: (_) => setState(() {}),
-                  style: const TextStyle(fontSize: 14, color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Search friends...',
-                    hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.35),
-                      fontSize: 14,
-                    ),
-                    prefixIcon: Icon(
-                      Icons.search,
-                      color: Colors.white.withValues(alpha: 0.4),
-                      size: 20,
-                    ),
-                    filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.07),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.1),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFFF7A18),
-                        width: 1.5,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-
-                // Contact list
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.42,
-                  ),
-                  child: _loading
-                      ? const Center(
-                          child: CircularProgressIndicator(
-                            color: Color(0xFFFF7A18),
-                          ),
-                        )
-                      : _filtered.isEmpty
-                      ? const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(24),
-                            child: Text(
-                              'Follow someone first to send reels in chat.',
-                              style: TextStyle(color: Colors.white54),
-                            ),
-                          ),
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.only(bottom: 20),
-                          shrinkWrap: true,
-                          itemCount: filtered.length,
-                          separatorBuilder: (_, __) => Divider(
-                            color: Colors.white.withValues(alpha: 0.06),
-                            height: 1,
-                          ),
-                          itemBuilder: (ctx, i) {
-                            final c = filtered[i];
-                            final sent = _sentTo.contains(i);
-                            return _DmContactTile(
-                              initial: c.initials.isEmpty ? '?' : c.initials[0],
-                              name: c.displayName,
-                              status: 'Message',
-                              gradient: _dmGradient(i),
-                              sent: sent,
-                              onSend: () => _send(i),
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  List<Color> _dmGradient(int i) {
-    const gradients = [
-      [Color(0xFF7C3AED), Color(0xFFA855F7)],
-      [Color(0xFF0F766E), Color(0xFF134E4A)],
-      [Color(0xFF9A3412), Color(0xFF7C2D12)],
-      [Color(0xFF1D4ED8), Color(0xFF1E1B4B)],
-    ];
-    return gradients[i % gradients.length];
-  }
-}
-
-class _DmContactTile extends StatelessWidget {
-  const _DmContactTile({
-    required this.initial,
-    required this.name,
-    required this.status,
-    required this.gradient,
-    required this.sent,
-    required this.onSend,
-  });
-
-  final String initial;
-  final String name;
-  final String status;
-  final List<Color> gradient;
-  final bool sent;
-  final VoidCallback onSend;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
-      child: Row(
-        children: [
-          // Avatar
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: LinearGradient(colors: gradient),
-              boxShadow: [
-                BoxShadow(
-                  color: gradient.first.withValues(alpha: 0.4),
-                  blurRadius: 8,
-                ),
-              ],
-            ),
-            child: Center(
-              child: Text(
-                initial,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 18,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-
-          // Name + status
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    if (status == 'Online') ...[
-                      Container(
-                        width: 7,
-                        height: 7,
-                        margin: const EdgeInsets.only(right: 5),
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Color(0xFF22C55E),
-                        ),
-                      ),
-                    ],
-                    Text(
-                      status,
-                      style: TextStyle(
-                        color: status == 'Online'
-                            ? const Color(0xFF22C55E)
-                            : Colors.white.withValues(alpha: 0.4),
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          // Send button
-          GestureDetector(
-            onTap: sent ? null : onSend,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
-              decoration: BoxDecoration(
-                gradient: sent
-                    ? null
-                    : const LinearGradient(
-                        colors: [Color(0xFFFF7A18), Color(0xFFFFB073)],
-                      ),
-                color: sent ? Colors.white.withValues(alpha: 0.08) : null,
-                borderRadius: BorderRadius.circular(999),
-                border: sent
-                    ? Border.all(color: Colors.white.withValues(alpha: 0.15))
-                    : null,
-                boxShadow: sent
-                    ? null
-                    : [
-                        BoxShadow(
-                          color: const Color(
-                            0xFFFF7A18,
-                          ).withValues(alpha: 0.38),
-                          blurRadius: 8,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    sent ? Icons.check_rounded : Icons.send_rounded,
-                    color: sent ? const Color(0xFFFF7A18) : Colors.white,
-                    size: 15,
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    sent ? 'Sent' : 'Send',
-                    style: TextStyle(
-                      color: sent ? const Color(0xFFFF7A18) : Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+// DmPickerSheet and its contact tile now live in
+// lib/components/dm_picker_sheet.dart so the Posts share flow can reuse them.

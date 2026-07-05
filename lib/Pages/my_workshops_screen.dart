@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../services/workshop_service.dart';
 import '../models/workshop_model.dart';
+import '../components/edit_listing_dialog.dart';
+import '../theme/app_theme.dart';
 
 class MyWorkshopsScreen extends StatefulWidget {
   const MyWorkshopsScreen({super.key});
@@ -67,14 +69,14 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       body: Stack(
         children: [
           Positioned(
             top: -80,
             right: -60,
             child: _GlowOrb(
-              color: const Color(0xFFFF7A18).withValues(alpha: 0.16),
+              color: AppColors.amber.withValues(alpha: 0.16),
               size: 200,
             ),
           ),
@@ -82,7 +84,7 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
             bottom: -100,
             left: -60,
             child: _GlowOrb(
-              color: const Color(0xFF6D28D9).withValues(alpha: 0.14),
+              color: AppColors.amberSoft.withValues(alpha: 0.14),
               size: 240,
             ),
           ),
@@ -110,7 +112,7 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
                   const Expanded(
                     child: Center(
                       child: CircularProgressIndicator(
-                        color: Color(0xFFFF7A18),
+                        color: AppColors.amber,
                       ),
                     ),
                   )
@@ -130,7 +132,7 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
                             _error!,
                             textAlign: TextAlign.center,
                             style: const TextStyle(
-                              color: Color(0xFFEF4444),
+                              color: AppColors.error,
                               fontSize: 13,
                             ),
                           ),
@@ -138,7 +140,7 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
                           ElevatedButton(
                             onPressed: _load,
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFF7A18),
+                              backgroundColor: AppColors.amber,
                             ),
                             child: const Text(
                               'Retry',
@@ -152,10 +154,10 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
                 else ...[
                   TabBar(
                     controller: _tabController,
-                    indicatorColor: const Color(0xFFFF7A18),
+                    indicatorColor: AppColors.amber,
                     indicatorWeight: 2,
                     labelColor: Colors.white,
-                    unselectedLabelColor: const Color(0xFF6B7280),
+                    unselectedLabelColor: AppColors.text3,
                     labelStyle: const TextStyle(fontWeight: FontWeight.w700),
                     dividerColor: Colors.white.withValues(alpha: 0.08),
                     tabs: [
@@ -191,6 +193,38 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
                             await WorkshopService.deleteWorkshop(item.id);
                             await _load();
                           },
+                          onEdit: (item) async {
+                            final saved = await showDialog<bool>(
+                              context: context,
+                              builder: (_) => EditListingDialog(
+                                dialogTitle: 'Edit Workshop',
+                                initialTitle: item.title,
+                                initialDescription: item.description ?? '',
+                                initialLocation: item.location ?? '',
+                                initialDate: item.date ?? '',
+                                initialPrice: item.price ?? 0,
+                                showCapacity: true,
+                                initialCapacity: item.capacity,
+                                onSave: ({
+                                  required title,
+                                  required description,
+                                  required location,
+                                  required date,
+                                  required price,
+                                  capacity,
+                                }) => WorkshopService.updateWorkshop(
+                                  item.id,
+                                  title: title,
+                                  description: description,
+                                  location: location,
+                                  capacity: capacity ?? 0,
+                                  date: date,
+                                  price: price,
+                                ),
+                              ),
+                            );
+                            if (saved == true) await _load();
+                          },
                         ),
                       ],
                     ),
@@ -213,6 +247,7 @@ class _WorkshopList extends StatelessWidget {
     this.actionIcon,
     this.destructive = false,
     this.onAction,
+    this.onEdit,
   });
 
   final List<WorkshopModel> items;
@@ -221,6 +256,7 @@ class _WorkshopList extends StatelessWidget {
   final IconData? actionIcon;
   final bool destructive;
   final Future<void> Function(WorkshopModel item)? onAction;
+  final Future<void> Function(WorkshopModel item)? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -231,14 +267,14 @@ class _WorkshopList extends StatelessWidget {
           children: [
             const Icon(
               Icons.school_outlined,
-              color: Color(0xFF374151),
+              color: AppColors.border,
               size: 48,
             ),
             const SizedBox(height: 12),
             Text(
               emptyMessage,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFF6B7280)),
+              style: const TextStyle(color: AppColors.text3),
             ),
           ],
         ),
@@ -246,7 +282,7 @@ class _WorkshopList extends StatelessWidget {
     }
     return RefreshIndicator(
       onRefresh: () async {},
-      color: const Color(0xFFFF7A18),
+      color: AppColors.amber,
       child: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: items.length,
@@ -257,6 +293,7 @@ class _WorkshopList extends StatelessWidget {
           actionIcon: actionIcon,
           destructive: destructive,
           onAction: onAction == null ? null : () => onAction!(items[i]),
+          onEdit: onEdit == null ? null : () => onEdit!(items[i]),
         ),
       ),
     );
@@ -270,6 +307,7 @@ class _WorkshopCard extends StatelessWidget {
     this.actionIcon,
     this.destructive = false,
     this.onAction,
+    this.onEdit,
   });
 
   final WorkshopModel item;
@@ -277,6 +315,7 @@ class _WorkshopCard extends StatelessWidget {
   final IconData? actionIcon;
   final bool destructive;
   final Future<void> Function()? onAction;
+  final Future<void> Function()? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -303,13 +342,13 @@ class _WorkshopCard extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFFF7A18).withValues(alpha: 0.18),
+                      color: AppColors.amber.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: const Text(
                       'Workshop',
                       style: TextStyle(
-                        color: Color(0xFFFF7A18),
+                        color: AppColors.amber,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                       ),
@@ -323,6 +362,21 @@ class _WorkshopCard extends StatelessWidget {
                   _MetaChip(
                     text: price <= 0 ? 'Free' : '\$${price.toStringAsFixed(0)}',
                   ),
+                  if (onEdit != null) ...[
+                    const SizedBox(width: 8),
+                    InkWell(
+                      borderRadius: BorderRadius.circular(999),
+                      onTap: onEdit,
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(
+                          Icons.edit_outlined,
+                          color: AppColors.amber,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 10),
@@ -341,7 +395,7 @@ class _WorkshopCard extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: Color(0xFF9CA3AF),
+                    color: AppColors.text3,
                     fontSize: 13,
                   ),
                 ),
@@ -363,7 +417,7 @@ class _WorkshopCard extends StatelessWidget {
                       final ok = await showDialog<bool>(
                         context: context,
                         builder: (_) => AlertDialog(
-                          backgroundColor: const Color(0xFF111827),
+                          backgroundColor: AppColors.surface2,
                           title: Text(
                             actionLabel!,
                             style: const TextStyle(color: Colors.white),
@@ -385,8 +439,8 @@ class _WorkshopCard extends StatelessWidget {
                                 actionLabel!,
                                 style: TextStyle(
                                   color: destructive
-                                      ? const Color(0xFFEF4444)
-                                      : const Color(0xFFFF7A18),
+                                      ? AppColors.error
+                                      : AppColors.amber,
                                 ),
                               ),
                             ),
@@ -399,13 +453,13 @@ class _WorkshopCard extends StatelessWidget {
                     label: Text(actionLabel!),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: destructive
-                          ? const Color(0xFFEF4444)
-                          : const Color(0xFFFF7A18),
+                          ? AppColors.error
+                          : AppColors.amber,
                       side: BorderSide(
                         color:
                             (destructive
-                                    ? const Color(0xFFEF4444)
-                                    : const Color(0xFFFF7A18))
+                                    ? AppColors.error
+                                    : AppColors.amber)
                                 .withValues(alpha: 0.45),
                       ),
                       shape: RoundedRectangleBorder(
@@ -456,14 +510,14 @@ class _Detail extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 5),
       child: Row(
         children: [
-          Icon(icon, size: 14, color: const Color(0xFF9CA3AF)),
+          Icon(icon, size: 14, color: AppColors.text3),
           const SizedBox(width: 6),
           Expanded(
             child: Text(
               text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Color(0xFFB2B8CB), fontSize: 13),
+              style: const TextStyle(color: AppColors.text2, fontSize: 13),
             ),
           ),
         ],

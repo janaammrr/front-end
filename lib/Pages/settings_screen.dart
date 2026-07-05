@@ -4,14 +4,19 @@ import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/event_service.dart';
 import '../services/reel_service.dart';
+import '../services/user_service.dart';
 import '../services/workshop_service.dart';
 import '../auth/auth.dart';
+import 'admin/admin_dashboard_screen.dart';
 import 'edit_profile_screen.dart';
 import 'liked_videos_screen.dart';
+import 'moderation_panel_screen.dart';
 import 'my_events_screen.dart';
 import 'my_workshops_screen.dart';
 import 'preferences_screen.dart';
+import 'recommendations_screen.dart';
 import 'saved_content_screen.dart';
+import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -27,11 +32,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
   int? _createdWorkshopsCount;
   int? _bookedEventsCount;
   int? _createdEventsCount;
+  String? _role;
 
   @override
   void initState() {
     super.initState();
     _loadCounts();
+    _loadRole();
+  }
+
+  Future<void> _loadRole() async {
+    try {
+      final me = await UserService.getMe();
+      if (mounted) setState(() => _role = me.role);
+    } catch (_) {
+      // Non-critical: admin section simply stays hidden if this fails.
+    }
   }
 
   Future<void> _loadCounts() async {
@@ -92,7 +108,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF111827),
+              color: AppColors.surface2,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(24),
               ),
@@ -129,7 +145,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Text(
                     error!,
                     style: const TextStyle(
-                      color: Color(0xFFEF4444),
+                      color: AppColors.error,
                       fontSize: 12,
                     ),
                   ),
@@ -163,7 +179,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ).showSnackBar(
                                   const SnackBar(
                                     content: Text('Password updated.'),
-                                    backgroundColor: Color(0xFFFF7A18),
+                                    backgroundColor: AppColors.amber,
                                   ),
                                 );
                               }
@@ -178,7 +194,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             }
                           },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF7A18),
+                      backgroundColor: AppColors.amber,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -210,7 +226,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   InputDecoration _fieldDecoration(String hint) => InputDecoration(
     hintText: hint,
-    hintStyle: const TextStyle(color: Color(0xFF6B7280)),
+    hintStyle: const TextStyle(color: AppColors.text3),
     filled: true,
     fillColor: Colors.white.withValues(alpha: 0.06),
     border: OutlineInputBorder(
@@ -223,21 +239,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: Color(0xFFFF7A18), width: 1.1),
+      borderSide: const BorderSide(color: AppColors.amber, width: 1.1),
     ),
   );
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       body: Stack(
         children: [
           Positioned(
             top: -80,
             right: -60,
             child: _GlowOrb(
-              color: const Color(0xFFFF7A18).withValues(alpha: 0.14),
+              color: AppColors.amber.withValues(alpha: 0.14),
               size: 200,
             ),
           ),
@@ -245,7 +261,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             bottom: -100,
             left: -60,
             child: _GlowOrb(
-              color: const Color(0xFF6D28D9).withValues(alpha: 0.14),
+              color: AppColors.amberSoft.withValues(alpha: 0.14),
               size: 240,
             ),
           ),
@@ -290,6 +306,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onTap: _showChangePasswordSheet,
                       ),
                       const SizedBox(height: 20),
+                      _SectionHeader('Discover'),
+                      _SettingsTile(
+                        icon: Icons.auto_awesome_outlined,
+                        title: 'Recommended for You',
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const RecommendationsScreen()),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
                       _SectionHeader('My Content'),
                       _SettingsTile(
                         icon: Icons.school_outlined,
@@ -297,7 +323,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         trailing: Text(
                           '${_countLabel(_bookedWorkshopsCount, 'booked', 'booked')} · ${_countLabel(_createdWorkshopsCount, 'created', 'created')}',
                           style: const TextStyle(
-                            color: Color(0xFF9CA3AF),
+                            color: AppColors.text3,
                             fontSize: 11,
                           ),
                         ),
@@ -314,7 +340,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         trailing: Text(
                           '${_countLabel(_bookedEventsCount, 'booked', 'booked')} · ${_countLabel(_createdEventsCount, 'created', 'created')}',
                           style: const TextStyle(
-                            color: Color(0xFF9CA3AF),
+                            color: AppColors.text3,
                             fontSize: 11,
                           ),
                         ),
@@ -331,7 +357,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         trailing: Text(
                           _countLabel(_likedCount, 'video', 'videos'),
                           style: const TextStyle(
-                            color: Color(0xFF9CA3AF),
+                            color: AppColors.text3,
                             fontSize: 12,
                           ),
                         ),
@@ -348,7 +374,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         trailing: Text(
                           _countLabel(_savedCount, 'reel', 'reels'),
                           style: const TextStyle(
-                            color: Color(0xFF9CA3AF),
+                            color: AppColors.text3,
                             fontSize: 12,
                           ),
                         ),
@@ -371,6 +397,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                       ),
+                      if (_role == 'ADMIN') ...[
+                        const SizedBox(height: 20),
+                        _SectionHeader('Admin'),
+                        _SettingsTile(
+                          icon: Icons.admin_panel_settings_outlined,
+                          title: 'Admin Dashboard',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                          ),
+                        ),
+                        _SettingsTile(
+                          icon: Icons.gpp_maybe_outlined,
+                          title: 'Reel Moderation Queue',
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (_) => const ModerationPanelScreen()),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 20),
                       _SectionHeader('Account'),
                       _DangerTile(
@@ -417,7 +463,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1A2E),
+        backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           title,
@@ -426,19 +472,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        content: Text(body, style: const TextStyle(color: Color(0xFFB2B8CB))),
+        content: Text(body, style: const TextStyle(color: AppColors.text2)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
             child: const Text(
               'Cancel',
-              style: TextStyle(color: Color(0xFFB2B8CB)),
+              style: TextStyle(color: AppColors.text2),
             ),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFEF4444),
+              backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -464,7 +510,7 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: const TextStyle(
-          color: Color(0xFFFF7A18),
+          color: AppColors.amber,
           fontWeight: FontWeight.w700,
           fontSize: 12,
           letterSpacing: 1.1,
@@ -496,10 +542,10 @@ class _SettingsTile extends StatelessWidget {
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: const Color(0xFFFF7A18).withValues(alpha: 0.12),
+            color: AppColors.amber.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: const Color(0xFFFF7A18), size: 20),
+          child: Icon(icon, color: AppColors.amber, size: 20),
         ),
         title: Text(
           title,
@@ -513,7 +559,7 @@ class _SettingsTile extends StatelessWidget {
             trailing ??
             const Icon(
               Icons.arrow_forward_ios_rounded,
-              color: Color(0xFF4B5563),
+              color: AppColors.border,
               size: 14,
             ),
         onTap: onTap,
@@ -536,29 +582,29 @@ class _DangerTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _GlassTile(
-      borderColor: const Color(0xFFEF4444).withValues(alpha: 0.25),
+      borderColor: AppColors.error.withValues(alpha: 0.25),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
         leading: Container(
           width: 38,
           height: 38,
           decoration: BoxDecoration(
-            color: const Color(0xFFEF4444).withValues(alpha: 0.12),
+            color: AppColors.error.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Icon(icon, color: const Color(0xFFEF4444), size: 20),
+          child: Icon(icon, color: AppColors.error, size: 20),
         ),
         title: Text(
           title,
           style: const TextStyle(
-            color: Color(0xFFEF4444),
+            color: AppColors.error,
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
         ),
         trailing: const Icon(
           Icons.arrow_forward_ios_rounded,
-          color: Color(0xFF4B5563),
+          color: AppColors.border,
           size: 14,
         ),
         onTap: onTap,

@@ -7,6 +7,9 @@ class UserModel {
   final String email;
   final String? profileUrl;
   final String role;
+  final String? username;
+  final String? bio;
+  final String? location;
 
   const UserModel({
     required this.id,
@@ -15,6 +18,9 @@ class UserModel {
     required this.email,
     this.profileUrl,
     required this.role,
+    this.username,
+    this.bio,
+    this.location,
   });
 
   String get fullName => '$firstname $lastname';
@@ -29,6 +35,9 @@ class UserModel {
       email: json['email'] as String? ?? '',
       profileUrl: ApiClient.publicUrl(json['profileUrl'] as String?),
       role: json['role'] as String? ?? 'USER',
+      username: json['username'] as String?,
+      bio: json['bio'] as String?,
+      location: json['location'] as String?,
     );
   }
 }

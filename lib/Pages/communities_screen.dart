@@ -5,6 +5,7 @@ import 'messaging_screen.dart';
 import '../components/user_avatar.dart';
 import '../services/community_service.dart';
 import '../services/user_service.dart';
+import '../theme/app_theme.dart';
 
 class CommunitiesScreen extends StatefulWidget {
   const CommunitiesScreen({super.key});
@@ -65,7 +66,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF111827),
+        backgroundColor: AppColors.surface2,
         title: const Text(
           'Delete community',
           style: TextStyle(color: Colors.white),
@@ -83,7 +84,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
               'Delete',
-              style: TextStyle(color: Color(0xFFEF4444)),
+              style: TextStyle(color: AppColors.error),
             ),
           ),
         ],
@@ -100,7 +101,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Could not delete: $e'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -155,7 +156,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: AppColors.error,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -188,7 +189,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                 bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFF09090B).withValues(alpha: 0.92),
+                color: AppColors.bg.withValues(alpha: 0.92),
                 border: const Border(top: BorderSide(color: Color(0x1FFFFFFF))),
               ),
               child: Column(
@@ -259,14 +260,12 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                     child: DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [Color(0xFFFF7A18), Color(0xFFFFB073)],
+                          colors: [AppColors.amber, AppColors.amberSoft],
                         ),
                         borderRadius: BorderRadius.circular(14),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(
-                              0xFFFF7A18,
-                            ).withValues(alpha: 0.35),
+                            color: AppColors.amber.withValues(alpha: 0.35),
                             blurRadius: 14,
                             offset: const Offset(0, 4),
                           ),
@@ -366,14 +365,14 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
               height: 88,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFFF7A18).withValues(alpha: 0.1),
+                color: AppColors.amber.withValues(alpha: 0.1),
                 border: Border.all(
-                  color: const Color(0xFFFF7A18).withValues(alpha: 0.3),
+                  color: AppColors.amber.withValues(alpha: 0.3),
                 ),
               ),
               child: Icon(
                 isFollowing ? Icons.groups_outlined : Icons.search_off_rounded,
-                color: const Color(0xFFFF7A18),
+                color: AppColors.amber,
                 size: 40,
               ),
             ),
@@ -409,12 +408,12 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                   ),
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFFF7A18), Color(0xFFFFB073)],
+                      colors: [AppColors.amber, AppColors.amberSoft],
                     ),
                     borderRadius: BorderRadius.circular(999),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFFFF7A18).withValues(alpha: 0.35),
+                        color: AppColors.amber.withValues(alpha: 0.35),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -445,7 +444,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
         Text(msg),
       ],
     ),
-    backgroundColor: const Color(0xFFFF7A18),
+    backgroundColor: AppColors.amber,
     behavior: SnackBarBehavior.floating,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     duration: const Duration(seconds: 2),
@@ -455,7 +454,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       body: Stack(
         children: [
           Container(
@@ -463,7 +462,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFF0F0A00), Color(0xFF09090B)],
+                colors: [Color(0xFF0F0A00), AppColors.bg],
               ),
             ),
           ),
@@ -595,7 +594,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: const BorderSide(
-                          color: Color(0xFFFF7A18),
+                          color: AppColors.amber,
                           width: 1.5,
                         ),
                       ),
@@ -608,7 +607,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                   child: _loading
                       ? const Center(
                           child: CircularProgressIndicator(
-                            color: Color(0xFFFF7A18),
+                            color: AppColors.amber,
                           ),
                         )
                       : _error != null
@@ -626,7 +625,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                                 _error!,
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
-                                  color: Color(0xFFEF4444),
+                                  color: AppColors.error,
                                   fontSize: 13,
                                 ),
                               ),
@@ -634,7 +633,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                               ElevatedButton(
                                 onPressed: _load,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFFF7A18),
+                                  backgroundColor: AppColors.amber,
                                 ),
                                 child: const Text(
                                   'Retry',
@@ -648,7 +647,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                       ? _buildEmptyState()
                       : RefreshIndicator(
                           onRefresh: _load,
-                          color: const Color(0xFFFF7A18),
+                          color: AppColors.amber,
                           child: ListView.separated(
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
                             itemCount: _filtered.length,
@@ -707,16 +706,17 @@ class _CommunityCard extends StatelessWidget {
   final VoidCallback onShare;
   final VoidCallback onOpen;
 
-  // Deterministic gradient based on community id
+  // Deterministic on-brand gradient based on community id (previously an
+  // unrelated purple/teal/navy rainbow, now built from the site's palette).
   List<Color> get _gradient {
     const palettes = [
-      [Color(0xFF1a6b8a), Color(0xFF0e4d6e)],
-      [Color(0xFF6b2fa0), Color(0xFFa855f7)],
-      [Color(0xFF1a1a2e), Color(0xFF16213e)],
-      [Color(0xFF7C2D12), Color(0xFF9A3412)],
-      [Color(0xFF134E4A), Color(0xFF0F766E)],
-      [Color(0xFF1E3A5F), Color(0xFF001020)],
-      [Color(0xFF78350F), Color(0xFF1A0A00)],
+      [AppColors.amber, AppColors.surface2],
+      [AppColors.surface2, AppColors.surface],
+      [AppColors.borderHi, AppColors.surface2],
+      [AppColors.amberSoft, AppColors.surface2],
+      [AppColors.surface, AppColors.bg],
+      [AppColors.amber, AppColors.borderHi],
+      [AppColors.borderHi, AppColors.bg],
     ];
     return palettes[community.id % palettes.length];
   }
@@ -893,17 +893,17 @@ class _CommunityCard extends StatelessWidget {
                                 ? Icons.lock_outline_rounded
                                 : Icons.people_outline,
                             size: 14,
-                            color: const Color(0xFFFF7A18),
+                            color: AppColors.amber,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             '${community.memberCount} members',
                             style: const TextStyle(
                               fontSize: 12,
-                              color: Color(0xFFFF7A18),
+                              color: AppColors.amber,
                               fontWeight: FontWeight.w600,
                               decoration: TextDecoration.underline,
-                              decorationColor: Color(0xFFFF7A18),
+                              decorationColor: AppColors.amber,
                             ),
                           ),
                         ],
@@ -919,7 +919,7 @@ class _CommunityCard extends StatelessWidget {
                     if (canDelete) ...[
                       _SmallActionButton(
                         icon: Icons.delete_outline_rounded,
-                        color: const Color(0xFFEF4444),
+                        color: AppColors.error,
                         onTap: onDelete,
                       ),
                       const SizedBox(width: 10),
@@ -954,7 +954,7 @@ class _CommunityCard extends StatelessWidget {
             height: 18,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Color(0xFFFF7A18),
+              color: AppColors.amber,
             ),
           ),
         ),
@@ -984,14 +984,14 @@ class _CommunityCard extends StatelessWidget {
                     : isRequested
                     ? Icons.hourglass_top_rounded
                     : Icons.check,
-                color: const Color(0xFFFFB073),
+                color: AppColors.amberSoft,
                 size: 18,
               ),
               const SizedBox(width: 6),
               Text(
                 isOwner ? 'Owner' : (isRequested ? 'Requested' : 'Joined'),
                 style: const TextStyle(
-                  color: Color(0xFFFFB073),
+                  color: AppColors.amberSoft,
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
                 ),
@@ -1008,14 +1008,14 @@ class _CommunityCard extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 13),
         decoration: BoxDecoration(
           gradient: const LinearGradient(
-            colors: [Color(0xFFFF7A18), Color(0xFFFFB073)],
+            colors: [AppColors.amber, AppColors.amberSoft],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ),
           borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFFF7A18).withValues(alpha: 0.35),
+              color: AppColors.amber.withValues(alpha: 0.35),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -1086,7 +1086,7 @@ class _PillTab extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: active
             ? const LinearGradient(
-                colors: [Color(0xFFFF7A18), Color(0xFFFFB073)],
+                colors: [AppColors.amber, AppColors.amberSoft],
               )
             : null,
         color: active ? null : Colors.transparent,
@@ -1123,12 +1123,12 @@ class _PrivacyOption extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: selected
-            ? const Color(0xFFFF7A18).withValues(alpha: 0.14)
+            ? AppColors.amber.withValues(alpha: 0.14)
             : Colors.white.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: selected
-              ? const Color(0xFFFF7A18)
+              ? AppColors.amber
               : Colors.white.withValues(alpha: 0.12),
         ),
       ),
@@ -1137,7 +1137,7 @@ class _PrivacyOption extends StatelessWidget {
         children: [
           Icon(
             icon,
-            color: selected ? const Color(0xFFFF7A18) : Colors.white70,
+            color: selected ? AppColors.amber : Colors.white70,
             size: 20,
           ),
           const SizedBox(height: 6),
@@ -1196,7 +1196,7 @@ class _StyledTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFFF7A18), width: 1.5),
+          borderSide: const BorderSide(color: AppColors.amber, width: 1.5),
         ),
       ),
     );

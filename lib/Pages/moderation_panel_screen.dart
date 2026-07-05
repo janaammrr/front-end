@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../services/moderation_service.dart';
+import '../theme/app_theme.dart';
 
 class ModerationPanelScreen extends StatefulWidget {
   const ModerationPanelScreen({super.key});
@@ -50,7 +51,7 @@ class _ModerationPanelScreenState extends State<ModerationPanelScreen> with Sing
       await _load();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: const Color(0xFFEF4444), behavior: SnackBarBehavior.floating));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error, behavior: SnackBarBehavior.floating));
       }
     } finally {
       if (mounted) setState(() => _processingIds.remove(item.reelId));
@@ -61,21 +62,21 @@ class _ModerationPanelScreenState extends State<ModerationPanelScreen> with Sing
   Widget build(BuildContext context) {
     if (_loading) {
       return const Scaffold(
-        backgroundColor: Color(0xFF09090B),
-        body: Center(child: CircularProgressIndicator(color: Color(0xFFFF7A18))),
+        backgroundColor: AppColors.bg,
+        body: Center(child: CircularProgressIndicator(color: AppColors.amber)),
       );
     }
 
     if (_error != null) {
       return Scaffold(
-        backgroundColor: const Color(0xFF09090B),
+        backgroundColor: AppColors.bg,
         body: Center(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             const Icon(Icons.error_outline, color: Colors.white38, size: 56),
             const SizedBox(height: 16),
-            Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13)),
+            Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: AppColors.error, fontSize: 13)),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: _load, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF7A18)), child: const Text('Retry', style: TextStyle(color: Colors.white))),
+            ElevatedButton(onPressed: _load, style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber), child: const Text('Retry', style: TextStyle(color: Colors.white))),
           ]),
         ),
       );
@@ -88,11 +89,11 @@ class _ModerationPanelScreenState extends State<ModerationPanelScreen> with Sing
     final pendingAll = [...pending, ...flagged];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       body: Stack(
         children: [
-          Positioned(top: -80, right: -60, child: _GlowOrb(color: const Color(0xFFFF7A18).withValues(alpha: 0.16), size: 200)),
-          Positioned(bottom: -100, left: -60, child: _GlowOrb(color: const Color(0xFF6D28D9).withValues(alpha: 0.14), size: 240)),
+          Positioned(top: -80, right: -60, child: _GlowOrb(color: AppColors.amber.withValues(alpha: 0.16), size: 200)),
+          Positioned(bottom: -100, left: -60, child: _GlowOrb(color: AppColors.amberSoft.withValues(alpha: 0.14), size: 240)),
           SafeArea(
             child: Column(
               children: [
@@ -104,7 +105,7 @@ class _ModerationPanelScreenState extends State<ModerationPanelScreen> with Sing
                       const SizedBox(width: 12),
                       const Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text('Moderation Panel', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
-                        Text('Admin only', style: TextStyle(color: Color(0xFFEF4444), fontSize: 12, fontWeight: FontWeight.w600)),
+                        Text('Admin only', style: TextStyle(color: AppColors.error, fontSize: 12, fontWeight: FontWeight.w600)),
                       ]),
                       const Spacer(),
                       IconButton(onPressed: _load, icon: const Icon(Icons.refresh_rounded, color: Colors.white70)),
@@ -115,21 +116,21 @@ class _ModerationPanelScreenState extends State<ModerationPanelScreen> with Sing
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: Row(
                     children: [
-                      _StatCard(label: 'Pending', count: pendingAll.length, color: const Color(0xFFFF7A18)),
+                      _StatCard(label: 'Pending', count: pendingAll.length, color: AppColors.amber),
                       const SizedBox(width: 10),
                       _StatCard(label: 'Approved', count: approved.length, color: const Color(0xFF10B981)),
                       const SizedBox(width: 10),
-                      _StatCard(label: 'Rejected', count: rejected.length, color: const Color(0xFFEF4444)),
+                      _StatCard(label: 'Rejected', count: rejected.length, color: AppColors.error),
                     ],
                   ),
                 ),
                 const SizedBox(height: 14),
                 TabBar(
                   controller: _tabController,
-                  indicatorColor: const Color(0xFFFF7A18),
+                  indicatorColor: AppColors.amber,
                   indicatorWeight: 2,
                   labelColor: Colors.white,
-                  unselectedLabelColor: const Color(0xFF6B7280),
+                  unselectedLabelColor: AppColors.text3,
                   labelStyle: const TextStyle(fontWeight: FontWeight.w700),
                   dividerColor: Colors.white.withValues(alpha: 0.08),
                   tabs: [
@@ -194,7 +195,7 @@ class _ModerationList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const Center(child: Text('Nothing here', style: TextStyle(color: Color(0xFF6B7280))));
+      return const Center(child: Text('Nothing here', style: TextStyle(color: AppColors.text3)));
     }
     return ListView.separated(
       padding: const EdgeInsets.all(16),
@@ -217,9 +218,9 @@ class _ModerationCard extends StatelessWidget {
   Color get _statusColor {
     switch (item.status) {
       case 'approved': return const Color(0xFF10B981);
-      case 'rejected': return const Color(0xFFEF4444);
+      case 'rejected': return AppColors.error;
       case 'flagged': return const Color(0xFFF59E0B);
-      default: return const Color(0xFFFF7A18);
+      default: return AppColors.amber;
     }
   }
 
@@ -241,7 +242,7 @@ class _ModerationCard extends StatelessWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Container(decoration: const BoxDecoration(gradient: LinearGradient(colors: [Color(0xFF1E3A5F), Color(0xFF001020)]))),
+                      Container(decoration: const BoxDecoration(gradient: LinearGradient(colors: [AppColors.surface2, AppColors.bg]))),
                       Container(color: Colors.black26),
                       const Center(child: Icon(Icons.play_circle_outline_rounded, color: Colors.white54, size: 36)),
                       if (item.aiFlagged)
@@ -266,29 +267,29 @@ class _ModerationCard extends StatelessWidget {
                     const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.person_outline, size: 14, color: Color(0xFF9CA3AF)),
+                        const Icon(Icons.person_outline, size: 14, color: AppColors.text3),
                         const SizedBox(width: 4),
-                        Expanded(child: Text(item.creatorEmail, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF9CA3AF), fontSize: 12))),
+                        Expanded(child: Text(item.creatorEmail, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.text3, fontSize: 12))),
                         if (item.aiConfidenceScore > 0) ...[
                           const SizedBox(width: 8),
-                          Text('${(item.aiConfidenceScore * 100).toStringAsFixed(0)}% confidence', style: const TextStyle(color: Color(0xFF6B7280), fontSize: 11)),
+                          Text('${(item.aiConfidenceScore * 100).toStringAsFixed(0)}% confidence', style: const TextStyle(color: AppColors.text3, fontSize: 11)),
                         ],
                       ],
                     ),
                     if (item.aiReason != null && item.aiReason!.isNotEmpty) ...[
                       const SizedBox(height: 6),
-                      Text('AI note: ${item.aiReason}', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Color(0xFF6B7280), fontSize: 11, fontStyle: FontStyle.italic)),
+                      Text('AI note: ${item.aiReason}', maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.text3, fontSize: 11, fontStyle: FontStyle.italic)),
                     ],
                     if (showActions) ...[
                       const SizedBox(height: 12),
                       processing
-                          ? const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFFF7A18))))
+                          ? const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.amber)))
                           : Row(
                               children: [
                                 Expanded(
                                   child: OutlinedButton.icon(
                                     onPressed: () => onReject(item),
-                                    style: OutlinedButton.styleFrom(foregroundColor: const Color(0xFFEF4444), side: const BorderSide(color: Color(0xFFEF4444)), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                                    style: OutlinedButton.styleFrom(foregroundColor: AppColors.error, side: const BorderSide(color: AppColors.error), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
                                     icon: const Icon(Icons.close_rounded, size: 16),
                                     label: const Text('Reject'),
                                   ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_theme.dart';
+
 class MyTextField extends StatelessWidget {
   final TextEditingController controller;
   final String hintText;
@@ -17,24 +19,27 @@ class MyTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       obscureText: obscureText,
-
+      style: const TextStyle(color: AppColors.text1),
       decoration: InputDecoration(
-        /// النص داخل الحقل
         hintText: hintText,
-
-        hintStyle: const TextStyle(color: Colors.white70),
-
+        hintStyle: const TextStyle(color: AppColors.text3),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.1),
-
-        enabledBorder: const OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.white),
-          borderRadius: BorderRadius.all(Radius.circular(12)),
+        fillColor: AppColors.surface2,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
         ),
-
+        border: OutlineInputBorder(
+          borderSide: const BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(AppColors.inputRadius),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: const BorderSide(color: AppColors.border),
+          borderRadius: BorderRadius.circular(AppColors.inputRadius),
+        ),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey.shade300),
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
+          borderSide: const BorderSide(color: AppColors.borderHi, width: 1.5),
+          borderRadius: BorderRadius.circular(AppColors.inputRadius),
         ),
       ),
     );

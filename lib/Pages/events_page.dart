@@ -6,6 +6,7 @@ import '../models/event_model.dart';
 import '../services/api_client.dart';
 import '../services/auth_service.dart';
 import '../services/event_service.dart';
+import '../theme/app_theme.dart';
 
 class EventsPage extends StatefulWidget {
   const EventsPage({super.key});
@@ -125,15 +126,15 @@ class _EventsPageState extends State<EventsPage> {
 
     if (_loading) {
       return const Scaffold(
-        backgroundColor: Color(0xFF07090F),
+        backgroundColor: AppColors.bg,
         body: Center(
-          child: CircularProgressIndicator(color: Color(0xFFFF7A18)),
+          child: CircularProgressIndicator(color: AppColors.amber),
         ),
       );
     }
     if (_error != null) {
       return Scaffold(
-        backgroundColor: const Color(0xFF07090F),
+        backgroundColor: AppColors.bg,
         body: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -155,7 +156,7 @@ class _EventsPageState extends State<EventsPage> {
                   _loadEvents();
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF7A18),
+                  backgroundColor: AppColors.amber,
                 ),
                 child: const Text('Retry'),
               ),
@@ -166,7 +167,7 @@ class _EventsPageState extends State<EventsPage> {
     }
 
     return Scaffold(
-      backgroundColor: const Color(0xFF07090F),
+      backgroundColor: AppColors.bg,
       body: Stack(
         children: [
           const _BackgroundGradient(),
@@ -209,7 +210,7 @@ class _EventsPageState extends State<EventsPage> {
                         const Text(
                           'Discover live events, summits, and community meetups.',
                           style: TextStyle(
-                            color: Color(0xFFC7CCDA),
+                            color: AppColors.text2,
                             height: 1.3,
                           ),
                         ),
@@ -253,7 +254,7 @@ class _EventsPageState extends State<EventsPage> {
                             ElevatedButton.icon(
                               onPressed: _openCreateEventDialog,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFF7A18),
+                                backgroundColor: AppColors.amber,
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
@@ -323,7 +324,7 @@ class _BackgroundGradient extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [Color(0xFF0F172A), Color(0xFF09090B), Color(0xFF09090B)],
+          colors: [AppColors.surface, AppColors.bg, AppColors.bg],
         ),
       ),
     );
@@ -404,8 +405,8 @@ class _SearchInput extends StatelessWidget {
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: 'Search events, organizers, or topics',
-        hintStyle: const TextStyle(color: Color(0xFFB2B8CB)),
-        prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFFB2B8CB)),
+        hintStyle: const TextStyle(color: AppColors.text2),
+        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.text2),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.06),
         border: OutlineInputBorder(
@@ -418,7 +419,7 @@ class _SearchInput extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFFFF7A18), width: 1.1),
+          borderSide: const BorderSide(color: AppColors.amber, width: 1.1),
         ),
       ),
     );
@@ -446,19 +447,19 @@ class _CategoryChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
           color: selected
-              ? const Color(0xFFFF7A18).withValues(alpha: 0.24)
+              ? AppColors.amber.withValues(alpha: 0.24)
               : Colors.white.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
             color: selected
-                ? const Color(0xFFFFB073)
+                ? AppColors.amberSoft
                 : Colors.white.withValues(alpha: 0.11),
           ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : const Color(0xFFC7CCDA),
+            color: selected ? Colors.white : AppColors.text2,
             fontWeight: FontWeight.w600,
           ),
         ),
@@ -517,7 +518,7 @@ class _EventCardState extends State<_EventCard> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Booking failed: ${e.toString()}'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -529,7 +530,7 @@ class _EventCardState extends State<_EventCard> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        backgroundColor: const Color(0xFF111827),
+        backgroundColor: AppColors.surface2,
         title: const Text(
           'Delete event',
           style: TextStyle(color: Colors.white),
@@ -547,7 +548,7 @@ class _EventCardState extends State<_EventCard> {
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
               'Delete',
-              style: TextStyle(color: Color(0xFFEF4444)),
+              style: TextStyle(color: AppColors.error),
             ),
           ),
         ],
@@ -571,7 +572,7 @@ class _EventCardState extends State<_EventCard> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Delete failed: ${e.toString()}'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -648,7 +649,7 @@ class _EventCardState extends State<_EventCard> {
                             child: _PillTag(
                               label: item.isOnline ? 'Online' : 'In-Person',
                               color: item.isOnline
-                                  ? const Color(0xFFFF7A18)
+                                  ? AppColors.amber
                                   : const Color(0xFF10B981),
                             ),
                           ),
@@ -686,7 +687,7 @@ class _EventCardState extends State<_EventCard> {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
-                              color: Color(0xFFC2C8D7),
+                              color: AppColors.text2,
                               height: 1.3,
                             ),
                           ),
@@ -714,7 +715,7 @@ class _EventCardState extends State<_EventCard> {
                               child: OutlinedButton.icon(
                                 onPressed: _deleting ? null : _delete,
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: const Color(0xFFEF4444),
+                                  foregroundColor: AppColors.error,
                                   side: BorderSide(
                                     color: const Color(
                                       0xFFEF4444,
@@ -730,7 +731,7 @@ class _EventCardState extends State<_EventCard> {
                                         height: 16,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2,
-                                          color: Color(0xFFEF4444),
+                                          color: AppColors.error,
                                         ),
                                       )
                                     : const Icon(Icons.delete_outline_rounded),
@@ -746,13 +747,11 @@ class _EventCardState extends State<_EventCard> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: _booked
                                     ? const Color(0xFF10B981)
-                                    : const Color(0xFFFF7A18),
+                                    : AppColors.amber,
                                 foregroundColor: Colors.white,
                                 disabledBackgroundColor: _booked
                                     ? const Color(0xFF10B981)
-                                    : const Color(
-                                        0xFFFF7A18,
-                                      ).withValues(alpha: 0.5),
+                                    : AppColors.amber.withValues(alpha: 0.5),
                                 disabledForegroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -801,14 +800,14 @@ class _CardDetail extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: const Color(0xFFBFC5D5)),
+          Icon(icon, size: 16, color: AppColors.text2),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Color(0xFFBFC5D5), fontSize: 12.5),
+              style: const TextStyle(color: AppColors.text2, fontSize: 12.5),
             ),
           ),
         ],
@@ -829,7 +828,7 @@ class _PillTag extends StatelessWidget {
     final bg =
         color ??
         (solid
-            ? const Color(0xFFFF7A18)
+            ? AppColors.amber
             : Colors.black.withValues(alpha: 0.45));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
@@ -871,7 +870,7 @@ class _EmptyState extends StatelessWidget {
           Expanded(
             child: Text(
               'No events found for this search. Try another category or query.',
-              style: TextStyle(color: Color(0xFFC7CCDA)),
+              style: TextStyle(color: AppColors.text2),
             ),
           ),
         ],
@@ -914,7 +913,7 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please enter an event name'),
-          backgroundColor: Color(0xFFEF4444),
+          backgroundColor: AppColors.error,
         ),
       );
       return;
@@ -935,7 +934,7 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Failed to create: ${e.toString()}'),
-            backgroundColor: const Color(0xFFEF4444),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -961,7 +960,7 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
               width: width,
               height: height,
               decoration: BoxDecoration(
-                color: const Color(0xFF0E1119).withValues(alpha: 0.95),
+                color: AppColors.surface.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(26),
                 border: Border.all(color: Colors.white.withValues(alpha: 0.11)),
                 boxShadow: const [
@@ -993,7 +992,7 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
                               SizedBox(height: 4),
                               Text(
                                 'Schedule a live or in-person learning event.',
-                                style: TextStyle(color: Color(0xFFB7BECE)),
+                                style: TextStyle(color: AppColors.text2),
                               ),
                             ],
                           ),
@@ -1077,11 +1076,9 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
                         ElevatedButton(
                           onPressed: _creating ? null : _submit,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFF7A18),
+                            backgroundColor: AppColors.amber,
                             foregroundColor: Colors.white,
-                            disabledBackgroundColor: const Color(
-                              0xFFFF7A18,
-                            ).withValues(alpha: 0.5),
+                            disabledBackgroundColor: AppColors.amber.withValues(alpha: 0.5),
                             padding: const EdgeInsets.symmetric(
                               horizontal: 18,
                               vertical: 12,
@@ -1177,10 +1174,10 @@ class _StyledTextField extends StatelessWidget {
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: Color(0xFF98A0B5)),
+        hintStyle: const TextStyle(color: AppColors.text3),
         prefixIcon: prefixIcon == null
             ? null
-            : Icon(prefixIcon, color: const Color(0xFF98A0B5)),
+            : Icon(prefixIcon, color: AppColors.text3),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(
@@ -1193,7 +1190,7 @@ class _StyledTextField extends StatelessWidget {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Color(0xFFFF7A18)),
+          borderSide: const BorderSide(color: AppColors.amber),
         ),
       ),
     );

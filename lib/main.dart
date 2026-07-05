@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'auth/auth.dart';
+import 'theme/app_theme.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,9 +12,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: AuthPage(),
+      theme: AppTheme.dark,
+      themeMode: ThemeMode.dark,
+      home: const AuthPage(),
     );
   }
 }

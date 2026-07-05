@@ -4,6 +4,7 @@ import 'public_profile_screen.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -68,16 +69,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     if (_loading) {
       return const Scaffold(
-        backgroundColor: Color(0xFF09090B),
+        backgroundColor: AppColors.bg,
         body: Center(
-          child: CircularProgressIndicator(color: Color(0xFFFB923C)),
+          child: CircularProgressIndicator(color: AppColors.amber),
         ),
       );
     }
 
     if (_error != null) {
       return Scaffold(
-        backgroundColor: const Color(0xFF09090B),
+        backgroundColor: AppColors.bg,
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(32),
@@ -86,14 +87,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 const Icon(
                   Icons.person_off_rounded,
-                  color: Colors.white38,
+                  color: AppColors.text3,
                   size: 56,
                 ),
                 const SizedBox(height: 16),
                 const Text(
                   'Could not load profile',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.text1,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
@@ -103,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   _error ?? '',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    color: Color(0xFFEF4444),
+                    color: AppColors.error,
                     fontSize: 12,
                     height: 1.4,
                   ),
@@ -112,10 +113,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ElevatedButton(
                   onPressed: _loadUser,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFB923C),
+                    backgroundColor: AppColors.amber,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                      borderRadius: BorderRadius.circular(
+                        AppColors.buttonRadius,
+                      ),
                     ),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
@@ -132,7 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   onPressed: _logout,
                   child: const Text(
                     'Log out & log in again',
-                    style: TextStyle(color: Color(0xFFFB923C)),
+                    style: TextStyle(color: AppColors.amber),
                   ),
                 ),
               ],
@@ -146,12 +149,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       creatorId: _user?.id,
       creatorName: _user?.fullName ?? 'My Profile',
       profileUrl: _user?.profileUrl,
+      username: _user?.username,
       isRootView: true,
-      gradient: const [
-        Color(0xFF7C2D12),
-        Color(0xFF9A3412),
-        Color(0xFF09090B),
-      ],
+      gradient: AppColors.profileHeaderGradient,
     );
   }
 }

@@ -52,6 +52,26 @@ class EventService {
     );
   }
 
+  static Future<void> updateEvent(
+    int id, {
+    required String title,
+    String description = '',
+    String location = '',
+    String date = '',
+    double price = 0,
+  }) async {
+    await ApiClient.instance.put(
+      '/api/events/$id',
+      data: {
+        'title': title,
+        'description': description,
+        'location': location,
+        'startDate': _toIsoDateTime(date),
+        'price': price,
+      },
+    );
+  }
+
   static Future<List<EventModel>> getBooked() async {
     final list = await getBookedRows();
     return list.map((row) {

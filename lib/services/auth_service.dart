@@ -48,6 +48,38 @@ class AuthService {
     return token != null;
   }
 
+  static Future<void> forgotPassword(String email) async {
+    await ApiClient.instance.post(
+      '/api/v1/auth/forgot-password',
+      data: {'email': email},
+      options: ApiClient.publicOptions,
+    );
+  }
+
+  static Future<bool> validateResetToken(String token) async {
+    try {
+      await ApiClient.instance.get(
+        '/api/v1/auth/reset-password/validate',
+        queryParameters: {'token': token},
+        options: ApiClient.publicOptions,
+      );
+      return true;
+    } on DioException {
+      return false;
+    }
+  }
+
+  static Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    await ApiClient.instance.post(
+      '/api/v1/auth/reset-password',
+      data: {'token': token, 'newPassword': newPassword},
+      options: ApiClient.publicOptions,
+    );
+  }
+
   static bool isAuthFailure(Object error) {
     return error is DioException && error.response?.statusCode == 401;
   }
@@ -63,7 +95,21 @@ class AuthService {
     if (e.type == DioExceptionType.connectionError) {
       return 'Cannot reach server. Check your connection.';
     }
-    return e.response?.data?['message'] as String? ??
-        'Something went wrong. Please try again.';
+    final data = e.response?.data;
+    if (data is Map<String, dynamic>) {
+      final serverMessage = data['message'] ?? data['error'];
+      if (serverMessage is String && serverMessage.isNotEmpty) {
+        // The backend returns a bare 500 with no descriptive message for
+        // some failures it should really treat as 400s (e.g. registering
+        // with an email that's already taken), so give a more actionable
+        // hint for that case instead of just echoing "Internal Server Error".
+        if (e.response?.statusCode == 500) {
+          return 'The server could not complete this request ($serverMessage). '
+              'If you already have an account with this email, try logging in instead.';
+        }
+        return serverMessage;
+      }
+    }
+    return 'Something went wrong. Please try again.';
   }
 }

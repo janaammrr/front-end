@@ -4,7 +4,7 @@ class AiMessage {
   final String role;
   final String content;
   const AiMessage({required this.role, required this.content});
-  Map<String, dynamic> toJson() => {'role': role, 'content': content};
+  Map<String, dynamic> toJson() => {'role': role.toLowerCase(), 'text': content};
 }
 
 class AiService {
@@ -13,10 +13,10 @@ class AiService {
     List<AiMessage> context = const [],
   }) async {
     final response = await ApiClient.instance.post(
-      '/api/ai/chat',
+      '/api/assistant/chat',
       data: {
         'message': message,
-        'context': context.map((m) => m.toJson()).toList(),
+        'history': context.map((m) => m.toJson()).toList(),
       },
     );
     return response.data['reply'] as String;

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../components/user_avatar.dart';
 import '../services/follow_service.dart';
 import '../services/user_service.dart';
+import '../theme/app_theme.dart';
 import 'public_profile_screen.dart';
 
 class FollowersScreen extends StatefulWidget {
@@ -82,7 +83,7 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: const Color(0xFFEF4444)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
       }
     } finally {
       if (mounted) setState(() => _processingIds.remove(targetId));
@@ -92,11 +93,11 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       body: Stack(
         children: [
-          Positioned(top: -80, right: -60, child: _GlowOrb(color: const Color(0xFFFF7A18).withValues(alpha: 0.16), size: 200)),
-          Positioned(bottom: -100, left: -60, child: _GlowOrb(color: const Color(0xFF6D28D9).withValues(alpha: 0.14), size: 240)),
+          Positioned(top: -80, right: -60, child: _GlowOrb(color: AppColors.amber.withValues(alpha: 0.16), size: 200)),
+          Positioned(bottom: -100, left: -60, child: _GlowOrb(color: AppColors.amberSoft.withValues(alpha: 0.14), size: 240)),
           SafeArea(
             child: Column(
               children: [
@@ -111,24 +112,24 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
                   ),
                 ),
                 if (_loading)
-                  const Expanded(child: Center(child: CircularProgressIndicator(color: Color(0xFFFF7A18))))
+                  const Expanded(child: Center(child: CircularProgressIndicator(color: AppColors.amber)))
                 else if (_error != null)
                   Expanded(
                     child: Center(
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        Text(_error!, style: const TextStyle(color: Color(0xFFEF4444), fontSize: 13)),
+                        Text(_error!, style: const TextStyle(color: AppColors.error, fontSize: 13)),
                         const SizedBox(height: 16),
-                        ElevatedButton(onPressed: _load, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF7A18)), child: const Text('Retry', style: TextStyle(color: Colors.white))),
+                        ElevatedButton(onPressed: _load, style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber), child: const Text('Retry', style: TextStyle(color: Colors.white))),
                       ]),
                     ),
                   )
                 else ...[
                   TabBar(
                     controller: _tabController,
-                    indicatorColor: const Color(0xFFFF7A18),
+                    indicatorColor: AppColors.amber,
                     indicatorWeight: 2,
                     labelColor: Colors.white,
-                    unselectedLabelColor: const Color(0xFF6B7280),
+                    unselectedLabelColor: AppColors.text3,
                     labelStyle: const TextStyle(fontWeight: FontWeight.w700),
                     dividerColor: Colors.white.withValues(alpha: 0.08),
                     tabs: [
@@ -144,14 +145,14 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         hintText: 'Search',
-                        hintStyle: const TextStyle(color: Color(0xFF6B7280)),
-                        prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF6B7280)),
+                        hintStyle: const TextStyle(color: AppColors.text3),
+                        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.text3),
                         filled: true,
                         fillColor: Colors.white.withValues(alpha: 0.06),
                         contentPadding: const EdgeInsets.symmetric(vertical: 10),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
                         enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: Color(0xFFFF7A18), width: 1.1)),
+                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.amber, width: 1.1)),
                       ),
                     ),
                   ),
@@ -187,7 +188,7 @@ class _UserList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (users.isEmpty) {
-      return const Center(child: Text('No users found', style: TextStyle(color: Color(0xFF6B7280))));
+      return const Center(child: Text('No users found', style: TextStyle(color: AppColors.text3)));
     }
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -221,11 +222,7 @@ class _UserList extends StatelessWidget {
                             creatorId: u.id,
                             creatorName: u.displayName,
                             profileUrl: u.profileUrl,
-                            gradient: const [
-                              Color(0xFF7C2D12),
-                              Color(0xFF9A3412),
-                              Color(0xFF09090B),
-                            ],
+                            gradient: AppColors.profileHeaderGradient,
                           ),
                         ),
                       ),
@@ -247,20 +244,20 @@ class _UserList extends StatelessWidget {
                   if (!isMe) ...[
                     const SizedBox(width: 8),
                     processing
-                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Color(0xFFFF7A18)))
+                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.amber))
                         : GestureDetector(
                             onTap: () => onToggle(u.id),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
-                                color: isFollowing ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFFF7A18),
+                                color: isFollowing ? Colors.white.withValues(alpha: 0.08) : AppColors.amber,
                                 borderRadius: BorderRadius.circular(12),
                                 border: isFollowing ? Border.all(color: Colors.white.withValues(alpha: 0.15)) : null,
                               ),
                               child: Text(
                                 isFollowing ? 'Following' : 'Follow',
-                                style: TextStyle(color: isFollowing ? const Color(0xFFB2B8CB) : Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+                                style: TextStyle(color: isFollowing ? AppColors.text2 : Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
                               ),
                             ),
                           ),

@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 
 import '../Pages/preferences_screen.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
 
 class RegisterPage extends StatefulWidget {
   final Function()? onTap;
@@ -83,161 +84,100 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF000000), Color(0xFF0D0C0B), Color(0xFF020202)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: SafeArea(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 25.0),
-              child: SingleChildScrollView(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-                    child: Container(
-                      padding: const EdgeInsets.all(25),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
+      backgroundColor: AppColors.bg,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 25.0),
+            child: SingleChildScrollView(
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(AppColors.cardRadiusLg),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(
+                    sigmaX: AppColors.glassBlur,
+                    sigmaY: AppColors.glassBlur,
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(25),
+                    decoration: BoxDecoration(
+                      color: AppColors.glassPanel,
+                      borderRadius: BorderRadius.circular(
+                        AppColors.cardRadiusLg,
+                      ),
+                      border: Border.all(color: AppColors.border),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.asset(
+                          'assets/images/FLAME_LOGO.png',
+                          width: 90,
+                          height: 90,
                         ),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Image.asset(
-                            'assets/images/FLAME_LOGO.png',
-                            width: 100,
-                            height: 100,
-                          ),
-                          const SizedBox(height: 10),
-                          const Text(
-                            "Create your account",
-                            style: TextStyle(fontSize: 18, color: Colors.white),
-                          ),
-                          const SizedBox(height: 25),
-                          MyTextField(
-                            controller: firstNameController,
-                            hintText: 'FIRST NAME',
-                            obscureText: false,
-                          ),
-                          const SizedBox(height: 12),
-                          MyTextField(
-                            controller: lastNameController,
-                            hintText: 'LAST NAME',
-                            obscureText: false,
-                          ),
-                          const SizedBox(height: 12),
-                          MyTextField(
-                            controller: emailController,
-                            hintText: 'EMAIL',
-                            obscureText: false,
-                          ),
-                          const SizedBox(height: 12),
-                          MyTextField(
-                            controller: passwordController,
-                            hintText: 'PASSWORD',
-                            obscureText: true,
-                          ),
-                          const SizedBox(height: 12),
-                          MyTextField(
-                            controller: confirmPasswordController,
-                            hintText: 'CONFIRM PASSWORD',
-                            obscureText: true,
-                          ),
-                          const SizedBox(height: 25),
-                          _busy
-                              ? const CircularProgressIndicator(
-                                  color: Color(0xFFFF7A18),
-                                )
-                              : MyButton(onTap: signUp, text: 'Sign up'),
-                          const SizedBox(height: 25),
-                          Row(
-                            children: const [
-                              Expanded(child: Divider(color: Colors.white)),
-                              Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 10),
-                                child: Text(
-                                  "Or continue with",
-                                  style: TextStyle(color: Colors.white),
+                        const SizedBox(height: 12),
+                        Text(
+                          "Create your account",
+                          style: Theme.of(context).textTheme.headlineSmall
+                              ?.copyWith(color: AppColors.text1, fontSize: 20),
+                        ),
+                        const SizedBox(height: 24),
+                        MyTextField(
+                          controller: firstNameController,
+                          hintText: 'FIRST NAME',
+                          obscureText: false,
+                        ),
+                        const SizedBox(height: 12),
+                        MyTextField(
+                          controller: lastNameController,
+                          hintText: 'LAST NAME',
+                          obscureText: false,
+                        ),
+                        const SizedBox(height: 12),
+                        MyTextField(
+                          controller: emailController,
+                          hintText: 'EMAIL',
+                          obscureText: false,
+                        ),
+                        const SizedBox(height: 12),
+                        MyTextField(
+                          controller: passwordController,
+                          hintText: 'PASSWORD',
+                          obscureText: true,
+                        ),
+                        const SizedBox(height: 12),
+                        MyTextField(
+                          controller: confirmPasswordController,
+                          hintText: 'CONFIRM PASSWORD',
+                          obscureText: true,
+                        ),
+                        const SizedBox(height: 24),
+                        _busy
+                            ? const CircularProgressIndicator(
+                                color: AppColors.amber,
+                              )
+                            : MyButton(onTap: signUp, text: 'Sign up'),
+                        const SizedBox(height: 25),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Text(
+                              'Already have an account?',
+                              style: TextStyle(color: AppColors.text2),
+                            ),
+                            const SizedBox(width: 4),
+                            GestureDetector(
+                              onTap: widget.onTap,
+                              child: const Text(
+                                'Login Page',
+                                style: TextStyle(
+                                  color: AppColors.amber,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
-                              Expanded(child: Divider(color: Colors.white)),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      blurRadius: 10,
-                                      color: Colors.black.withValues(alpha: .3),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.g_mobiledata,
-                                  color: Colors.red,
-                                  size: 35,
-                                ),
-                              ),
-                              const SizedBox(width: 25),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      blurRadius: 10,
-                                      color: Colors.black.withValues(alpha: .3),
-                                    ),
-                                  ],
-                                ),
-                                child: const Icon(
-                                  Icons.facebook,
-                                  color: Colors.blue,
-                                  size: 28,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 25),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Text(
-                                'Already have an account?',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              const SizedBox(width: 4),
-                              GestureDetector(
-                                onTap: widget.onTap,
-                                child: const Text(
-                                  'Login Page',
-                                  style: TextStyle(
-                                    color: Colors.deepOrange,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
                 ),

@@ -54,6 +54,28 @@ class WorkshopService {
     );
   }
 
+  static Future<void> updateWorkshop(
+    int id, {
+    required String title,
+    String description = '',
+    String location = '',
+    int capacity = 0,
+    String date = '',
+    double price = 0,
+  }) async {
+    await ApiClient.instance.put(
+      '/api/workshops/$id',
+      data: {
+        'title': title,
+        'description': description,
+        'location': location,
+        'capacity': capacity > 0 ? capacity : null,
+        'startDate': _toIsoDateTime(date),
+        'price': price,
+      },
+    );
+  }
+
   static Future<List<WorkshopModel>> getBooked() async {
     final list = await getBookedRows();
     return list.map((row) {

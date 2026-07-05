@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../Pages/home_page.dart';
 import '../services/auth_service.dart';
+import '../theme/app_theme.dart';
 import 'login_or_register.dart';
 
 class AuthPage extends StatelessWidget {
@@ -13,9 +14,9 @@ class AuthPage extends StatelessWidget {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
-            backgroundColor: Color(0xFF09090B),
+            backgroundColor: AppColors.bg,
             body: Center(
-              child: CircularProgressIndicator(color: Color(0xFFFF7A18)),
+              child: CircularProgressIndicator(color: AppColors.amber),
             ),
           );
         }

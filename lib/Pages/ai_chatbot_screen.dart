@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../services/ai_service.dart';
+import '../theme/app_theme.dart';
 
 class AIChatbotScreen extends StatefulWidget {
   const AIChatbotScreen({super.key});
@@ -86,7 +87,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
     final safeBottom = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF09090B),
+      backgroundColor: AppColors.bg,
       resizeToAvoidBottomInset: true,
       body: Stack(
         children: [
@@ -99,7 +100,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
               height: 260,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFFF7A18).withValues(alpha: 0.07),
+                color: AppColors.amber.withValues(alpha: 0.07),
               ),
             ),
           ),
@@ -111,7 +112,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
               height: 220,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFB83280).withValues(alpha: 0.07),
+                color: AppColors.amberSoft.withValues(alpha: 0.07),
               ),
             ),
           ),
@@ -150,9 +151,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                         height: 42,
                         decoration: const BoxDecoration(
                           shape: BoxShape.circle,
-                          gradient: LinearGradient(
-                            colors: [Color(0xFFFF7A18), Color(0xFFB83280)],
-                          ),
+                          gradient: AppColors.accentGradient,
                         ),
                         child: const Icon(
                           Icons.auto_awesome_rounded,
@@ -188,10 +187,10 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                           vertical: 5,
                         ),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF7A18).withValues(alpha: 0.12),
+                          color: AppColors.amber.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(999),
                           border: Border.all(
-                            color: const Color(0xFFFF7A18).withValues(alpha: 0.3),
+                            color: AppColors.amber.withValues(alpha: 0.3),
                           ),
                         ),
                         child: const Row(
@@ -201,7 +200,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                             Text(
                               'Online',
                               style: TextStyle(
-                                color: Color(0xFFFFB073),
+                                color: AppColors.amberSoft,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -315,7 +314,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(26),
                                   borderSide: const BorderSide(
-                                    color: Color(0xFFFF7A18),
+                                    color: AppColors.amber,
                                     width: 1.4,
                                   ),
                                 ),
@@ -331,18 +330,14 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                         child: Container(
                           width: 48,
                           height: 48,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              colors: [Color(0xFFFF7A18), Color(0xFFB83280)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
+                            gradient: AppColors.accentGradient,
                             boxShadow: [
                               BoxShadow(
-                                color: Color(0x44FF7A18),
+                                color: AppColors.amber.withValues(alpha: 0.27),
                                 blurRadius: 14,
-                                offset: Offset(0, 4),
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
@@ -387,9 +382,7 @@ class _ChatBubble extends StatelessWidget {
               margin: const EdgeInsets.only(right: 8, bottom: 2),
               decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [Color(0xFFFF7A18), Color(0xFFB83280)],
-                ),
+                gradient: AppColors.accentGradient,
               ),
               child: const Icon(
                 Icons.auto_awesome_rounded,
@@ -403,13 +396,7 @@ class _ChatBubble extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                gradient: msg.isAI
-                    ? null
-                    : const LinearGradient(
-                        colors: [Color(0xFFFF7A18), Color(0xFFFFB073)],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                gradient: msg.isAI ? null : AppColors.accentGradient,
                 color: msg.isAI ? Colors.white.withValues(alpha: 0.08) : null,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(20),
@@ -455,9 +442,7 @@ class _TypingBubble extends StatelessWidget {
             margin: const EdgeInsets.only(right: 8, bottom: 2),
             decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: LinearGradient(
-                colors: [Color(0xFFFF7A18), Color(0xFFB83280)],
-              ),
+              gradient: AppColors.accentGradient,
             ),
             child: const Icon(
               Icons.auto_awesome_rounded,
