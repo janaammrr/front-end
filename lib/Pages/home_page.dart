@@ -6,6 +6,7 @@ import 'package:video_player/video_player.dart';
 import '../services/reel_service.dart';
 import '../services/api_client.dart';
 import '../components/reel_moderation_sheet.dart';
+import '../components/reel_thumbnail.dart';
 import '../components/user_avatar.dart';
 import '../services/auth_service.dart';
 import '../services/follow_service.dart';
@@ -41,6 +42,7 @@ class _VideoItem {
     required this.comments,
     required this.gradient,
     this.videoUrl,
+    this.thumbnailUrl,
     this.likedByMe = false,
     this.savedByMe = false,
   });
@@ -55,6 +57,7 @@ class _VideoItem {
   final String comments;
   final List<Color> gradient;
   final String? videoUrl;
+  final String? thumbnailUrl;
   final bool likedByMe;
   final bool savedByMe;
 }
@@ -484,6 +487,7 @@ class _FeedViewState extends State<_FeedView> {
                 : '${reel.commentsCount}',
             gradient: g,
             videoUrl: reel.videoUrl,
+            thumbnailUrl: reel.thumbnailUrl,
             likedByMe: reel.likedByMe,
             savedByMe: reel.savedByMe,
           );
@@ -783,30 +787,62 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
     if (widget.isActive) _startPlayback();
   }
 
-  Future<void> _initVideo() async {
+  Future<void> _initVideo({bool retrying = false}) async {
     final url = widget.item.videoUrl;
-    if (url == null || url.isEmpty) return;
+    if (url == null || url.isEmpty) {
+      _progressCtrl.stop();
+      if (mounted) {
+        setState(() {
+          _videoFailed = true;
+          _isPaused = true;
+        });
+      }
+      return;
+    }
 
     final controller = VideoPlayerController.networkUrl(Uri.parse(url));
     _videoController = controller;
     try {
       await controller.initialize();
-      controller.setLooping(false);
+      controller.setLooping(true);
       controller.addListener(_handleVideoTick);
       if (!mounted || _videoController != controller) return;
       _progressCtrl.stop();
-      setState(() => _videoReady = true);
+      setState(() {
+        _videoReady = true;
+        _videoFailed = false;
+      });
       if (widget.isActive && !_isPaused) controller.play();
     } catch (_) {
-      if (mounted) setState(() => _videoFailed = true);
+      _progressCtrl.stop();
       await controller.dispose();
       if (_videoController == controller) _videoController = null;
+      if (!retrying && mounted) {
+        await Future<void>.delayed(const Duration(milliseconds: 450));
+        if (mounted) await _initVideo(retrying: true);
+        return;
+      }
+      if (mounted) {
+        setState(() {
+          _videoFailed = true;
+          _isPaused = true;
+        });
+      }
     }
   }
 
   void _handleVideoTick() {
     final controller = _videoController;
     if (controller == null || !controller.value.isInitialized) return;
+    if (controller.value.hasError) {
+      if (mounted) {
+        setState(() {
+          _videoFailed = true;
+          _isPaused = true;
+        });
+      }
+      return;
+    }
     final duration = controller.value.duration;
     final position = controller.value.position;
     if (duration > Duration.zero &&
@@ -825,7 +861,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
     if (controller != null && controller.value.isInitialized) {
       controller.seekTo(Duration.zero);
       controller.play();
-    } else {
+    } else if (!_videoFailed) {
       _progressCtrl.forward(from: 0);
     }
   }
@@ -836,6 +872,21 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
       controller.pause();
     }
     _progressCtrl.stop();
+  }
+
+  Future<void> _retryVideo() async {
+    await _videoController?.dispose();
+    _videoController = null;
+    _progressCtrl.stop();
+    if (!mounted) return;
+    setState(() {
+      _videoReady = false;
+      _videoFailed = false;
+      _isPaused = false;
+      _showOverlay = false;
+    });
+    await _initVideo();
+    if (mounted && widget.isActive) _startPlayback();
   }
 
   @override
@@ -885,6 +936,10 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
   }
 
   void _togglePause() {
+    if (_videoFailed) {
+      _retryVideo();
+      return;
+    }
     setState(() {
       _isPaused = !_isPaused;
       _showOverlay = true;
@@ -998,32 +1053,33 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
         children: [
           // ── Background gradient ──────────────────────────────────────────
           if (_videoReady && _videoController != null)
-            FittedBox(
-              fit: BoxFit.cover,
-              child: SizedBox(
-                width: _videoController!.value.size.width,
-                height: _videoController!.value.size.height,
-                child: VideoPlayer(_videoController!),
-              ),
-            )
+            SizedBox.expand(child: VideoPlayer(_videoController!))
           else
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: widget.item.gradient,
-                ),
+            ReelThumbnail(
+              thumbnailUrl: widget.item.thumbnailUrl,
+              fallbackGradient: widget.item.gradient,
+            ),
+          if (_videoFailed)
+            const Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.videocam_off_rounded,
+                    color: Colors.white70,
+                    size: 56,
+                  ),
+                  SizedBox(height: 10),
+                  Text(
+                    'Video unavailable',
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
-              child: _videoFailed
-                  ? const Center(
-                      child: Icon(
-                        Icons.videocam_off_rounded,
-                        color: Colors.white30,
-                        size: 72,
-                      ),
-                    )
-                  : null,
             ),
           AnimatedContainer(
             duration: const Duration(milliseconds: 300),
@@ -1033,7 +1089,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
           // ── Play / Pause overlay ─────────────────────────────────────────
           IgnorePointer(
             child: AnimatedOpacity(
-              opacity: (_isPaused || _showOverlay) ? 1.0 : 0.0,
+              opacity: !_videoFailed && (_isPaused || _showOverlay) ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 200),
               child: Center(
                 child: Container(

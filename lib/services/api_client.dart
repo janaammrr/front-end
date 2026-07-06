@@ -134,7 +134,14 @@ class ApiClient {
 
   static String? publicUrl(String? url) {
     if (url == null || url.isEmpty) return null;
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+    final uri = Uri.tryParse(url);
+    if (uri != null && uri.hasScheme) {
+      final host = uri.host.toLowerCase();
+      if (host == 'localhost' || host == '127.0.0.1' || host == '0.0.0.0') {
+        return publicUrl(uri.path);
+      }
+      return url;
+    }
     if (url.startsWith('/')) return '$_baseUrl$url';
     return '$_baseUrl/$url';
   }
