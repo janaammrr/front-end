@@ -492,7 +492,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _Stat(value: '${_reels.length}', label: 'Videos'),
+                _Stat(value: '${_reels.length}', label: 'Reels'),
                 Container(width: 1, height: 36, color: Colors.white12),
                 _Stat(value: _fmt(_followersCount), label: 'Followers'),
                 Container(width: 1, height: 36, color: Colors.white12),
@@ -608,7 +608,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       child: Row(
         children: [
           const Text(
-            'Videos',
+            'Reels',
             style: TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -689,13 +689,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 child: Row(
                   children: [
                     const Icon(
-                      Icons.favorite_rounded,
+                      Icons.visibility_rounded,
                       color: Colors.white60,
                       size: 12,
                     ),
                     const SizedBox(width: 3),
                     Text(
-                      _fmt(reel.likesCount),
+                      _fmt(reel.views),
                       style: const TextStyle(
                         color: Colors.white70,
                         fontSize: 10,

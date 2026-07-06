@@ -165,9 +165,7 @@ class CommunityService {
   }
 
   static Future<void> requestJoin(int communityId) async {
-    await ApiClient.instance.post(
-      '/api/communities/$communityId/join-request',
-    );
+    await ApiClient.instance.post('/api/communities/$communityId/join-request');
   }
 
   static Future<void> leave(int communityId) async {
@@ -231,11 +229,17 @@ class CommunityService {
     String name,
     String description, {
     String privacyType = 'PUBLIC',
+    String? imagePath,
   }) async {
     final form = FormData.fromMap({
       'name': name,
       'description': description,
       'privacyType': privacyType,
+      if (imagePath != null)
+        'photo': await MultipartFile.fromFile(
+          imagePath,
+          filename: imagePath.split('/').last,
+        ),
     });
     final res = await ApiClient.instance.post('/api/communities', data: form);
     return CommunityModel.fromJson(res.data as Map<String, dynamic>);

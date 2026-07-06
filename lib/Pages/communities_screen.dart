@@ -1,5 +1,7 @@
 import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'community_detail_screen.dart';
 import 'messaging_screen.dart';
 import '../components/user_avatar.dart';
@@ -16,14 +18,14 @@ class CommunitiesScreen extends StatefulWidget {
 
 class _CommunitiesScreenState extends State<CommunitiesScreen> {
   final TextEditingController _searchController = TextEditingController();
-  int _selectedTab = 0;
 
   List<CommunityModel> _all = [];
   final Set<int> _joinedIds = {};
   final Set<int> _joiningIds = {};
   final Set<int> _requestedIds = {};
-  int? _myId;
+  final Map<int, List<CommunityUser>> _pendingRequests = {};
   bool _loading = true;
+  bool _loadingNotifications = false;
   String? _error;
 
   @override
@@ -42,15 +44,13 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
       final communities = await CommunityService.getAll();
       if (mounted) {
         setState(() {
-          _myId = me.id;
           _all = communities;
           _joinedIds
             ..clear()
-            ..addAll(
-              communities.where((c) => c.isMember).map((c) => c.id),
-            );
+            ..addAll(communities.where((c) => c.isMember).map((c) => c.id));
           _loading = false;
         });
+        _loadNotifications(communities, me.id);
       }
     } catch (e) {
       if (mounted) {
@@ -62,52 +62,6 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
     }
   }
 
-  Future<void> _deleteCommunity(CommunityModel community) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        backgroundColor: AppColors.surface2,
-        title: const Text(
-          'Delete community',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          'Delete ${community.name}?',
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'Delete',
-              style: TextStyle(color: AppColors.error),
-            ),
-          ),
-        ],
-      ),
-    );
-    if (ok != true) return;
-    try {
-      await CommunityService.deleteCommunity(community.id);
-      if (mounted) {
-        setState(() => _all.removeWhere((c) => c.id == community.id));
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Could not delete: $e'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
-  }
-
   @override
   void dispose() {
     _searchController.dispose();
@@ -115,9 +69,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
   }
 
   List<CommunityModel> get _filtered {
-    var list = _selectedTab == 1
-        ? _all.where((c) => _joinedIds.contains(c.id)).toList()
-        : _all;
+    var list = _all;
     final q = _searchController.text.toLowerCase();
     if (q.isEmpty) return list;
     return list
@@ -127,6 +79,52 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
               c.description.toLowerCase().contains(q),
         )
         .toList();
+  }
+
+  List<CommunityModel> get _myCommunities =>
+      _filtered.where((c) => _joinedIds.contains(c.id)).toList();
+
+  List<CommunityModel> get _recommendedCommunities =>
+      _filtered.where((c) => !_joinedIds.contains(c.id)).toList();
+
+  int get _notificationCount =>
+      _pendingRequests.values.fold(0, (total, users) => total + users.length);
+
+  Future<void> _loadNotifications(
+    List<CommunityModel> communities,
+    int myId,
+  ) async {
+    final owned = communities.where((c) => c.admin.id == myId).toList();
+    if (owned.isEmpty) {
+      if (mounted) setState(() => _pendingRequests.clear());
+      return;
+    }
+    if (mounted) setState(() => _loadingNotifications = true);
+    final next = <int, List<CommunityUser>>{};
+    for (final community in owned) {
+      try {
+        final requests = await CommunityService.getPendingJoinRequests(
+          community.id,
+        );
+        if (requests.isNotEmpty) next[community.id] = requests;
+      } catch (_) {
+        // Backend may reject non-owner or unsupported cases; ignore silently.
+      }
+    }
+    if (!mounted) return;
+    setState(() {
+      _pendingRequests
+        ..clear()
+        ..addAll(next);
+      _loadingNotifications = false;
+    });
+  }
+
+  CommunityModel? _communityById(int id) {
+    for (final community in _all) {
+      if (community.id == id) return community;
+    }
+    return null;
   }
 
   Future<void> _toggleJoin(CommunityModel community) async {
@@ -166,11 +164,97 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
     }
   }
 
+  Future<void> _approveJoinRequest(
+    CommunityModel community,
+    CommunityUser user,
+  ) async {
+    try {
+      await CommunityService.approveJoinRequest(community.id, user.id);
+      if (!mounted) return;
+      setState(() {
+        final users = _pendingRequests[community.id] ?? [];
+        users.removeWhere((u) => u.id == user.id);
+        if (users.isEmpty) {
+          _pendingRequests.remove(community.id);
+        }
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(_snackBar('${user.displayName} was approved.'));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not approve request: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _rejectJoinRequest(
+    CommunityModel community,
+    CommunityUser user,
+  ) async {
+    try {
+      await CommunityService.rejectJoinRequest(community.id, user.id);
+      if (!mounted) return;
+      setState(() {
+        final users = _pendingRequests[community.id] ?? [];
+        users.removeWhere((u) => u.id == user.id);
+        if (users.isEmpty) {
+          _pendingRequests.remove(community.id);
+        }
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(_snackBar('${user.displayName} was rejected.'));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Could not reject request: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  void _showNotifications() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _CommunityNotificationsSheet(
+        pendingRequests: _pendingRequests,
+        communityForId: _communityById,
+        loading: _loadingNotifications,
+        onApprove: _approveJoinRequest,
+        onReject: _rejectJoinRequest,
+      ),
+    );
+  }
+
+  Future<void> _openMyCommunitiesScreen() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => _MyCommunitiesListScreen(
+          communities: _myCommunities,
+          onOpen: _openCommunity,
+        ),
+      ),
+    );
+  }
+
   void _showCreateDialog() {
     final nameCtrl = TextEditingController();
     final descCtrl = TextEditingController();
     bool creating = false;
     bool isPrivate = false;
+    XFile? coverPhoto;
 
     showModalBottomSheet(
       context: context,
@@ -225,6 +309,59 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                     controller: descCtrl,
                     hint: 'Description',
                     maxLines: 3,
+                  ),
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: () async {
+                      final file = await ImagePicker().pickImage(
+                        source: ImageSource.gallery,
+                        imageQuality: 85,
+                      );
+                      if (file != null) {
+                        setSheet(() => coverPhoto = file);
+                      }
+                    },
+                    child: Container(
+                      height: 118,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.07),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.12),
+                        ),
+                      ),
+                      child: coverPhoto == null
+                          ? const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.image_outlined,
+                                  color: AppColors.amber,
+                                  size: 28,
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Select cover photo',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Center(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(14),
+                                child: Image.file(
+                                  File(coverPhoto!.path),
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                    ),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -289,8 +426,10 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                                   final newComm = await CommunityService.create(
                                     nameCtrl.text.trim(),
                                     descCtrl.text.trim(),
-                                    privacyType:
-                                        isPrivate ? 'PRIVATE' : 'PUBLIC',
+                                    privacyType: isPrivate
+                                        ? 'PRIVATE'
+                                        : 'PUBLIC',
+                                    imagePath: coverPhoto?.path,
                                   );
                                   if (ctx.mounted) Navigator.of(ctx).pop();
                                   if (mounted) {
@@ -353,7 +492,6 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
   }
 
   Widget _buildEmptyState() {
-    final isFollowing = _selectedTab == 1;
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 40),
@@ -371,14 +509,14 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                 ),
               ),
               child: Icon(
-                isFollowing ? Icons.groups_outlined : Icons.search_off_rounded,
+                Icons.search_off_rounded,
                 color: AppColors.amber,
                 size: 40,
               ),
             ),
             const SizedBox(height: 20),
             Text(
-              isFollowing ? 'No communities yet' : 'No results found',
+              'No communities found',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -387,9 +525,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              isFollowing
-                  ? 'Join communities from the For You tab.'
-                  : 'Try a different search term.',
+              'Try a different search term.',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.5),
@@ -397,39 +533,6 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                 height: 1.45,
               ),
             ),
-            if (isFollowing) ...[
-              const SizedBox(height: 24),
-              GestureDetector(
-                onTap: () => setState(() => _selectedTab = 0),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 24,
-                    vertical: 12,
-                  ),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppColors.amber, AppColors.amberSoft],
-                    ),
-                    borderRadius: BorderRadius.circular(999),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.amber.withValues(alpha: 0.35),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Text(
-                    'Discover communities',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
       ),
@@ -505,35 +608,10 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                             ],
                           ),
                           const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.07),
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: 0.1),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                GestureDetector(
-                                  onTap: () => setState(() => _selectedTab = 0),
-                                  child: _PillTab(
-                                    label: 'For You',
-                                    active: _selectedTab == 0,
-                                  ),
-                                ),
-                                GestureDetector(
-                                  onTap: () => setState(() => _selectedTab = 1),
-                                  child: _PillTab(
-                                    label: 'Joined',
-                                    active: _selectedTab == 1,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          _NotificationButton(
+                            count: _notificationCount,
+                            onTap: _showNotifications,
                           ),
-                          const Spacer(),
                           IconButton(
                             onPressed: () => Navigator.push(
                               context,
@@ -648,27 +726,18 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                       : RefreshIndicator(
                           onRefresh: _load,
                           color: AppColors.amber,
-                          child: ListView.separated(
-                            padding: const EdgeInsets.fromLTRB(16, 8, 16, 110),
-                            itemCount: _filtered.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, i) {
-                              final c = _filtered[i];
-                              return _CommunityCard(
-                                community: c,
-                                isJoined: _joinedIds.contains(c.id),
-                                isRequested: _requestedIds.contains(c.id),
-                                isLoading: _joiningIds.contains(c.id),
-                                canDelete: c.admin.id == _myId,
-                                onJoin: () => _toggleJoin(c),
-                                onDelete: () => _deleteCommunity(c),
-                                onShare: () => ScaffoldMessenger.of(
-                                  context,
-                                ).showSnackBar(_snackBar('Link copied!')),
-                                onOpen: () => _openCommunity(c),
-                              );
-                            },
+                          child: _CommunitiesSections(
+                            myCommunities: _myCommunities.take(4).toList(),
+                            hasMoreMyCommunities:
+                                _myCommunities.length >
+                                _myCommunities.take(4).length,
+                            showingAllMyCommunities: false,
+                            recommendedCommunities: _recommendedCommunities,
+                            requestedIds: _requestedIds,
+                            joiningIds: _joiningIds,
+                            onToggleMyCommunities: _openMyCommunitiesScreen,
+                            onOpen: _openCommunity,
+                            onJoin: _toggleJoin,
                           ),
                         ),
                 ),
@@ -683,6 +752,536 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
 
 // ─── Community Card ───────────────────────────────────────────────────────────
 
+class _MyCommunitiesListScreen extends StatelessWidget {
+  const _MyCommunitiesListScreen({
+    required this.communities,
+    required this.onOpen,
+  });
+
+  final List<CommunityModel> communities;
+  final ValueChanged<CommunityModel> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.bg,
+      appBar: AppBar(
+        backgroundColor: AppColors.bg,
+        elevation: 0,
+        title: const Text(
+          'My Communities',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+        ),
+      ),
+      body: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(18, 10, 18, 24),
+        itemCount: communities.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        itemBuilder: (context, index) {
+          final community = communities[index];
+          return _RecommendedCommunityTile(
+            community: community,
+            isRequested: false,
+            isLoading: false,
+            showJoinAction: false,
+            onOpen: () {
+              Navigator.pop(context);
+              onOpen(community);
+            },
+            onJoin: () {},
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _NotificationButton extends StatelessWidget {
+  const _NotificationButton({required this.count, required this.onTap});
+
+  final int count;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        IconButton(
+          onPressed: onTap,
+          icon: const Icon(
+            Icons.notifications_none_rounded,
+            size: 23,
+            color: Colors.white,
+          ),
+        ),
+        if (count > 0)
+          Positioned(
+            right: 7,
+            top: 7,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                color: AppColors.amber,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: AppColors.bg, width: 1.5),
+              ),
+              child: Text(
+                count > 9 ? '9+' : '$count',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _CommunitiesSections extends StatelessWidget {
+  const _CommunitiesSections({
+    required this.myCommunities,
+    required this.hasMoreMyCommunities,
+    required this.showingAllMyCommunities,
+    required this.recommendedCommunities,
+    required this.requestedIds,
+    required this.joiningIds,
+    required this.onToggleMyCommunities,
+    required this.onOpen,
+    required this.onJoin,
+  });
+
+  final List<CommunityModel> myCommunities;
+  final bool hasMoreMyCommunities;
+  final bool showingAllMyCommunities;
+  final List<CommunityModel> recommendedCommunities;
+  final Set<int> requestedIds;
+  final Set<int> joiningIds;
+  final VoidCallback onToggleMyCommunities;
+  final ValueChanged<CommunityModel> onOpen;
+  final ValueChanged<CommunityModel> onJoin;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 6, 18, 110),
+      children: [
+        _SectionTitle(
+          title: 'My Communities',
+          actionLabel: showingAllMyCommunities
+              ? 'Show Less'
+              : (hasMoreMyCommunities ? 'View All' : null),
+          onAction: (showingAllMyCommunities || hasMoreMyCommunities)
+              ? onToggleMyCommunities
+              : null,
+        ),
+        const SizedBox(height: 12),
+        if (myCommunities.isEmpty)
+          const _InlineEmptyState(
+            message: 'You have not joined any communities yet.',
+          )
+        else
+          SizedBox(
+            height: 214,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: myCommunities.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 14),
+              itemBuilder: (_, index) => _MyCommunityCard(
+                community: myCommunities[index],
+                onOpen: () => onOpen(myCommunities[index]),
+              ),
+            ),
+          ),
+        const SizedBox(height: 24),
+        const _SectionTitle(title: 'Recommended'),
+        const SizedBox(height: 12),
+        if (recommendedCommunities.isEmpty)
+          const _InlineEmptyState(
+            message: 'No recommended communities right now.',
+          )
+        else
+          ...recommendedCommunities.map(
+            (community) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _RecommendedCommunityTile(
+                community: community,
+                isRequested: requestedIds.contains(community.id),
+                isLoading: joiningIds.contains(community.id),
+                onOpen: () => onOpen(community),
+                onJoin: () => onJoin(community),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle({required this.title, this.actionLabel, this.onAction});
+
+  final String title;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const Spacer(),
+        if (actionLabel != null)
+          GestureDetector(
+            onTap: onAction,
+            child: Text(
+              actionLabel!,
+              style: const TextStyle(
+                color: AppColors.amber,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _InlineEmptyState extends StatelessWidget {
+  const _InlineEmptyState({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Text(
+        message,
+        style: TextStyle(color: Colors.white.withValues(alpha: 0.55)),
+      ),
+    );
+  }
+}
+
+class _MyCommunityCard extends StatelessWidget {
+  const _MyCommunityCard({required this.community, required this.onOpen});
+
+  final CommunityModel community;
+  final VoidCallback onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onOpen,
+      child: Container(
+        width: 184,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(18),
+              ),
+              child: _CommunityCover(community: community, height: 106),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    community.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                      height: 1.15,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      _MiniAdminAvatar(community: community),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Owner: ${community.admin.displayName}',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.55),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecommendedCommunityTile extends StatelessWidget {
+  const _RecommendedCommunityTile({
+    required this.community,
+    required this.isRequested,
+    required this.isLoading,
+    required this.onOpen,
+    required this.onJoin,
+    this.showJoinAction = true,
+  });
+
+  final CommunityModel community;
+  final bool isRequested;
+  final bool isLoading;
+  final VoidCallback onOpen;
+  final VoidCallback onJoin;
+  final bool showJoinAction;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onOpen,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(17),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: _CommunityCover(
+                community: community,
+                width: 58,
+                height: 58,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    community.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${community.memberCount} members',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.5),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Owner: ${community.admin.displayName}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.58),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  if (community.description.isNotEmpty) ...[
+                    const SizedBox(height: 5),
+                    Text(
+                      community.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.48),
+                        fontSize: 12,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (showJoinAction) ...[
+              const SizedBox(width: 8),
+              _JoinTextButton(
+                label: isRequested
+                    ? 'Requested'
+                    : (community.isPrivate ? 'Request Join' : '+Join'),
+                loading: isLoading,
+                disabled: isRequested,
+                onTap: onJoin,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _JoinTextButton extends StatelessWidget {
+  const _JoinTextButton({
+    required this.label,
+    required this.loading,
+    required this.disabled,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool loading;
+  final bool disabled;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: loading || disabled ? null : onTap,
+      child: SizedBox(
+        width: 108,
+        child: Center(
+          child: loading
+              ? const SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.amber,
+                  ),
+                )
+              : Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: disabled
+                        ? Colors.white.withValues(alpha: 0.45)
+                        : AppColors.amber,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniAdminAvatar extends StatelessWidget {
+  const _MiniAdminAvatar({required this.community});
+
+  final CommunityModel community;
+
+  @override
+  Widget build(BuildContext context) {
+    return UserAvatar(
+      displayName: community.admin.displayName,
+      profileUrl: community.admin.profileUrl,
+      username: community.admin.username,
+      radius: 13,
+    );
+  }
+}
+
+class _CommunityCover extends StatelessWidget {
+  const _CommunityCover({
+    required this.community,
+    this.width,
+    required this.height,
+  });
+
+  final CommunityModel community;
+  final double? width;
+  final double height;
+
+  List<Color> get _colors {
+    const palettes = [
+      [AppColors.amber, AppColors.borderHi],
+      [AppColors.surface2, AppColors.borderHi],
+      [AppColors.amberSoft, AppColors.surface2],
+      [AppColors.borderHi, AppColors.bg],
+    ];
+    return palettes[community.id % palettes.length];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final photo = community.photoUrl;
+    if (photo != null && photo.isNotEmpty) {
+      return Image.network(
+        photo,
+        width: width ?? double.infinity,
+        height: height,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _fallback(),
+      );
+    }
+    return _fallback();
+  }
+
+  Widget _fallback() {
+    return Container(
+      width: width ?? double.infinity,
+      height: height,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: _colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          community.name.isEmpty ? '?' : community.name[0].toUpperCase(),
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 30,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ignore: unused_element
 class _CommunityCard extends StatelessWidget {
   const _CommunityCard({
     required this.community,
@@ -752,111 +1351,113 @@ class _CommunityCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 56,
-                      height: 56,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: _gradient,
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.15),
-                        ),
-                      ),
-                      child: Center(
-                        child: Text(
-                          _logoText,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 18,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  community.name,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
+                          Container(
+                            width: 56,
+                            height: 56,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: _gradient,
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.15),
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                _logoText,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 18,
+                                  letterSpacing: -0.5,
                                 ),
                               ),
-                              if (community.isPrivate) ...[
-                                const SizedBox(width: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 7,
-                                    vertical: 3,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(
-                                      alpha: 0.1,
-                                    ),
-                                    borderRadius: BorderRadius.circular(999),
-                                    border: Border.all(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.18,
-                                      ),
-                                    ),
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.lock_outline_rounded,
-                                        size: 11,
-                                        color: Colors.white70,
-                                      ),
-                                      SizedBox(width: 3),
-                                      Text(
-                                        'Private',
-                                        style: TextStyle(
-                                          fontSize: 10,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        community.name,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(
+                                          fontSize: 17,
                                           fontWeight: FontWeight.w700,
-                                          color: Colors.white70,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                    if (community.isPrivate) ...[
+                                      const SizedBox(width: 6),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 7,
+                                          vertical: 3,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            999,
+                                          ),
+                                          border: Border.all(
+                                            color: Colors.white.withValues(
+                                              alpha: 0.18,
+                                            ),
+                                          ),
+                                        ),
+                                        child: const Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              Icons.lock_outline_rounded,
+                                              size: 11,
+                                              color: Colors.white70,
+                                            ),
+                                            SizedBox(width: 3),
+                                            Text(
+                                              'Private',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w700,
+                                                color: Colors.white70,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
-                                  ),
+                                  ],
                                 ),
                               ],
-                            ],
+                            ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                if (community.description.isNotEmpty) ...[
-                  const SizedBox(height: 10),
-                  Text(
-                    community.description,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.6),
-                      height: 1.4,
-                    ),
-                  ),
-                ],
+                      if (community.description.isNotEmpty) ...[
+                        const SizedBox(height: 10),
+                        Text(
+                          community.description,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.6),
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -1024,7 +1625,11 @@ class _CommunityCard extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.person_add_outlined, color: Colors.white, size: 18),
+            const Icon(
+              Icons.person_add_outlined,
+              color: Colors.white,
+              size: 18,
+            ),
             const SizedBox(width: 6),
             Text(
               community.isPrivate ? 'Request to Join' : 'Join',
@@ -1042,6 +1647,171 @@ class _CommunityCard extends StatelessWidget {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+
+class _CommunityNotificationsSheet extends StatelessWidget {
+  const _CommunityNotificationsSheet({
+    required this.pendingRequests,
+    required this.communityForId,
+    required this.loading,
+    required this.onApprove,
+    required this.onReject,
+  });
+
+  final Map<int, List<CommunityUser>> pendingRequests;
+  final CommunityModel? Function(int id) communityForId;
+  final bool loading;
+  final void Function(CommunityModel community, CommunityUser user) onApprove;
+  final void Function(CommunityModel community, CommunityUser user) onReject;
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = pendingRequests.entries
+        .where((entry) => communityForId(entry.key) != null)
+        .toList();
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.72,
+          ),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
+          decoration: BoxDecoration(
+            color: AppColors.bg.withValues(alpha: 0.95),
+            border: Border(
+              top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 42,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 18),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+                const Text(
+                  'Community Notifications',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                if (loading)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(color: AppColors.amber),
+                    ),
+                  )
+                else if (entries.isEmpty)
+                  const _InlineEmptyState(
+                    message: 'No pending join requests right now.',
+                  )
+                else
+                  Flexible(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final entry in entries) ...[
+                          _NotificationGroup(
+                            community: communityForId(entry.key)!,
+                            users: entry.value,
+                            onApprove: onApprove,
+                            onReject: onReject,
+                          ),
+                          const SizedBox(height: 14),
+                        ],
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NotificationGroup extends StatelessWidget {
+  const _NotificationGroup({
+    required this.community,
+    required this.users,
+    required this.onApprove,
+    required this.onReject,
+  });
+
+  final CommunityModel community;
+  final List<CommunityUser> users;
+  final void Function(CommunityModel community, CommunityUser user) onApprove;
+  final void Function(CommunityModel community, CommunityUser user) onReject;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          community.name,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 8),
+        for (final user in users)
+          Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: Row(
+              children: [
+                UserAvatar(
+                  displayName: user.displayName,
+                  profileUrl: user.profileUrl,
+                  username: user.username,
+                  radius: 18,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    '${user.displayName} requested to join.',
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => onReject(community, user),
+                  icon: const Icon(Icons.close_rounded, color: AppColors.error),
+                ),
+                IconButton(
+                  onPressed: () => onApprove(community, user),
+                  icon: const Icon(Icons.check_rounded, color: AppColors.amber),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
 
 class _SmallActionButton extends StatelessWidget {
   const _SmallActionButton({
@@ -1072,6 +1842,7 @@ class _SmallActionButton extends StatelessWidget {
   }
 }
 
+// ignore: unused_element
 class _PillTab extends StatelessWidget {
   const _PillTab({required this.label, required this.active});
 

@@ -39,6 +39,8 @@ class EventService {
     String location = '',
     String date = '',
     double price = 0,
+    int? capacity,
+    String? category,
   }) async {
     await ApiClient.instance.post(
       '/api/events',
@@ -48,6 +50,8 @@ class EventService {
         'location': location,
         'startDate': _toIsoDateTime(date),
         'price': price,
+        if (capacity != null) 'capacity': capacity,
+        if (category != null) 'category': [category],
       },
     );
   }
@@ -59,6 +63,8 @@ class EventService {
     String location = '',
     String date = '',
     double price = 0,
+    int? capacity,
+    String? category,
   }) async {
     await ApiClient.instance.put(
       '/api/events/$id',
@@ -68,6 +74,8 @@ class EventService {
         'location': location,
         'startDate': _toIsoDateTime(date),
         'price': price,
+        if (capacity != null) 'capacity': capacity,
+        if (category != null) 'category': [category],
       },
     );
   }

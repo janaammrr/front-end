@@ -13,7 +13,7 @@ class AuthPage extends StatelessWidget {
       future: AuthService.isLoggedIn(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
+          return Scaffold(
             backgroundColor: AppColors.bg,
             body: Center(
               child: CircularProgressIndicator(color: AppColors.amber),

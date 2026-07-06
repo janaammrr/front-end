@@ -40,6 +40,7 @@ class WorkshopService {
     int capacity = 0,
     String date = '',
     double price = 0,
+    String? category,
   }) async {
     await ApiClient.instance.post(
       '/api/workshops',
@@ -50,6 +51,7 @@ class WorkshopService {
         'capacity': capacity > 0 ? capacity : null,
         'startDate': _toIsoDateTime(date),
         'price': price,
+        if (category != null) 'category': [category],
       },
     );
   }
@@ -62,6 +64,7 @@ class WorkshopService {
     int capacity = 0,
     String date = '',
     double price = 0,
+    String? category,
   }) async {
     await ApiClient.instance.put(
       '/api/workshops/$id',
@@ -72,6 +75,7 @@ class WorkshopService {
         'capacity': capacity > 0 ? capacity : null,
         'startDate': _toIsoDateTime(date),
         'price': price,
+        if (category != null) 'category': [category],
       },
     );
   }

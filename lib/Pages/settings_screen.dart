@@ -397,6 +397,46 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 20),
+                      _SectionHeader('Display'),
+                      ValueListenableBuilder<ThemeMode>(
+                        valueListenable: ThemeController.mode,
+                        builder: (context, mode, _) {
+                          final isLight = mode == ThemeMode.light;
+                          return _GlassTile(
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                              leading: Container(
+                                width: 38,
+                                height: 38,
+                                decoration: BoxDecoration(
+                                  color: AppColors.amber.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(
+                                  isLight ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                                  color: AppColors.amber,
+                                  size: 20,
+                                ),
+                              ),
+                              title: const Text(
+                                'Light Mode',
+                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                              ),
+                              subtitle: Text(
+                                isLight ? 'On' : 'Off',
+                                style: const TextStyle(color: AppColors.text3, fontSize: 12),
+                              ),
+                              trailing: Switch(
+                                value: isLight,
+                                activeThumbColor: AppColors.amber,
+                                onChanged: (value) => ThemeController.setLight(value),
+                              ),
+                              onTap: () => ThemeController.setLight(!isLight),
+                            ),
+                          );
+                        },
+                      ),
                       if (_role == 'ADMIN') ...[
                         const SizedBox(height: 20),
                         _SectionHeader('Admin'),

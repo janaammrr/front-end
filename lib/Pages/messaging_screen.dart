@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../components/user_avatar.dart';
 import '../services/chat_service.dart';
 import '../services/user_service.dart';
 import '../services/follow_service.dart';
@@ -14,8 +15,10 @@ class MessagingScreen extends StatefulWidget {
 class _MessagingScreenState extends State<MessagingScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
+  bool _unreadOnly = false;
 
   List<InboxItem> _inbox = [];
+  List<FollowUser> _following = [];
   bool _loading = true;
   String? _error;
   int _myId = 0;
@@ -59,6 +62,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
       if (!mounted) return;
       setState(() {
         _inbox = [...inbox, ...startableChats];
+        _following = following;
         _myId = me.id;
         _loading = false;
       });
@@ -78,13 +82,18 @@ class _MessagingScreenState extends State<MessagingScreen> {
     super.dispose();
   }
 
-  List<InboxItem> get _filtered => _query.isEmpty
-      ? _inbox
-      : _inbox
-            .where(
-              (c) => c.otherUser.displayName.toLowerCase().contains(_query),
-            )
-            .toList();
+  List<InboxItem> get _filtered {
+    var list = _inbox;
+    if (_unreadOnly) {
+      list = list.where((c) => c.unreadCount > 0).toList();
+    }
+    if (_query.isNotEmpty) {
+      list = list
+          .where((c) => c.otherUser.displayName.toLowerCase().contains(_query))
+          .toList();
+    }
+    return list;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +177,76 @@ class _MessagingScreenState extends State<MessagingScreen> {
                     ),
                   ),
                 ),
+                if (!_loading && _following.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    height: 76,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      itemCount: _following.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 14),
+                      itemBuilder: (context, i) {
+                        final friend = _following[i];
+                        return GestureDetector(
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ChatScreen(
+                                otherUser: ChatUser(
+                                  id: friend.id,
+                                  firstname: friend.firstname,
+                                  lastname: friend.lastname,
+                                  profileUrl: friend.profileUrl,
+                                ),
+                                myId: _myId,
+                              ),
+                            ),
+                          ),
+                          child: SizedBox(
+                            width: 56,
+                            child: Column(
+                              children: [
+                                UserAvatar(
+                                  displayName: friend.displayName,
+                                  profileUrl: friend.profileUrl,
+                                  radius: 24,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  friend.firstname,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
+                if (!_loading && _error == null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Row(
+                      children: [
+                        _InboxFilterChip(
+                          label: 'All',
+                          selected: !_unreadOnly,
+                          onTap: () => setState(() => _unreadOnly = false),
+                        ),
+                        const SizedBox(width: 8),
+                        _InboxFilterChip(
+                          label: 'Unread',
+                          selected: _unreadOnly,
+                          onTap: () => setState(() => _unreadOnly = true),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 8),
                 Expanded(
                   child: _loading
                       ? const Center(
@@ -248,6 +326,37 @@ class _MessagingScreenState extends State<MessagingScreen> {
   }
 }
 
+class _InboxFilterChip extends StatelessWidget {
+  const _InboxFilterChip({required this.label, required this.selected, required this.onTap});
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.amber : Colors.white.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: selected ? Colors.white : AppColors.text3,
+            fontWeight: FontWeight.w700,
+            fontSize: 12.5,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _ConvoTile extends StatelessWidget {
   const _ConvoTile({required this.item, required this.onTap});
 
@@ -259,17 +368,10 @@ class _ConvoTile extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 0, vertical: 6),
       onTap: onTap,
-      leading: CircleAvatar(
+      leading: UserAvatar(
+        displayName: item.otherUser.displayName,
+        profileUrl: item.otherUser.profileUrl,
         radius: 26,
-        backgroundColor: AppColors.amber.withValues(alpha: 0.2),
-        child: Text(
-          item.otherUser.initials,
-          style: const TextStyle(
-            color: AppColors.amber,
-            fontWeight: FontWeight.w800,
-            fontSize: 16,
-          ),
-        ),
       ),
       title: Text(
         item.otherUser.displayName,
@@ -428,16 +530,10 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   _BackButton(onTap: () => Navigator.of(context).pop()),
                   const SizedBox(width: 10),
-                  CircleAvatar(
+                  UserAvatar(
+                    displayName: widget.otherUser.displayName,
+                    profileUrl: widget.otherUser.profileUrl,
                     radius: 20,
-                    backgroundColor: AppColors.amber.withValues(alpha: 0.2),
-                    child: Text(
-                      widget.otherUser.initials,
-                      style: const TextStyle(
-                        color: AppColors.amber,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
                   ),
                   const SizedBox(width: 10),
                   Text(
@@ -461,7 +557,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       controller: _scrollController,
                       padding: const EdgeInsets.all(16),
                       itemCount: _messages.length,
-                      itemBuilder: (_, i) => _ChatBubble(msg: _messages[i]),
+                      itemBuilder: (_, i) => _ChatBubble(msg: _messages[i], otherUser: widget.otherUser),
                     ),
             ),
             Padding(
@@ -538,9 +634,10 @@ class _ChatScreenState extends State<ChatScreen> {
 }
 
 class _ChatBubble extends StatelessWidget {
-  const _ChatBubble({required this.msg});
+  const _ChatBubble({required this.msg, required this.otherUser});
 
   final ChatMessage msg;
+  final ChatUser otherUser;
 
   @override
   Widget build(BuildContext context) {
@@ -553,17 +650,10 @@ class _ChatBubble extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!msg.isMine) ...[
-            CircleAvatar(
+            UserAvatar(
+              displayName: otherUser.displayName,
+              profileUrl: otherUser.profileUrl,
               radius: 14,
-              backgroundColor: AppColors.amber.withValues(alpha: 0.2),
-              child: const Text(
-                '?',
-                style: TextStyle(
-                  color: AppColors.amber,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
             ),
             const SizedBox(width: 8),
           ],

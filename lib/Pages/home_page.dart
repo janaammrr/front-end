@@ -24,6 +24,7 @@ import 'public_profile_screen.dart';
 import 'posts_screen.dart';
 import 'trending_screen.dart';
 import '../components/dm_picker_sheet.dart';
+import '../components/listing_hero_header.dart' show ListingSection;
 import '../theme/app_theme.dart';
 
 // ─── Data Model ───────────────────────────────────────────────────────────────
@@ -115,8 +116,7 @@ class _HomePageState extends State<HomePage> {
         index: _tabIndex,
         children: [
           _FeedView(key: ValueKey(_feedRefreshKey)),
-          const WorkshopPage(),
-          const EventsPage(),
+          const _LearnPage(),
           const CommunitiesScreen(),
           ProfileScreen(key: ValueKey(_profileRefreshKey)),
         ],
@@ -125,7 +125,7 @@ class _HomePageState extends State<HomePage> {
         currentIndex: _tabIndex,
         onTap: (i) => setState(() {
           _tabIndex = i;
-          if (i == 4) _profileRefreshKey++;
+          if (i == 3) _profileRefreshKey++;
         }),
         onCreateTap: _openQuickCreateMenu,
       ),
@@ -162,28 +162,16 @@ class _MainNav extends StatelessWidget {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                    child: Container(
-                      height: 62,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xE5121518),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.08),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _NavSegment(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(24),
+                          bottomLeft: Radius.circular(24),
+                          topRight: Radius.circular(28),
+                          bottomRight: Radius.circular(12),
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.32),
-                            blurRadius: 22,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Row(
                         children: [
                           Expanded(
                             child: _NavItem(
@@ -195,45 +183,49 @@ class _MainNav extends StatelessWidget {
                           ),
                           Expanded(
                             child: _NavItem(
-                              icon: Icons.school_outlined,
-                              label: 'Learn',
+                              icon: Icons.local_activity_outlined,
+                              label: 'Activities',
                               active: currentIndex == 1,
                               onTap: () => onTap(1),
                             ),
                           ),
-                          const SizedBox(width: 76),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 88),
+                    Expanded(
+                      child: _NavSegment(
+                        borderRadius: const BorderRadius.only(
+                          topLeft: Radius.circular(28),
+                          bottomLeft: Radius.circular(12),
+                          topRight: Radius.circular(24),
+                          bottomRight: Radius.circular(24),
+                        ),
+                        children: [
                           Expanded(
                             child: _NavItem(
-                              icon: Icons.event_outlined,
-                              label: 'Events',
+                              icon: Icons.groups_2_outlined,
+                              label: 'Communities',
                               active: currentIndex == 2,
                               onTap: () => onTap(2),
                             ),
                           ),
                           Expanded(
                             child: _NavItem(
-                              icon: Icons.groups_2_outlined,
-                              label: 'Groups',
-                              active: currentIndex == 3,
-                              onTap: () => onTap(3),
-                            ),
-                          ),
-                          Expanded(
-                            child: _NavItem(
                               icon: Icons.person_outline_rounded,
                               label: 'Profile',
-                              active: currentIndex == 4,
-                              onTap: () => onTap(4),
+                              active: currentIndex == 3,
+                              onTap: () => onTap(3),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
               Positioned(
-                top: 0,
+                top: -8,
                 child: GestureDetector(
                   onTap: onCreateTap,
                   child: Container(
@@ -277,6 +269,40 @@ class _MainNav extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavSegment extends StatelessWidget {
+  const _NavSegment({required this.borderRadius, required this.children});
+
+  final BorderRadius borderRadius;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+          height: 62,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xE5121518),
+            borderRadius: borderRadius,
+            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.32),
+                blurRadius: 22,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(children: children),
         ),
       ),
     );
@@ -341,7 +367,7 @@ class _NavItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 SizedBox(
-                  width: 52,
+                  width: 66,
                   child: FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
@@ -365,6 +391,34 @@ class _NavItem extends StatelessWidget {
 }
 
 // ─── Feed View (Home Tab) ─────────────────────────────────────────────────────
+
+class _LearnPage extends StatefulWidget {
+  const _LearnPage();
+
+  @override
+  State<_LearnPage> createState() => _LearnPageState();
+}
+
+class _LearnPageState extends State<_LearnPage> {
+  ListingSection _section = ListingSection.workshops;
+
+  @override
+  Widget build(BuildContext context) {
+    return IndexedStack(
+      index: _section == ListingSection.workshops ? 0 : 1,
+      children: [
+        WorkshopPage(
+          activeSection: _section,
+          onSectionChanged: (s) => setState(() => _section = s),
+        ),
+        EventsPage(
+          activeSection: _section,
+          onSectionChanged: (s) => setState(() => _section = s),
+        ),
+      ],
+    );
+  }
+}
 
 class _FeedView extends StatefulWidget {
   const _FeedView({super.key});
@@ -1438,15 +1492,15 @@ class _FeedModeTabs extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _FeedModeTab(
-                label: 'For You',
-                active: currentIndex == 0,
-                onTap: onForYouTap,
-              ),
-              const SizedBox(width: 26),
-              _FeedModeTab(
                 label: 'Trendings',
                 active: currentIndex == 1,
                 onTap: onTrendingTap,
+              ),
+              const SizedBox(width: 26),
+              _FeedModeTab(
+                label: 'For You',
+                active: currentIndex == 0,
+                onTap: onForYouTap,
               ),
             ],
           ),
