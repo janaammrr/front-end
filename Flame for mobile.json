@@ -1,0 +1,2567 @@
+{
+  "info": {
+    "_postman_id": "8477f896-412a-4610-8d67-d009fede851a",
+    "name": "Flame Copy",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "44400435",
+    "_collection_link": "https://go.postman.co/collection/44400435-8477f896-412a-4610-8d67-d009fede851a?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Customer",
+      "item": [
+        {
+          "name": "Book-Event",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YzkiLCJpYXQiOjE3ODI5ODUxODYsImV4cCI6MTc4MzA3MTU4Nn0.LqkzobH548ZYsv1Rxm4eMJEpje8PK_dKpqlTM6-P3dM",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/customer/events/1/book",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "customer",
+                "events",
+                "1",
+                "book"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Book-workshop",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MzAyNjM2NiwiZXhwIjoxNzgzMTEyNzY2fQ.Xw5RHXg2981eD4lMq6Sv7Tfm7QulOc670j--luGcgEY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl2}}/api/workshops/7/book",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "workshops",
+                "7",
+                "book"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Booked-Workshops",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MzAyNjM2NiwiZXhwIjoxNzgzMTEyNzY2fQ.Xw5RHXg2981eD4lMq6Sv7Tfm7QulOc670j--luGcgEY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl2}}/api//workshops/booked",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "",
+                "workshops",
+                "booked"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Booked-Events",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjMxNTM3OSwiZXhwIjoxNzgyNDAxNzc5fQ.xYuDpcL5jLska5l5zaSvgQz5WXBv4s570TtNjRDVHhU",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/customer/events/booked",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "customer",
+                "events",
+                "booked"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel-booking-workshop",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjMxNTM3OSwiZXhwIjoxNzgyNDAxNzc5fQ.xYuDpcL5jLska5l5zaSvgQz5WXBv4s570TtNjRDVHhU",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/customer/workshops/bookings/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "customer",
+                "workshops",
+                "bookings",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Cancel-booking-events",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjMxNTM3OSwiZXhwIjoxNzgyNDAxNzc5fQ.xYuDpcL5jLska5l5zaSvgQz5WXBv4s570TtNjRDVHhU",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl2}}/api/events/bookings/1",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "bookings",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Provider",
+      "item": [
+        {
+          "name": "create-workshop",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MzA4ODU0OCwiZXhwIjoxNzgzMTc0OTQ4fQ.mNkycFqIwoQxnpNnqxWnpmXAObUU21ouXNNrIBx3DJ8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"title\": \"Spring Boot Masterclass\",\r\n  \"description\": \"Deep dive into Spring\",\r\n  \"location\": \"Alexandria\",\r\n  \"date\": \"2026-06-15\",\r\n  \"price\": 300\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl2}}/api/workshops",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "workshops"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update workshop",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MzA4OTcyOCwiZXhwIjoxNzgzMTc2MTI4fQ.uSk6LaSxjxGWJ-vfvwcstwCSBl0EkU2-Ljm7sfU7Bqc",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"title\": \"Spring Boot Masterclass2\",\r\n  \"description\": \"Deep dive into Spring\",\r\n  \"location\": \"Alexandria\",\r\n  \"date\": \"2026-06-15\",\r\n  \"price\": 300\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl2}}/api/workshops/10",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "workshops",
+                "10"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "create-event",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MzA3NTk2MywiZXhwIjoxNzgzMTYyMzYzfQ.LES2TwYbx3KvypX65mRA0Ux_Y0itfTbdbLk-93d5m6I",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"title\": \"Spring Boot Masterclass\",\r\n  \"description\": \"Deep dive into Spring\",\r\n  \"location\": \"Alexandria\",\r\n  \"date\": \"2026-06-15\",\r\n  \"price\": 300\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl2}}/api/events",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "events"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getProviderEvents",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "PostMappingeyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MzEwNzI3NSwiZXhwIjoxNzgzMTkzNjc1fQ.6hEdftM6w7awVgdsY_WomeqIL6zkSt5aL5CveiSO7YA",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl2}}/api/events",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "events"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "getProviderWorkshops",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YzgiLCJpYXQiOjE3ODMwMjYyMzAsImV4cCI6MTc4MzExMjYzMH0.eCq_HVuSniWXcAzuzRdPv_v4bdBUJNMbRL7Xs4txhOk",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl2}}/api/workshops",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "workshops"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DeleteProviderWorkshops Copy",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MzEwNzI3NSwiZXhwIjoxNzgzMTkzNjc1fQ.6hEdftM6w7awVgdsY_WomeqIL6zkSt5aL5CveiSO7YA",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl2}}/api/workshops/20",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "workshops",
+                "20"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "DeleteProviderEvents",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MzEwNzI3NSwiZXhwIjoxNzgzMTkzNjc1fQ.6hEdftM6w7awVgdsY_WomeqIL6zkSt5aL5CveiSO7YA",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl2}}/api/events/4",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "4"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "register User",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"firstName\": \"userc\",\r\n  \"lastName\": \"testc\",\r\n  \"email\": \"testc\",\r\n  \"password\": \"testc\",\r\n  \r\n  \"role\":\"USER\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "register Provider",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"firstName\": \"user\",\r\n  \"lastName\": \"test\",\r\n  \"email\": \"testp\",\r\n  \"password\": \"testp\",\r\n  \"role\":\"PROVIDER\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/v1/auth/register",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "register Admin",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"firstName\": \"usera\",\r\n  \"lastName\": \"testa\",\r\n  \"email\": \"testa\",\r\n  \"password\": \"testa\",\r\n  \"role\":\"ADMIN\"\r\n}\r\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl2}}/api/v1/auth/register",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"testc\",\r\n  \"password\": \"testc\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl2}}/api/v1/auth/authenticate",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "auth",
+                "authenticate"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "PublicEvents-Workshops",
+      "item": [
+        {
+          "name": "GetAllEvents",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MzEwNzI3NSwiZXhwIjoxNzgzMTkzNjc1fQ.6hEdftM6w7awVgdsY_WomeqIL6zkSt5aL5CveiSO7YA",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl2}}/api/events",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "events"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "GetAllWorkshops",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MzEwNzI3NSwiZXhwIjoxNzgzMTkzNjc1fQ.6hEdftM6w7awVgdsY_WomeqIL6zkSt5aL5CveiSO7YA",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl2}}/api/workshops",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "workshops"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get-Event-By-ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MzEwNzI3NSwiZXhwIjoxNzgzMTkzNjc1fQ.6hEdftM6w7awVgdsY_WomeqIL6zkSt5aL5CveiSO7YA",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl2}}/api/events/2",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "events",
+                "2"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get-Workshop-By-ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MzEwNzI3NSwiZXhwIjoxNzgzMTkzNjc1fQ.6hEdftM6w7awVgdsY_WomeqIL6zkSt5aL5CveiSO7YA",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl2}}/api/workshops/3",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "workshops",
+                "3"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "item": [
+        {
+          "name": "Reels-Reporting",
+          "item": [
+            {
+              "name": "Get Pending Reports",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YSIsImlhdCI6MTc4Mjc4NjY0MSwiZXhwIjoxNzgyODczMDQxfQ.5oLdM56shfEQxs8FGcJaLJ6tcSFqDyp8tQGLqtFndZo",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/reels/reports/pending",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reels",
+                    "reports",
+                    "pending"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get All Reports",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YSIsImlhdCI6MTc4Mjc4NjY0MSwiZXhwIjoxNzgyODczMDQxfQ.5oLdM56shfEQxs8FGcJaLJ6tcSFqDyp8tQGLqtFndZo",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/reels/reports/all",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reels",
+                    "reports",
+                    "all"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Reports by Reel",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4Mjc4NTcyMiwiZXhwIjoxNzgyODcyMTIyfQ.IPgZY7MLxvWgf0489Y2267Gdo53lhA03lBIusnjEyDg",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/reels/{{reelId}}/reports",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reels",
+                    "{{reelId}}",
+                    "reports"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Review Report - Keep Reel",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YSIsImlhdCI6MTc4Mjc4NTczNiwiZXhwIjoxNzgyODcyMTM2fQ.60bHyQnsXBDRvGzSYOcuZZZhY3IWbK_CcyvUYTkDHkw",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"decision\": \"REVIEWED\",\n  \"adminNote\": \"Content is acceptable\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/reels/reports/{{reportId}}/review",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reels",
+                    "reports",
+                    "{{reportId}}",
+                    "review"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Review Report - Remove Reel",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YSIsImlhdCI6MTc4Mjc4NjY0MSwiZXhwIjoxNzgyODczMDQxfQ.5oLdM56shfEQxs8FGcJaLJ6tcSFqDyp8tQGLqtFndZo",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"decision\": \"REMOVED\",\n  \"adminNote\": \"Reel violated community guidelines\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/reels/reports/{{reportId}}/review",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reels",
+                    "reports",
+                    "{{reportId}}",
+                    "review"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Get-ALL-Users",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc3MjMwNzAxOCwiZXhwIjoxNzcyMzkzNDE4fQ.SmbMpGZDrSU5rqwc7vz4i752xqSy6H8ZSayYNj3ygTo",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/admin/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "admin",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete-User-By-ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc3MjMwNzAxOCwiZXhwIjoxNzcyMzkzNDE4fQ.SmbMpGZDrSU5rqwc7vz4i752xqSy6H8ZSayYNj3ygTo",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/admin/users/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "admin",
+                "users",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "moderation-queue",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YSIsImlhdCI6MTc4MjM0MzcyNCwiZXhwIjoxNzgyNDMwMTI0fQ.XYd5yOWhk0P5Nn7tx9QGWBWW7XdcJYeBCAVWdIoW4z8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/admin/moderation/queue",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "admin",
+                "moderation",
+                "queue"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Moderaion-History",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YSIsImlhdCI6MTc4MzEwODY4MiwiZXhwIjoxNzgzMTk1MDgyfQ.7kW0w08m2nou_3_UX2IzgUSrQmC19IdburQhd2JDZW0",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl2}}/api/admin/moderation/all",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "admin",
+                "moderation",
+                "all"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "admin approve/reject",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YSIsImlhdCI6MTc4MjM0NDgwMSwiZXhwIjoxNzgyNDMxMjAxfQ.jxA5NHE_aI8E6cInWw_69jxt5ZSSq2dtiugE8cKK5KY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"decision\": \"APPROVED\",\r\n  \"note\": \"Reviewed manually — content is fine\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/admin/moderation/1/review",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "admin",
+                "moderation",
+                "1",
+                "review"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reels",
+      "item": [
+        {
+          "name": "Upload Reel",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YzkiLCJpYXQiOjE3ODI5ODUxODYsImV4cCI6MTc4MzA3MTU4Nn0.LqkzobH548ZYsv1Rxm4eMJEpje8PK_dKpqlTM6-P3dM",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "video",
+                  "type": "file",
+                  "src": "/F:/Level-4/Graduation-Project/Nezar-work/uploads/reels/d0d4e687-e338-447f-b30f-d72b7ef8e45d_eaac4580-1e14-4b42-8683-c2056e3fd1f1_In A Game of Blood _ Khabib mma #khabib #mma #ufc.mp4"
+                },
+                {
+                  "key": "caption",
+                  "type": "text",
+                  "value": "my reel3"
+                },
+                {
+                  "key": "categories",
+                  "type": "text",
+                  "value": "music,football,coding"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl2}}/api/reels/upload",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "reels",
+                "upload"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Reels",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjY4NDY1NCwiZXhwIjoxNzgyNzcxMDU0fQ.iKNWdTno9UZAQY1wvKGu7EJ9aCkJpy-TqTfyfrlTGFY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/reels",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "reels"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get reels by user id",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjY4NDY1NCwiZXhwIjoxNzgyNzcxMDU0fQ.iKNWdTno9UZAQY1wvKGu7EJ9aCkJpy-TqTfyfrlTGFY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/reels/user/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "reels",
+                "user",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reel By ID",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjA1OTM4NSwiZXhwIjoxNzgyMTQ1Nzg1fQ.xe2_RMZBp7w-IUT7UCf_6EIVmw_X_HokxxBlJ7RPg80",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/reels/1",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "reels",
+                "1"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Feed(Still Developed)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjA1OTM4NSwiZXhwIjoxNzgyMTQ1Nzg1fQ.xe2_RMZBp7w-IUT7UCf_6EIVmw_X_HokxxBlJ7RPg80",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/reels/feed",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "reels",
+                "feed"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Reel",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjA2NTkzMywiZXhwIjoxNzgyMTUyMzMzfQ.2Ay2NkPvO-UU_WB_2E3e35Fdvlj4iWr9YPmSgc3MO3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/reels/5",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "reels",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Upload Dummy Reel (No Moderation)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjY4NDY1NCwiZXhwIjoxNzgyNzcxMDU0fQ.iKNWdTno9UZAQY1wvKGu7EJ9aCkJpy-TqTfyfrlTGFY",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "video",
+                  "type": "file",
+                  "src": "/F:/Level-4/Graduation-Project/Nezar-work/uploads/reels/bd706807-5d9f-42dc-9e43-6bf5063fc7b0_c5c251bb-736e-4981-8133-2f3a0f863517_Who is right_ _ Short English lesson #englishteacher #teachingenglish.mp4"
+                },
+                {
+                  "key": "caption",
+                  "value": "Test reel caption",
+                  "type": "text"
+                },
+                {
+                  "key": "preferences",
+                  "value": "fitness,sports",
+                  "type": "text"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/reels/upload/dummy",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "reels",
+                "upload",
+                "dummy"
+              ]
+            },
+            "description": "Upload a reel and skip moderation. Reel is instantly APPROVED. For testing/dummy data only."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Likes",
+      "item": [
+        {
+          "name": "Toggle Like Reel",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjA2NTkzMywiZXhwIjoxNzgyMTUyMzMzfQ.2Ay2NkPvO-UU_WB_2E3e35Fdvlj4iWr9YPmSgc3MO3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/reels/5/like",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "reels",
+                "5",
+                "like"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Saves",
+      "item": [
+        {
+          "name": "Toggle Save Reel",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjA2NTkzMywiZXhwIjoxNzgyMTUyMzMzfQ.2Ay2NkPvO-UU_WB_2E3e35Fdvlj4iWr9YPmSgc3MO3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/reels/5/save",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "reels",
+                "5",
+                "save"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "Add Comment",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjA2NTkzMywiZXhwIjoxNzgyMTUyMzMzfQ.2Ay2NkPvO-UU_WB_2E3e35Fdvlj4iWr9YPmSgc3MO3M",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"amazing reel2!\"\n}"
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/comments/5",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "comments",
+                "5"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Comments By Reel",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjA1OTM4NSwiZXhwIjoxNzgyMTQ1Nzg1fQ.xe2_RMZBp7w-IUT7UCf_6EIVmw_X_HokxxBlJ7RPg80",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/comments/4",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "comments",
+                "4"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Feed & Recommendations",
+      "item": [
+        {
+          "name": "Get Feed (Cursor)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "YOUR_TOKEN_HERE",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/feed?size=10&cursor=",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "feed"
+              ],
+              "query": [
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "cursor",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Record Reel Interaction",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "YOUR_TOKEN_HERE",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"interactionType\": \"WATCH\",\r\n  \"watchDurationMs\": 8500,\r\n  \"reelDurationMs\": 15000\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/feed/reels/1/interaction",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "feed",
+                "reels",
+                "1",
+                "interaction"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Preferances",
+      "item": [
+        {
+          "name": "Get preferences",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YyIsImlhdCI6MTc4MjU3OTQyOSwiZXhwIjoxNzgyNjY1ODI5fQ.a5hStahPPvm3wAfK86NTx2p0jXRmnA1Q6CX1xPtkzS4",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/preferences",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "preferences"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Post-Preferances",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/preferences",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "preferences"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Following",
+      "item": [
+        {
+          "name": "Follow a User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/2/follow",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "2",
+                "follow"
+              ]
+            },
+            "description": "Follow a user by their ID. Replace '2' with the target user's ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Unfollow a User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/2/follow",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "2",
+                "follow"
+              ]
+            },
+            "description": "Unfollow a user by their ID. Replace '2' with the target user's ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Followers",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YSIsImlhdCI6MTc4MzEwODY4MiwiZXhwIjoxNzgzMTk1MDgyfQ.7kW0w08m2nou_3_UX2IzgUSrQmC19IdburQhd2JDZW0",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl2}}/api/users/1/followers",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "1",
+                "followers"
+              ]
+            },
+            "description": "Get all followers of a user. Replace '1' with the target user's ID."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Following",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/1/following",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "1",
+                "following"
+              ]
+            },
+            "description": "Get all users that a user is following. Replace '1' with the target user's ID."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Community",
+      "item": [
+        {
+          "name": "Create Community",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YzIiLCJpYXQiOjE3ODI3ODE1MDgsImV4cCI6MTc4Mjg2NzkwOH0.iej73Ppe1xc_fIERSLIwDJSqbLgIqlAnfp9p19Irug8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "My Community",
+                  "type": "text"
+                },
+                {
+                  "key": "description",
+                  "value": "A cool community",
+                  "type": "text"
+                },
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "src": "/C:/Users/river/Pictures/Screenshots/Screenshot (9).png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/communities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Communities",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YzIiLCJpYXQiOjE3ODI3ODE1MDgsImV4cCI6MTc4Mjg2NzkwOH0.iej73Ppe1xc_fIERSLIwDJSqbLgIqlAnfp9p19Irug8",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/communities",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Community by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/communities/{{communityId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communityId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Community (Admin only)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "New Name",
+                  "type": "text"
+                },
+                {
+                  "key": "photo",
+                  "type": "file",
+                  "value": ""
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/communities/{{communityId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communityId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Community (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/communities/{{communityId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communityId}}"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Community Posts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/communities/{{communityId}}/posts",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communityId}}",
+                "posts"
+              ]
+            },
+            "description": "Get all posts of a community sorted by newest first. Replace communityId with the actual community ID."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Membership",
+      "item": [
+        {
+          "name": "Join Community",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/communities/{{communityId}}/join",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communityId}}",
+                "join"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Leave Community",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/communities/{{communityId}}/leave",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communityId}}",
+                "leave"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Members",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/communities/{{communityId}}/members",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communityId}}",
+                "members"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Remove Member (Admin only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/communities/{{communityId}}/members/{{memberId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communityId}}",
+                "members",
+                "{{memberId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "Likes",
+          "item": [
+            {
+              "name": "Like Post",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/communities/{{communityId}}/posts/{{postId}}/like",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{communityId}}",
+                    "posts",
+                    "{{postId}}",
+                    "like"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Unlike Post",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/communities/{{communityId}}/posts/{{postId}}/like",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{communityId}}",
+                    "posts",
+                    "{{postId}}",
+                    "like"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Comments",
+          "item": [
+            {
+              "name": "Get Post Comments",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/communities/{{communityId}}/posts/{{postId}}/comments",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{communityId}}",
+                    "posts",
+                    "{{postId}}",
+                    "comments"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Add Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"Great post!\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/communities/{{communityId}}/posts/{{postId}}/comments",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{communityId}}",
+                    "posts",
+                    "{{postId}}",
+                    "comments"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete Comment (Admin or Author)",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/api/communities/{{communityId}}/posts/{{postId}}/comments/{{commentId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "communities",
+                    "{{communityId}}",
+                    "posts",
+                    "{{postId}}",
+                    "comments",
+                    "{{commentId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Create Post",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YSIsImlhdCI6MTc4MzEwODY4MiwiZXhwIjoxNzgzMTk1MDgyfQ.7kW0w08m2nou_3_UX2IzgUSrQmC19IdburQhd2JDZW0",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "content",
+                  "value": "Hello community!",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": "/C:/Users/river/Pictures/Screenshots/Screenshot (4).png"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl2}}/api/communities/{{communityId}}/posts",
+              "host": [
+                "{{baseUrl2}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communityId}}",
+                "posts"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Post (Admin or Author)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/communities/{{communityId}}/posts/{{postId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "communities",
+                "{{communityId}}",
+                "posts",
+                "{{postId}}"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Chatting",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YzIiLCJpYXQiOjE3ODI1OTYyOTcsImV4cCI6MTc4MjY4MjY5N30.QupHHnNKqqsKLu7ttGmcy_JMTUp5NFjsxxqhuM6t_sE",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"receiverId\": 1,\n  \"content\": \"Hello!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/send",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "send"
+              ]
+            },
+            "description": "Send a message to another user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Inbox",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YzMiLCJpYXQiOjE3ODI1OTYyODcsImV4cCI6MTc4MjY4MjY4N30.SFq_g9ue0eRC0EYvo8SWb_C_nkbD_j9pyh8IM6XDjAc",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/inbox",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "inbox"
+              ]
+            },
+            "description": "Get all conversations for the current user"
+          },
+          "response": []
+        },
+        {
+          "name": "Get Conversation",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YzMiLCJpYXQiOjE3ODI1OTYyODcsImV4cCI6MTc4MjY4MjY4N30.SFq_g9ue0eRC0EYvo8SWb_C_nkbD_j9pyh8IM6XDjAc",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/chat/{{userId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "chat",
+                "{{userId}}"
+              ]
+            },
+            "description": "Get full message history with a specific user. Also marks messages as read."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Report-Reels",
+      "item": [
+        {
+          "name": "User",
+          "item": [
+            {
+              "name": "Report a Reel",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0YzIiLCJpYXQiOjE3ODI3ODY2MzIsImV4cCI6MTc4Mjg3MzAzMn0.sDINmf7MVA1Kk72FYOuVpDxSvLBRNUbmSEg6MT3FNpM",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{token}}"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"reason\": \"Inappropriate content\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/api/reels/{{reelId}}/report",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "reels",
+                    "{{reelId}}",
+                    "report"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "get-current-user",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MiIsImlhdCI6MTc3MjI4ODEyNCwiZXhwIjoxNzcyMjg5NTY0fQ.n2Tin1BRC5ruGh7_VRNaPH-rSOg_mmXt2V46sBmsH14",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/users/me",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update-User",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0MiIsImlhdCI6MTc3MjI4ODEyNCwiZXhwIjoxNzcyMjg5NTY0fQ.n2Tin1BRC5ruGh7_VRNaPH-rSOg_mmXt2V46sBmsH14",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n \r\n  \"firstname\": \"newstring\",\r\n  \"lastname\": \"string\",\r\n  \"email\": \"string\",\r\n  \"password\": \"string\",\r\n  \"role\": \"USER\",\r\n  \"enabled\": true,\r\n  \"authorities\": [\r\n    {\r\n      \"authority\": \"USER\"\r\n    }\r\n  ],\r\n  \"username\": \"string\",\r\n  \"accountNonExpired\": true,\r\n  \"accountNonLocked\": true,\r\n  \"credentialsNonExpired\": true\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/users/me",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users",
+            "me"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete-Event",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0cCIsImlhdCI6MTc3MjI5MjU3MCwiZXhwIjoxNzcyMzc4OTcwfQ.na7Sm8Ef3Ab32u05U2xpDXh2XcYmAejQ9d_Diw--VvU",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/provider/events/2",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "provider",
+            "events",
+            "2"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
