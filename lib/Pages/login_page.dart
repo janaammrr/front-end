@@ -59,7 +59,9 @@ class _LoginPageState extends State<LoginPage> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -121,7 +123,7 @@ class _LoginPageState extends State<LoginPage> {
                                 builder: (_) => const ForgotPasswordScreen(),
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Forgot password?',
                               style: TextStyle(color: AppColors.text2),
                             ),
@@ -129,16 +131,12 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                         const SizedBox(height: 8),
                         _busy
-                            ? const CircularProgressIndicator(
-                                color: AppColors.amber,
-                              )
+                            ? CircularProgressIndicator(color: AppColors.amber)
                             : MyButton(onTap: signIn, text: 'Sign in'),
                         const SizedBox(height: 25),
                         Row(
                           children: [
-                            Expanded(
-                              child: Divider(color: AppColors.border),
-                            ),
+                            Expanded(child: Divider(color: AppColors.border)),
                             Padding(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 10,
@@ -148,15 +146,13 @@ class _LoginPageState extends State<LoginPage> {
                                 style: TextStyle(color: AppColors.text3),
                               ),
                             ),
-                            Expanded(
-                              child: Divider(color: AppColors.border),
-                            ),
+                            Expanded(child: Divider(color: AppColors.border)),
                           ],
                         ),
                         const SizedBox(height: 16),
                         GestureDetector(
                           onTap: widget.onTap,
-                          child: const Text(
+                          child: Text(
                             'Register now',
                             style: TextStyle(
                               color: AppColors.amber,

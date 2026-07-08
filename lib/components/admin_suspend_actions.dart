@@ -38,7 +38,10 @@ class AdminSuspendActions extends StatelessWidget {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber),
@@ -47,7 +50,8 @@ class AdminSuspendActions extends StatelessWidget {
         ],
       ),
     );
-    if (confirmed == true) await onToggleSuspend(true, reasonController.text.trim());
+    if (confirmed == true)
+      await onToggleSuspend(true, reasonController.text.trim());
   }
 
   Future<void> _handleDeleteTap(BuildContext context) async {
@@ -56,10 +60,19 @@ class AdminSuspendActions extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete permanently?', style: TextStyle(color: Colors.white)),
-        content: const Text('This cannot be undone.', style: TextStyle(color: AppColors.text2)),
+        title: const Text(
+          'Delete permanently?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'This cannot be undone.',
+          style: TextStyle(color: AppColors.text2),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
@@ -77,11 +90,14 @@ class AdminSuspendActions extends StatelessWidget {
       children: [
         OutlinedButton.icon(
           onPressed: () => _handleSuspendTap(context),
-          icon: Icon(suspended ? Icons.play_circle_outline : Icons.pause_circle_outline, size: 16),
+          icon: Icon(
+            suspended ? Icons.play_circle_outline : Icons.pause_circle_outline,
+            size: 16,
+          ),
           label: Text(suspended ? 'Unsuspend' : 'Suspend'),
           style: OutlinedButton.styleFrom(
             foregroundColor: AppColors.amber,
-            side: const BorderSide(color: AppColors.amber),
+            side: BorderSide(color: AppColors.amber),
             padding: const EdgeInsets.symmetric(horizontal: 10),
           ),
         ),

@@ -4,7 +4,10 @@ class AiMessage {
   final String role;
   final String content;
   const AiMessage({required this.role, required this.content});
-  Map<String, dynamic> toJson() => {'role': role.toLowerCase(), 'text': content};
+  Map<String, dynamic> toJson() => {
+    'role': role.toLowerCase(),
+    'text': content,
+  };
 }
 
 class AiService {

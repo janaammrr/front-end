@@ -45,7 +45,10 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = ApiClient.errorMessage(e, fallback: 'Could not load recommendations.');
+        _error = ApiClient.errorMessage(
+          e,
+          fallback: 'Could not load recommendations.',
+        );
         _loading = false;
       });
     }
@@ -57,13 +60,20 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
       if (mounted) {
         setState(() => _bookedEventIds.add(event.id));
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Event booked!'), backgroundColor: Color(0xFF10B981)),
+          const SnackBar(
+            content: Text('Event booked!'),
+            backgroundColor: Color(0xFF10B981),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Booking failed.'))),
+          SnackBar(
+            content: Text(
+              ApiClient.errorMessage(e, fallback: 'Booking failed.'),
+            ),
+          ),
         );
       }
     }
@@ -75,13 +85,20 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
       if (mounted) {
         setState(() => _bookedWorkshopIds.add(workshop.id));
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Workshop booked!'), backgroundColor: Color(0xFF10B981)),
+          const SnackBar(
+            content: Text('Workshop booked!'),
+            backgroundColor: Color(0xFF10B981),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Booking failed.'))),
+          SnackBar(
+            content: Text(
+              ApiClient.errorMessage(e, fallback: 'Booking failed.'),
+            ),
+          ),
         );
       }
     }
@@ -94,7 +111,10 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         elevation: 0,
-        title: const Text('Recommended for You', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Recommended for You',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
       ),
       body: _buildBody(),
     );
@@ -102,7 +122,7 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.amber));
+      return Center(child: CircularProgressIndicator(color: AppColors.amber));
     }
     if (_error != null) {
       return Center(
@@ -111,11 +131,17 @@ class _RecommendationsScreenState extends State<RecommendationsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70),
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _load,
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.amber,
+                ),
                 child: const Text('Retry'),
               ),
             ],
@@ -190,7 +216,14 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: Text(text, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+      child: Text(
+        text,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
     );
   }
 }
@@ -228,10 +261,21 @@ class _RecommendationCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 if (subtitle.isNotEmpty) ...[
                   const SizedBox(height: 4),
-                  Text(subtitle, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70)),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.white70),
+                  ),
                 ],
                 const SizedBox(height: 6),
                 Text(
@@ -239,7 +283,11 @@ class _RecommendationCard extends StatelessWidget {
                     if (date != null && date!.isNotEmpty) date!,
                     if (price != null) '\$${price!.toStringAsFixed(2)}',
                   ].join('  ·  '),
-                  style: const TextStyle(color: AppColors.amber, fontSize: 12, fontWeight: FontWeight.w600),
+                  style: TextStyle(
+                    color: AppColors.amber,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
             ),

@@ -21,7 +21,10 @@ class AdminDashboardScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         elevation: 0,
-        title: const Text('Admin Dashboard', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Admin Dashboard',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -30,43 +33,64 @@ class AdminDashboardScreen extends StatelessWidget {
             icon: Icons.people_outline_rounded,
             title: 'Users',
             subtitle: 'Manage roles, suspensions, and accounts.',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminUsersScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AdminUsersScreen()),
+            ),
           ),
           _AdminTile(
             icon: Icons.article_outlined,
             title: 'Posts',
             subtitle: 'Moderate community text posts.',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminPostsScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AdminPostsScreen()),
+            ),
           ),
           _AdminTile(
             icon: Icons.storefront_outlined,
             title: 'Providers',
             subtitle: 'Manage workshop/event provider accounts.',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminProvidersScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AdminProvidersScreen()),
+            ),
           ),
           _AdminTile(
             icon: Icons.flag_outlined,
             title: 'Reports',
             subtitle: 'Review reports submitted for posts and reels.',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminReportsScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AdminReportsScreen()),
+            ),
           ),
           _AdminTile(
             icon: Icons.event_outlined,
             title: 'Events',
             subtitle: 'Edit, suspend, or remove events.',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminEventsScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AdminEventsScreen()),
+            ),
           ),
           _AdminTile(
             icon: Icons.school_outlined,
             title: 'Workshops',
             subtitle: 'Edit, suspend, or remove workshops.',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminWorkshopsScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const AdminWorkshopsScreen()),
+            ),
           ),
           _AdminTile(
             icon: Icons.gpp_maybe_outlined,
             title: 'Reel Moderation Queue',
             subtitle: 'Approve or reject uploaded reels.',
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ModerationPanelScreen())),
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const ModerationPanelScreen()),
+            ),
           ),
         ],
       ),
@@ -107,9 +131,22 @@ class _AdminTile extends StatelessWidget {
           ),
           child: Icon(icon, color: AppColors.amber),
         ),
-        title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-        subtitle: Text(subtitle, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-        trailing: Icon(Icons.arrow_forward_ios_rounded, color: AppColors.border, size: 14),
+        title: Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(color: Colors.white54, fontSize: 12),
+        ),
+        trailing: Icon(
+          Icons.arrow_forward_ios_rounded,
+          color: AppColors.border,
+          size: 14,
+        ),
         onTap: onTap,
       ),
     );

@@ -52,7 +52,10 @@ class _AdminEventsScreenState extends State<AdminEventsScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         elevation: 0,
-        title: const Text('Events', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Events',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
       ),
       body: _buildBody(),
     );
@@ -69,11 +72,17 @@ class _AdminEventsScreenState extends State<AdminEventsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70),
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _load,
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.amber,
+                ),
                 child: const Text('Retry'),
               ),
             ],
@@ -82,7 +91,12 @@ class _AdminEventsScreenState extends State<AdminEventsScreen> {
       );
     }
     if (_events.isEmpty) {
-      return const Center(child: Text('No events found.', style: TextStyle(color: Colors.white54)));
+      return const Center(
+        child: Text(
+          'No events found.',
+          style: TextStyle(color: Colors.white54),
+        ),
+      );
     }
     return RefreshIndicator(
       color: AppColors.amber,
@@ -106,22 +120,44 @@ class _AdminEventsScreenState extends State<AdminEventsScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(event.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                      child: Text(
+                        event.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                     if (event.suspended)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.error.withValues(alpha: 0.16),
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: const Text('Suspended', style: TextStyle(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.w700)),
+                        child: const Text(
+                          'Suspended',
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                   ],
                 ),
-                if (event.description != null && event.description!.isNotEmpty) ...[
+                if (event.description != null &&
+                    event.description!.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text(event.description!, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70)),
+                  Text(
+                    event.description!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.white70),
+                  ),
                 ],
                 const SizedBox(height: 10),
                 Wrap(
@@ -139,39 +175,54 @@ class _AdminEventsScreenState extends State<AdminEventsScreen> {
                             initialLocation: event.location ?? '',
                             initialDate: event.date ?? '',
                             initialPrice: event.price ?? 0,
-                            onSave: ({
-                              required title,
-                              required description,
-                              required location,
-                              required date,
-                              required price,
-                              capacity,
-                            }) => AdminService.updateEvent(
-                              event.id,
-                              title: title,
-                              description: description,
-                              location: location,
-                              date: date,
-                              price: price,
-                            ),
+                            onSave:
+                                ({
+                                  required title,
+                                  required description,
+                                  required location,
+                                  required date,
+                                  required price,
+                                  capacity,
+                                }) => AdminService.updateEvent(
+                                  event.id,
+                                  title: title,
+                                  description: description,
+                                  location: location,
+                                  date: date,
+                                  price: price,
+                                ),
                           ),
                         );
                         if (saved == true) await _load();
                       },
                       icon: const Icon(Icons.edit_outlined, size: 16),
                       label: const Text('Edit'),
-                      style: OutlinedButton.styleFrom(foregroundColor: Colors.white70, side: const BorderSide(color: Colors.white24)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        side: const BorderSide(color: Colors.white24),
+                      ),
                     ),
                     AdminSuspendActions(
                       suspended: event.suspended,
                       onToggleSuspend: (suspend, reason) async {
                         try {
-                          await AdminService.setEventSuspended(event.id, suspend, reason: reason);
+                          await AdminService.setEventSuspended(
+                            event.id,
+                            suspend,
+                            reason: reason,
+                          );
                           await _load();
                         } catch (e) {
                           if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not update event.'))),
+                            SnackBar(
+                              content: Text(
+                                ApiClient.errorMessage(
+                                  e,
+                                  fallback: 'Could not update event.',
+                                ),
+                              ),
+                            ),
                           );
                         }
                       },
@@ -182,7 +233,14 @@ class _AdminEventsScreenState extends State<AdminEventsScreen> {
                         } catch (e) {
                           if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not delete event.'))),
+                            SnackBar(
+                              content: Text(
+                                ApiClient.errorMessage(
+                                  e,
+                                  fallback: 'Could not delete event.',
+                                ),
+                              ),
+                            ),
                           );
                         }
                       },

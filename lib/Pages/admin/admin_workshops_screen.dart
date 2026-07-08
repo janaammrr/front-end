@@ -39,7 +39,10 @@ class _AdminWorkshopsScreenState extends State<AdminWorkshopsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = ApiClient.errorMessage(e, fallback: 'Could not load workshops.');
+        _error = ApiClient.errorMessage(
+          e,
+          fallback: 'Could not load workshops.',
+        );
         _loading = false;
       });
     }
@@ -52,7 +55,10 @@ class _AdminWorkshopsScreenState extends State<AdminWorkshopsScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         elevation: 0,
-        title: const Text('Workshops', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Workshops',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
       ),
       body: _buildBody(),
     );
@@ -69,11 +75,17 @@ class _AdminWorkshopsScreenState extends State<AdminWorkshopsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70),
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _load,
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.amber,
+                ),
                 child: const Text('Retry'),
               ),
             ],
@@ -82,7 +94,12 @@ class _AdminWorkshopsScreenState extends State<AdminWorkshopsScreen> {
       );
     }
     if (_workshops.isEmpty) {
-      return const Center(child: Text('No workshops found.', style: TextStyle(color: Colors.white54)));
+      return const Center(
+        child: Text(
+          'No workshops found.',
+          style: TextStyle(color: Colors.white54),
+        ),
+      );
     }
     return RefreshIndicator(
       color: AppColors.amber,
@@ -106,22 +123,44 @@ class _AdminWorkshopsScreenState extends State<AdminWorkshopsScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(workshop.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                      child: Text(
+                        workshop.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                     if (workshop.suspended)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.error.withValues(alpha: 0.16),
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: const Text('Suspended', style: TextStyle(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.w700)),
+                        child: const Text(
+                          'Suspended',
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                   ],
                 ),
-                if (workshop.description != null && workshop.description!.isNotEmpty) ...[
+                if (workshop.description != null &&
+                    workshop.description!.isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text(workshop.description!, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70)),
+                  Text(
+                    workshop.description!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: Colors.white70),
+                  ),
                 ],
                 const SizedBox(height: 10),
                 Wrap(
@@ -141,51 +180,74 @@ class _AdminWorkshopsScreenState extends State<AdminWorkshopsScreen> {
                             initialPrice: workshop.price ?? 0,
                             showCapacity: true,
                             initialCapacity: workshop.capacity,
-                            onSave: ({
-                              required title,
-                              required description,
-                              required location,
-                              required date,
-                              required price,
-                              capacity,
-                            }) => AdminService.updateWorkshop(
-                              workshop.id,
-                              title: title,
-                              description: description,
-                              location: location,
-                              capacity: capacity ?? 0,
-                              date: date,
-                              price: price,
-                            ),
+                            onSave:
+                                ({
+                                  required title,
+                                  required description,
+                                  required location,
+                                  required date,
+                                  required price,
+                                  capacity,
+                                }) => AdminService.updateWorkshop(
+                                  workshop.id,
+                                  title: title,
+                                  description: description,
+                                  location: location,
+                                  capacity: capacity ?? 0,
+                                  date: date,
+                                  price: price,
+                                ),
                           ),
                         );
                         if (saved == true) await _load();
                       },
                       icon: const Icon(Icons.edit_outlined, size: 16),
                       label: const Text('Edit'),
-                      style: OutlinedButton.styleFrom(foregroundColor: Colors.white70, side: const BorderSide(color: Colors.white24)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white70,
+                        side: const BorderSide(color: Colors.white24),
+                      ),
                     ),
                     AdminSuspendActions(
                       suspended: workshop.suspended,
                       onToggleSuspend: (suspend, reason) async {
                         try {
-                          await AdminService.setWorkshopSuspended(workshop.id, suspend, reason: reason);
+                          await AdminService.setWorkshopSuspended(
+                            workshop.id,
+                            suspend,
+                            reason: reason,
+                          );
                           await _load();
                         } catch (e) {
                           if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not update workshop.'))),
+                            SnackBar(
+                              content: Text(
+                                ApiClient.errorMessage(
+                                  e,
+                                  fallback: 'Could not update workshop.',
+                                ),
+                              ),
+                            ),
                           );
                         }
                       },
                       onDelete: () async {
                         try {
                           await AdminService.deleteWorkshop(workshop.id);
-                          if (mounted) setState(() => _workshops.removeAt(index));
+                          if (mounted)
+                            setState(() => _workshops.removeAt(index));
                         } catch (e) {
                           if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not delete workshop.'))),
+                            SnackBar(
+                              content: Text(
+                                ApiClient.errorMessage(
+                                  e,
+                                  fallback: 'Could not delete workshop.',
+                                ),
+                              ),
+                            ),
                           );
                         }
                       },

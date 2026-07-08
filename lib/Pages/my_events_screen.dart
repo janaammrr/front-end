@@ -90,10 +90,10 @@ class _MyEventsScreenState extends State<MyEventsScreen>
                     children: [
                       _BackButton(onTap: () => Navigator.of(context).pop()),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'My Events',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.text1,
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                         ),
@@ -102,11 +102,9 @@ class _MyEventsScreenState extends State<MyEventsScreen>
                   ),
                 ),
                 if (_loading)
-                  const Expanded(
+                  Expanded(
                     child: Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.amber,
-                      ),
+                      child: CircularProgressIndicator(color: AppColors.amber),
                     ),
                   )
                 else if (_error != null)
@@ -115,9 +113,9 @@ class _MyEventsScreenState extends State<MyEventsScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.error_outline,
-                            color: Colors.white38,
+                            color: AppColors.text3,
                             size: 48,
                           ),
                           const SizedBox(height: 12),
@@ -148,10 +146,10 @@ class _MyEventsScreenState extends State<MyEventsScreen>
                   TabBar(
                     controller: _tabController,
                     indicatorColor: AppColors.amber,
-                    labelColor: Colors.white,
+                    labelColor: AppColors.text1,
                     unselectedLabelColor: AppColors.text3,
                     labelStyle: const TextStyle(fontWeight: FontWeight.w700),
-                    dividerColor: Colors.white.withValues(alpha: 0.08),
+                    dividerColor: AppColors.text1.withValues(alpha: 0.08),
                     tabs: [
                       Tab(text: 'Booked (${_booked.length})'),
                       Tab(text: 'Created (${_created.length})'),
@@ -193,21 +191,22 @@ class _MyEventsScreenState extends State<MyEventsScreen>
                                 initialLocation: item.location ?? '',
                                 initialDate: item.date ?? '',
                                 initialPrice: item.price ?? 0,
-                                onSave: ({
-                                  required title,
-                                  required description,
-                                  required location,
-                                  required date,
-                                  required price,
-                                  capacity,
-                                }) => EventService.updateEvent(
-                                  item.id,
-                                  title: title,
-                                  description: description,
-                                  location: location,
-                                  date: date,
-                                  price: price,
-                                ),
+                                onSave:
+                                    ({
+                                      required title,
+                                      required description,
+                                      required location,
+                                      required date,
+                                      required price,
+                                      capacity,
+                                    }) => EventService.updateEvent(
+                                      item.id,
+                                      title: title,
+                                      description: description,
+                                      location: location,
+                                      date: date,
+                                      price: price,
+                                    ),
                               ),
                             );
                             if (saved == true) await _load();
@@ -252,16 +251,12 @@ class _EventList extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.event_outlined,
-              color: AppColors.border,
-              size: 48,
-            ),
+            Icon(Icons.event_outlined, color: AppColors.border, size: 48),
             const SizedBox(height: 12),
             Text(
               emptyMessage,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.text3),
+              style: TextStyle(color: AppColors.text3),
             ),
           ],
         ),
@@ -314,9 +309,9 @@ class _EventCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
+            color: AppColors.text1.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            border: Border.all(color: AppColors.text1.withValues(alpha: 0.1)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -332,7 +327,7 @@ class _EventCard extends StatelessWidget {
                       color: AppColors.amber.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Event',
                       style: TextStyle(
                         color: AppColors.amber,
@@ -344,8 +339,8 @@ class _EventCard extends StatelessWidget {
                   const Spacer(),
                   Text(
                     price <= 0 ? 'Free' : '\$${price.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      color: Colors.white70,
+                    style: TextStyle(
+                      color: AppColors.text2,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -354,7 +349,7 @@ class _EventCard extends StatelessWidget {
                     InkWell(
                       borderRadius: BorderRadius.circular(999),
                       onTap: onEdit,
-                      child: const Padding(
+                      child: Padding(
                         padding: EdgeInsets.all(4),
                         child: Icon(
                           Icons.edit_outlined,
@@ -369,8 +364,8 @@ class _EventCard extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 item.title,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.text1,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
@@ -381,10 +376,7 @@ class _EventCard extends StatelessWidget {
                   item.description!,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.text3,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: AppColors.text3, fontSize: 13),
                 ),
               ],
               const SizedBox(height: 8),
@@ -403,11 +395,11 @@ class _EventCard extends StatelessWidget {
                         backgroundColor: AppColors.surface2,
                         title: Text(
                           actionLabel,
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(color: AppColors.text1),
                         ),
-                        content: const Text(
+                        content: Text(
                           'Are you sure?',
-                          style: TextStyle(color: Colors.white70),
+                          style: TextStyle(color: AppColors.text2),
                         ),
                         actions: [
                           TextButton(
@@ -437,11 +429,8 @@ class _EventCard extends StatelessWidget {
                         ? AppColors.error
                         : AppColors.amber,
                     side: BorderSide(
-                      color:
-                          (destructive
-                                  ? AppColors.error
-                                  : AppColors.amber)
-                              .withValues(alpha: 0.45),
+                      color: (destructive ? AppColors.error : AppColors.amber)
+                          .withValues(alpha: 0.45),
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -476,7 +465,7 @@ class _Detail extends StatelessWidget {
               text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppColors.text2, fontSize: 13),
+              style: TextStyle(color: AppColors.text2, fontSize: 13),
             ),
           ),
         ],
@@ -518,13 +507,13 @@ class _BackButton extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.07),
+          color: AppColors.text1.withValues(alpha: 0.07),
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          border: Border.all(color: AppColors.text1.withValues(alpha: 0.12)),
         ),
-        child: const Icon(
+        child: Icon(
           Icons.arrow_back_ios_new_rounded,
-          color: Colors.white,
+          color: AppColors.text1,
           size: 18,
         ),
       ),

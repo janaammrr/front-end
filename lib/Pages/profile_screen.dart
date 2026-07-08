@@ -68,11 +68,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: AppColors.bg,
-        body: Center(
-          child: CircularProgressIndicator(color: AppColors.amber),
-        ),
+        body: Center(child: CircularProgressIndicator(color: AppColors.amber)),
       );
     }
 
@@ -85,13 +83,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
+                Icon(
                   Icons.person_off_rounded,
                   color: AppColors.text3,
                   size: 56,
                 ),
                 const SizedBox(height: 16),
-                const Text(
+                Text(
                   'Could not load profile',
                   style: TextStyle(
                     color: AppColors.text1,
@@ -133,7 +131,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: _logout,
-                  child: const Text(
+                  child: Text(
                     'Log out & log in again',
                     style: TextStyle(color: AppColors.amber),
                   ),
@@ -152,6 +150,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       username: _user?.username,
       isRootView: true,
       gradient: AppColors.profileHeaderGradient,
+      onProfileChanged: _loadUser,
     );
   }
 }

@@ -6,11 +6,12 @@ import '../theme/app_theme.dart';
 /// backend on upload) as a grid-cell background, falling back to a gradient
 /// when the reel has no thumbnail yet or the image fails to load.
 class ReelThumbnail extends StatelessWidget {
-  const ReelThumbnail({
+  ReelThumbnail({
     super.key,
     required this.thumbnailUrl,
-    this.fallbackGradient = const [AppColors.surface2, AppColors.bg],
-  });
+    List<Color>? fallbackGradient,
+  }) : fallbackGradient =
+           fallbackGradient ?? [AppColors.surface2, AppColors.bg];
 
   final String? thumbnailUrl;
   final List<Color> fallbackGradient;
@@ -18,7 +19,8 @@ class ReelThumbnail extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final url = thumbnailUrl;
-    if (url == null || url.isEmpty) return _Fallback(gradient: fallbackGradient);
+    if (url == null || url.isEmpty)
+      return _Fallback(gradient: fallbackGradient);
     return Image.network(
       url,
       fit: BoxFit.cover,

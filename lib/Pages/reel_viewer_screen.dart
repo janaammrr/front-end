@@ -1,6 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
+
+import '../components/double_tap_like.dart';
 import '../components/reel_moderation_sheet.dart';
 import '../components/reel_thumbnail.dart';
 import '../components/user_avatar.dart';
@@ -40,9 +44,11 @@ class _ReelViewerScreenState extends State<ReelViewerScreen> {
     super.initState();
     _reels = List.of(widget.reels);
     _pageController = PageController(initialPage: widget.initialIndex);
-    UserService.getMe().then((me) {
-      if (mounted) setState(() => _myId = me.id);
-    }).catchError((_) {});
+    UserService.getMe()
+        .then((me) {
+          if (mounted) setState(() => _myId = me.id);
+        })
+        .catchError((_) {});
   }
 
   @override
@@ -107,13 +113,25 @@ class _ReelPage extends StatefulWidget {
 }
 
 class _ReelPageState extends State<_ReelPage> {
-  VideoPlayerController? _controller;
+  Player? _player;
+  VideoController? _videoController;
+  StreamSubscription<String>? _errorSub;
   bool _ready = false;
   bool _failed = false;
   bool _paused = false;
   late bool _liked;
   late bool _saved;
   late int _likeCount;
+
+  // See the matching watchdog in home_page.dart's _VideoCardState: some
+  // Android devices leave a controller reporting "playing" while the
+  // decoded frame never advances (a stuck platform decoder, not a Flutter
+  // error). This detects that and forces a full controller rebuild.
+  Timer? _stallTimer;
+  Duration _lastWatchedPosition = Duration.zero;
+  int _stallTicks = 0;
+  int _autoReinitCount = 0;
+  static const _maxAutoReinits = 3;
 
   @override
   void initState() {
@@ -127,34 +145,131 @@ class _ReelPageState extends State<_ReelPage> {
   Future<void> _initVideo() async {
     final url = widget.reel.videoUrl;
     if (url == null || url.isEmpty) {
-      setState(() => _failed = true);
+      if (mounted) setState(() => _failed = true);
       return;
     }
-    final controller = VideoPlayerController.networkUrl(Uri.parse(url));
-    _controller = controller;
+    final player = Player();
+    _player = player;
+    _videoController = VideoController(
+      player,
+      // Hardware-accelerated decode is what hangs on the affected devices
+      // (confirmed: MediaTek Codec2 on a Samsung Galaxy A13) — software
+      // decode via the bundled FFmpeg avoids the OS decoder entirely.
+      configuration: const VideoControllerConfiguration(
+        enableHardwareAcceleration: false,
+      ),
+    );
+    _errorSub = player.stream.error.listen((error) {
+      debugPrint('Reel ${widget.reel.id} playback error: $error');
+      if (mounted) {
+        setState(() {
+          _failed = true;
+          _ready = false;
+        });
+      }
+    });
     try {
-      await controller.initialize();
-      controller.setLooping(true);
-      if (!mounted) return;
-      setState(() => _ready = true);
-      controller.play();
-    } catch (_) {
+      await player
+          .open(Media(url), play: false)
+          .timeout(const Duration(seconds: 10));
+      await player.setPlaylistMode(PlaylistMode.loop);
+      if (!mounted || _player != player) return;
+      setState(() {
+        _ready = true;
+        _failed = false;
+      });
+      player.play();
+      _startStallWatchdog();
+    } catch (e) {
+      debugPrint('Reel ${widget.reel.id} failed to initialize: $e');
       if (mounted) setState(() => _failed = true);
     }
   }
 
+  Future<void> _retryVideo() async {
+    _stopStallWatchdog();
+    await _errorSub?.cancel();
+    _errorSub = null;
+    final old = _player;
+    _player = null;
+    _videoController = null;
+    await old?.dispose();
+    if (!mounted) return;
+    setState(() {
+      _ready = false;
+      _failed = false;
+      _paused = false;
+    });
+    await _initVideo();
+  }
+
+  void _startStallWatchdog() {
+    _stallTimer?.cancel();
+    _stallTicks = 0;
+    _lastWatchedPosition = _player?.state.position ?? Duration.zero;
+    _stallTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      if (!mounted || _paused || _failed) return;
+      final player = _player;
+      if (player == null) return;
+      if (player.state.duration <= Duration.zero) return;
+      final position = player.state.position;
+      if (position == _lastWatchedPosition) {
+        _stallTicks++;
+        if (_stallTicks >= 2) {
+          _stallTicks = 0;
+          if (_autoReinitCount < _maxAutoReinits) {
+            _autoReinitCount++;
+            debugPrint(
+              'Reel ${widget.reel.id} stalled at $position — '
+              'forcing reinit ($_autoReinitCount/$_maxAutoReinits).',
+            );
+            _retryVideo();
+          } else {
+            debugPrint(
+              'Reel ${widget.reel.id} still stalled after '
+              '$_maxAutoReinits auto-reinits — giving up.',
+            );
+            _stopStallWatchdog();
+            if (mounted) setState(() => _failed = true);
+          }
+        }
+      } else {
+        _stallTicks = 0;
+        _lastWatchedPosition = position;
+      }
+    });
+  }
+
+  void _stopStallWatchdog() {
+    _stallTimer?.cancel();
+    _stallTimer = null;
+  }
+
   @override
   void dispose() {
-    _controller?.dispose();
+    _stopStallWatchdog();
+    _errorSub?.cancel();
+    _player?.dispose();
     super.dispose();
   }
 
   void _togglePause() {
-    final controller = _controller;
-    if (controller == null || !controller.value.isInitialized) return;
+    if (_failed) {
+      _autoReinitCount = 0;
+      _retryVideo();
+      return;
+    }
+    final player = _player;
+    if (player == null) return;
     setState(() {
       _paused = !_paused;
-      _paused ? controller.pause() : controller.play();
+      if (_paused) {
+        player.pause();
+        _stopStallWatchdog();
+      } else {
+        player.play();
+        _startStallWatchdog();
+      }
     });
   }
 
@@ -212,19 +327,18 @@ class _ReelPageState extends State<_ReelPage> {
     final reel = widget.reel;
     final isMine = widget.myId != null && widget.myId == reel.creatorId;
 
-    return GestureDetector(
+    return DoubleTapLike(
+      isLiked: _liked,
+      onLike: _toggleLike,
       onTap: _togglePause,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (_ready && _controller != null)
-            FittedBox(
+          if (_ready && _videoController != null)
+            Video(
+              controller: _videoController!,
               fit: BoxFit.cover,
-              child: SizedBox(
-                width: _controller!.value.size.width,
-                height: _controller!.value.size.height,
-                child: VideoPlayer(_controller!),
-              ),
+              controls: NoVideoControls,
             )
           else
             Stack(
@@ -233,17 +347,29 @@ class _ReelPageState extends State<_ReelPage> {
                 ReelThumbnail(thumbnailUrl: reel.thumbnailUrl),
                 if (_failed)
                   const Center(
-                    child: Icon(
-                      Icons.videocam_off_rounded,
-                      color: Colors.white30,
-                      size: 64,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.videocam_off_rounded,
+                          color: Colors.white70,
+                          size: 56,
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          'Video unavailable — tap to retry',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
                     ),
                   )
                 else
-                  const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.amber,
-                    ),
+                  Center(
+                    child: CircularProgressIndicator(color: AppColors.amber),
                   ),
               ],
             ),
@@ -262,7 +388,9 @@ class _ReelPageState extends State<_ReelPage> {
             child: Column(
               children: [
                 _RailIcon(
-                  icon: _liked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                  icon: _liked
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
                   color: _liked ? AppColors.amber : Colors.white,
                   label: '$_likeCount',
                   onTap: _toggleLike,
@@ -276,7 +404,9 @@ class _ReelPageState extends State<_ReelPage> {
                 ),
                 const SizedBox(height: 18),
                 _RailIcon(
-                  icon: _saved ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
+                  icon: _saved
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_border_rounded,
                   color: _saved ? AppColors.amber : Colors.white,
                   label: 'Save',
                   onTap: _toggleSave,

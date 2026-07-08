@@ -42,7 +42,10 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
     if (t.isEmpty) return;
     _controller.clear();
     final history = _messages
-        .map((m) => AiMessage(role: m.isAI ? 'assistant' : 'user', content: m.text))
+        .map(
+          (m) =>
+              AiMessage(role: m.isAI ? 'assistant' : 'user', content: m.text),
+        )
         .toList();
     setState(() {
       _messages.add(_Msg(text: t, isAI: false));
@@ -60,10 +63,12 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
       if (!mounted) return;
       setState(() {
         _isTyping = false;
-        _messages.add(const _Msg(
-          text: 'Sorry, I could not reach the server. Please try again.',
-          isAI: true,
-        ));
+        _messages.add(
+          const _Msg(
+            text: 'Sorry, I could not reach the server. Please try again.',
+            isAI: true,
+          ),
+        );
       });
     }
     _scrollToBottom();
@@ -149,7 +154,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                       Container(
                         width: 42,
                         height: 42,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           gradient: AppColors.accentGradient,
                         ),
@@ -193,9 +198,13 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                             color: AppColors.amber.withValues(alpha: 0.3),
                           ),
                         ),
-                        child: const Row(
+                        child: Row(
                           children: [
-                            Icon(Icons.circle, color: Color(0xFF10B981), size: 8),
+                            Icon(
+                              Icons.circle,
+                              color: Color(0xFF10B981),
+                              size: 8,
+                            ),
                             SizedBox(width: 5),
                             Text(
                               'Online',
@@ -212,7 +221,10 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                Container(height: 1, color: Colors.white.withValues(alpha: 0.08)),
+                Container(
+                  height: 1,
+                  color: Colors.white.withValues(alpha: 0.08),
+                ),
 
                 // ── Messages ──────────────────────────────────────────────
                 Expanded(
@@ -278,8 +290,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(26),
                           child: BackdropFilter(
-                            filter:
-                                ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                             child: TextField(
                               controller: _controller,
                               style: const TextStyle(
@@ -293,8 +304,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                                   fontSize: 14,
                                 ),
                                 filled: true,
-                                fillColor:
-                                    Colors.white.withValues(alpha: 0.07),
+                                fillColor: Colors.white.withValues(alpha: 0.07),
                                 contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 18,
                                   vertical: 12,
@@ -313,7 +323,7 @@ class _AIChatbotScreenState extends State<AIChatbotScreen> {
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(26),
-                                  borderSide: const BorderSide(
+                                  borderSide: BorderSide(
                                     color: AppColors.amber,
                                     width: 1.4,
                                   ),
@@ -371,8 +381,9 @@ class _ChatBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
-        mainAxisAlignment:
-            msg.isAI ? MainAxisAlignment.start : MainAxisAlignment.end,
+        mainAxisAlignment: msg.isAI
+            ? MainAxisAlignment.start
+            : MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (msg.isAI) ...[
@@ -380,7 +391,7 @@ class _ChatBubble extends StatelessWidget {
               width: 30,
               height: 30,
               margin: const EdgeInsets.only(right: 8, bottom: 2),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: AppColors.accentGradient,
               ),
@@ -393,8 +404,7 @@ class _ChatBubble extends StatelessWidget {
           ],
           Flexible(
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 gradient: msg.isAI ? null : AppColors.accentGradient,
                 color: msg.isAI ? Colors.white.withValues(alpha: 0.08) : null,
@@ -440,7 +450,7 @@ class _TypingBubble extends StatelessWidget {
             width: 30,
             height: 30,
             margin: const EdgeInsets.only(right: 8, bottom: 2),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: AppColors.accentGradient,
             ),
@@ -451,8 +461,7 @@ class _TypingBubble extends StatelessWidget {
             ),
           ),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.08),
               borderRadius: const BorderRadius.only(
@@ -502,9 +511,10 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
     Future.delayed(Duration(milliseconds: widget.delay), () {
       if (mounted) _ctrl.repeat(reverse: true);
     });
-    _anim = Tween<double>(begin: 0.3, end: 1.0).animate(
-      CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut),
-    );
+    _anim = Tween<double>(
+      begin: 0.3,
+      end: 1.0,
+    ).animate(CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
   }
 
   @override

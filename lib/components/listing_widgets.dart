@@ -47,7 +47,13 @@ String mockImageFor(String category, int id) {
 /// small tag on the end of the real `description` field it already accepts
 /// — this keeps it genuinely backend-persisted and consistent for every
 /// viewer/device, rather than a client-only guess or local-only override.
-const listingCategories = ['Development', 'AI', 'Design', 'Business', 'Community'];
+const listingCategories = [
+  'Development',
+  'AI',
+  'Design',
+  'Business',
+  'Community',
+];
 
 final _categoryTagPattern = RegExp(r'\s*\[cat:(\w+)\]\s*$');
 
@@ -107,10 +113,14 @@ class ListingCategoryChip extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: selected ? AppColors.listingAccent : AppColors.listingAccentSoft.withValues(alpha: 0.35),
+          color: selected
+              ? AppColors.listingAccent
+              : AppColors.listingAccentSoft.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
-            color: selected ? AppColors.listingAccent : AppColors.listingAccentSoft,
+            color: selected
+                ? AppColors.listingAccent
+                : AppColors.listingAccentSoft,
           ),
         ),
         child: Row(
@@ -177,13 +187,21 @@ class UpcomingPastToggle extends StatelessWidget {
           color: active ? AppColors.listingCard : Colors.transparent,
           borderRadius: BorderRadius.circular(11),
           boxShadow: active
-              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 6, offset: const Offset(0, 2))]
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
               : null,
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: active ? AppColors.listingAccent : AppColors.listingTextMuted,
+            color: active
+                ? AppColors.listingAccent
+                : AppColors.listingTextMuted,
             fontWeight: FontWeight.w700,
             fontSize: 13,
           ),
@@ -226,78 +244,112 @@ class ListingPopularCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(22),
       child: Container(
-      width: 260,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.12), blurRadius: 16, offset: const Offset(0, 8))],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            Image.network(imageUrl, fit: BoxFit.cover),
-            Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Colors.black.withValues(alpha: 0.78)],
-                  stops: const [0.35, 1],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 14,
-              right: 14,
-              bottom: 14,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(Icons.calendar_today_rounded, size: 12, color: Colors.white70),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          dateText,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Colors.white70, fontSize: 11.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on_rounded, size: 12, color: Colors.white70),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          locationText,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Colors.white70, fontSize: 11.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  _JoinButton(label: ctaLabel, busy: ctaBusy, done: ctaDone, onTap: onCta, fullWidth: true, isPast: isPast),
-                ],
-              ),
+        width: 260,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.12),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
-      ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              Image.network(imageUrl, fit: BoxFit.cover),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.transparent,
+                      Colors.black.withValues(alpha: 0.78),
+                    ],
+                    stops: const [0.35, 1],
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 14,
+                right: 14,
+                bottom: 14,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.calendar_today_rounded,
+                          size: 12,
+                          color: Colors.white70,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            dateText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.location_on_rounded,
+                          size: 12,
+                          color: Colors.white70,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            locationText,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    _JoinButton(
+                      label: ctaLabel,
+                      busy: ctaBusy,
+                      done: ctaDone,
+                      onTap: onCta,
+                      fullWidth: true,
+                      isPast: isPast,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -351,88 +403,152 @@ class ListingRowCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
-      decoration: BoxDecoration(
-        color: AppColors.listingCard,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.listingCardBorder),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.16), blurRadius: 14, offset: const Offset(0, 6))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                child: Image.network(imageUrl, width: double.infinity, height: 160, fit: BoxFit.cover),
-              ),
-              if (canDelete)
-                Positioned(
-                  left: 10,
-                  top: 10,
-                  child: InkWell(
-                    onTap: deleting ? null : onDelete,
-                    borderRadius: BorderRadius.circular(999),
-                    child: Container(
-                      padding: const EdgeInsets.all(7),
-                      decoration: BoxDecoration(color: Colors.black.withValues(alpha: 0.5), shape: BoxShape.circle),
-                      child: deleting
-                          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : const Icon(Icons.delete_outline_rounded, size: 16, color: Colors.white),
-                    ),
+        decoration: BoxDecoration(
+          color: AppColors.listingCard,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.listingCardBorder),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.16),
+              blurRadius: 14,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                  child: Image.network(
+                    imageUrl,
+                    width: double.infinity,
+                    height: 160,
+                    fit: BoxFit.cover,
                   ),
                 ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: AppColors.listingInk, fontWeight: FontWeight.w700, fontSize: 15),
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Icons.calendar_today_rounded, size: 12, color: AppColors.listingTextMuted),
-                    const SizedBox(width: 4),
-                    Text(dateText, style: const TextStyle(color: AppColors.listingTextMuted, fontSize: 12)),
-                    const SizedBox(width: 10),
-                    const Icon(Icons.location_on_rounded, size: 12, color: AppColors.listingTextMuted),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: Text(
-                        locationText,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: AppColors.listingTextMuted, fontSize: 12),
+                if (canDelete)
+                  Positioned(
+                    left: 10,
+                    top: 10,
+                    child: InkWell(
+                      onTap: deleting ? null : onDelete,
+                      borderRadius: BorderRadius.circular(999),
+                      child: Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: deleting
+                            ? const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.delete_outline_rounded,
+                                size: 16,
+                                color: Colors.white,
+                              ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    if (seatsLabel != null) ...[
-                      const Icon(Icons.event_seat_outlined, size: 15, color: AppColors.listingTextMuted),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(seatsLabel!, style: const TextStyle(color: AppColors.listingTextMuted, fontSize: 12)),
-                      ),
-                    ] else
-                      const Spacer(),
-                    _JoinButton(label: ctaLabel, busy: ctaBusy, done: ctaDone, onTap: onCta, isPast: isPast),
-                  ],
-                ),
+                  ),
               ],
             ),
-          ),
-        ],
-      ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: AppColors.listingInk,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today_rounded,
+                        size: 12,
+                        color: AppColors.listingTextMuted,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        dateText,
+                        style: TextStyle(
+                          color: AppColors.listingTextMuted,
+                          fontSize: 12,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Icon(
+                        Icons.location_on_rounded,
+                        size: 12,
+                        color: AppColors.listingTextMuted,
+                      ),
+                      const SizedBox(width: 4),
+                      Expanded(
+                        child: Text(
+                          locationText,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: AppColors.listingTextMuted,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      if (seatsLabel != null) ...[
+                        Icon(
+                          Icons.event_seat_outlined,
+                          size: 15,
+                          color: AppColors.listingTextMuted,
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            seatsLabel!,
+                            style: TextStyle(
+                              color: AppColors.listingTextMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ] else
+                        const Spacer(),
+                      _JoinButton(
+                        label: ctaLabel,
+                        busy: ctaBusy,
+                        done: ctaDone,
+                        onTap: onCta,
+                        isPast: isPast,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -465,9 +581,13 @@ class _JoinButton extends StatelessWidget {
           color: AppColors.listingTextMuted.withValues(alpha: 0.2),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: const Text(
+        child: Text(
           'Finished',
-          style: TextStyle(color: AppColors.listingTextMuted, fontWeight: FontWeight.w700, fontSize: 12.5),
+          style: TextStyle(
+            color: AppColors.listingTextMuted,
+            fontWeight: FontWeight.w700,
+            fontSize: 12.5,
+          ),
         ),
       );
       return fullWidth ? SizedBox(width: double.infinity, child: child) : child;
@@ -481,10 +601,21 @@ class _JoinButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
       child: busy
-          ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+          ? const SizedBox(
+              width: 14,
+              height: 14,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+              ),
+            )
           : Text(
               done ? 'Booked ✓' : label,
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12.5),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 12.5,
+              ),
             ),
     );
     return InkWell(
@@ -494,4 +625,3 @@ class _JoinButton extends StatelessWidget {
     );
   }
 }
-

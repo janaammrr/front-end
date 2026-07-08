@@ -39,15 +39,21 @@ class _CommentsSheetState extends State<_CommentsSheet> {
   void initState() {
     super.initState();
     _loadComments();
-    UserService.getMe().then((me) {
-      if (mounted) setState(() => _me = me);
-    }).catchError((_) {});
+    UserService.getMe()
+        .then((me) {
+          if (mounted) setState(() => _me = me);
+        })
+        .catchError((_) {});
   }
 
   Future<void> _loadComments() async {
     try {
       final comments = await CommentService.getComments(widget.reelId);
-      if (mounted) setState(() { _comments = comments; _loading = false; });
+      if (mounted)
+        setState(() {
+          _comments = comments;
+          _loading = false;
+        });
     } catch (_) {
       if (mounted) setState(() => _loading = false);
     }
@@ -65,9 +71,11 @@ class _CommentsSheetState extends State<_CommentsSheet> {
           _posting = false;
         });
         _controller.clear();
-        _scrollController.animateTo(0,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut);
+        _scrollController.animateTo(
+          0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
       }
     } catch (_) {
       if (mounted) setState(() => _posting = false);
@@ -89,14 +97,15 @@ class _CommentsSheetState extends State<_CommentsSheet> {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
         child: Container(
-          constraints:
-              BoxConstraints(maxHeight: MediaQuery.sizeOf(context).height * 0.85),
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.sizeOf(context).height * 0.85,
+          ),
           decoration: BoxDecoration(
             color: AppColors.surface.withValues(alpha: 0.97),
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(26)),
-            border:
-                Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.12))),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(26)),
+            border: Border(
+              top: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+            ),
           ),
           child: Column(
             children: [
@@ -105,18 +114,22 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                 height: 4,
                 margin: const EdgeInsets.only(top: 12),
                 decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(999)),
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(999),
+                ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 14, 20, 10),
                 child: Row(
                   children: [
-                    Text('${_comments.length} Comments',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 17,
-                            fontWeight: FontWeight.w700)),
+                    Text(
+                      '${_comments.length} Comments',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const Spacer(),
                     GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
@@ -124,10 +137,14 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                         width: 32,
                         height: 32,
                         decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.08),
-                            shape: BoxShape.circle),
-                        child: const Icon(Icons.close_rounded,
-                            color: Colors.white70, size: 18),
+                          color: Colors.white.withValues(alpha: 0.08),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close_rounded,
+                          color: Colors.white70,
+                          size: 18,
+                        ),
                       ),
                     ),
                   ],
@@ -136,54 +153,62 @@ class _CommentsSheetState extends State<_CommentsSheet> {
               Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
               Expanded(
                 child: _loading
-                    ? const Center(
+                    ? Center(
                         child: CircularProgressIndicator(
-                            color: AppColors.amber))
+                          color: AppColors.amber,
+                        ),
+                      )
                     : _comments.isEmpty
-                        ? const Center(
-                            child: Text('No comments yet',
-                                style: TextStyle(color: AppColors.text3)))
-                        : ListView.separated(
-                            controller: _scrollController,
-                            padding:
-                                const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                            itemCount: _comments.length,
-                            separatorBuilder: (_, __) =>
-                                const SizedBox(height: 16),
-                            itemBuilder: (_, i) {
-                              final c = _comments[i];
-                              return Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  UserAvatar(
-                                    displayName: c.user.name,
-                                    username: c.user.username,
-                                    radius: 18,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(c.user.name,
-                                            style: const TextStyle(
-                                                color: Colors.white,
-                                                fontWeight: FontWeight.w700,
-                                                fontSize: 13)),
-                                        const SizedBox(height: 4),
-                                        Text(c.content,
-                                            style: const TextStyle(
-                                                color: AppColors.text2,
-                                                fontSize: 13.5,
-                                                height: 1.4)),
-                                      ],
+                    ? Center(
+                        child: Text(
+                          'No comments yet',
+                          style: TextStyle(color: AppColors.text3),
+                        ),
+                      )
+                    : ListView.separated(
+                        controller: _scrollController,
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                        itemCount: _comments.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 16),
+                        itemBuilder: (_, i) {
+                          final c = _comments[i];
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              UserAvatar(
+                                displayName: c.user.name,
+                                username: c.user.username,
+                                radius: 18,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      c.user.name,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 13,
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      c.content,
+                                      style: TextStyle(
+                                        color: AppColors.text2,
+                                        fontSize: 13.5,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
               ),
               Divider(color: Colors.white.withValues(alpha: 0.08), height: 1),
               Padding(
@@ -199,26 +224,37 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                     Expanded(
                       child: TextField(
                         controller: _controller,
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 14),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
                         decoration: InputDecoration(
                           hintText: 'Add a comment…',
-                          hintStyle: const TextStyle(
-                              color: AppColors.text3, fontSize: 14),
+                          hintStyle: TextStyle(
+                            color: AppColors.text3,
+                            fontSize: 14,
+                          ),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.07),
                           contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 10),
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
                           border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(22),
-                              borderSide: BorderSide.none),
+                            borderRadius: BorderRadius.circular(22),
+                            borderSide: BorderSide.none,
+                          ),
                           enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(22),
-                              borderSide: BorderSide.none),
+                            borderRadius: BorderRadius.circular(22),
+                            borderSide: BorderSide.none,
+                          ),
                           focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(22),
-                              borderSide: const BorderSide(
-                                  color: AppColors.amber, width: 1.2)),
+                            borderRadius: BorderRadius.circular(22),
+                            borderSide: BorderSide(
+                              color: AppColors.amber,
+                              width: 1.2,
+                            ),
+                          ),
                         ),
                         onSubmitted: (_) => _sendComment(),
                       ),
@@ -239,9 +275,15 @@ class _CommentsSheetState extends State<_CommentsSheet> {
                             ? const Padding(
                                 padding: EdgeInsets.all(10),
                                 child: CircularProgressIndicator(
-                                    strokeWidth: 2, color: Colors.white))
-                            : const Icon(Icons.send_rounded,
-                                color: Colors.white, size: 18),
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(
+                                Icons.send_rounded,
+                                color: Colors.white,
+                                size: 18,
+                              ),
                       ),
                     ),
                   ],

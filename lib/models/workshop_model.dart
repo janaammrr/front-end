@@ -33,7 +33,8 @@ class WorkshopModel {
       capacity == null ? null : (capacity! - bookedCount).clamp(0, capacity!);
 
   factory WorkshopModel.fromJson(Map<String, dynamic> json) {
-    final startDateRaw = json['date'] as String? ?? json['startDate'] as String?;
+    final startDateRaw =
+        json['date'] as String? ?? json['startDate'] as String?;
     final categories = json['category'];
     return WorkshopModel(
       id: (json['id'] as num).toInt(),
@@ -46,8 +47,12 @@ class WorkshopModel {
       endDateRaw: json['endDate'] as String?,
       price: (json['price'] as num?)?.toDouble(),
       bookedCount: (json['bookedCount'] as num?)?.toInt() ?? 0,
-      category: categories is List && categories.isNotEmpty ? categories.first as String? : null,
-      bannerUrl: (json['banner'] as String?)?.isNotEmpty == true ? json['banner'] as String? : null,
+      category: categories is List && categories.isNotEmpty
+          ? categories.first as String?
+          : null,
+      bannerUrl: (json['banner'] as String?)?.isNotEmpty == true
+          ? json['banner'] as String?
+          : null,
     );
   }
 }

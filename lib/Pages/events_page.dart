@@ -150,7 +150,7 @@ class _EventsPageState extends State<EventsPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
+      return Scaffold(
         backgroundColor: AppColors.listingBg,
         body: Center(
           child: CircularProgressIndicator(color: AppColors.listingAccent),
@@ -164,16 +164,13 @@ class _EventsPageState extends State<EventsPage> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 Icons.wifi_off_rounded,
                 color: AppColors.listingTextMuted,
                 size: 48,
               ),
               const SizedBox(height: 12),
-              Text(
-                _error!,
-                style: const TextStyle(color: AppColors.listingInk),
-              ),
+              Text(_error!, style: TextStyle(color: AppColors.listingInk)),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: () {
@@ -247,7 +244,7 @@ class _EventsPageState extends State<EventsPage> {
                       ),
                       const SizedBox(height: 22),
                     ],
-                    const Text(
+                    Text(
                       'Choose By Category',
                       style: TextStyle(
                         color: AppColors.listingInk,
@@ -322,7 +319,7 @@ class _SectionHeader extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             color: AppColors.listingInk,
             fontWeight: FontWeight.w800,
             fontSize: 16,
@@ -505,13 +502,13 @@ class _EventRowState extends State<_EventRow> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.listingCard,
-        title: const Text(
+        title: Text(
           'Delete event',
           style: TextStyle(color: AppColors.listingInk),
         ),
         content: Text(
           'Delete ${widget.event.name}?',
-          style: const TextStyle(color: AppColors.listingTextMuted),
+          style: TextStyle(color: AppColors.listingTextMuted),
         ),
         actions: [
           TextButton(
@@ -583,7 +580,7 @@ class _EmptyState extends StatelessWidget {
         color: AppColors.listingCard,
         border: Border.all(color: AppColors.listingCardBorder),
       ),
-      child: const Row(
+      child: Row(
         children: [
           Icon(Icons.event_busy_rounded, color: AppColors.listingTextMuted),
           SizedBox(width: 10),
@@ -686,7 +683,7 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
                   padding: const EdgeInsets.fromLTRB(20, 18, 12, 14),
                   child: Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -716,7 +713,7 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
                     ],
                   ),
                 ),
-                const Divider(color: AppColors.listingCardBorder, height: 1),
+                Divider(color: AppColors.listingCardBorder, height: 1),
                 Expanded(
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
@@ -856,7 +853,7 @@ class _FormFieldBlock extends StatelessWidget {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.listingInk,
               fontWeight: FontWeight.w600,
             ),
@@ -887,10 +884,10 @@ class _StyledTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       maxLines: maxLines,
-      style: const TextStyle(color: AppColors.listingInk),
+      style: TextStyle(color: AppColors.listingInk),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.listingTextMuted),
+        hintStyle: TextStyle(color: AppColors.listingTextMuted),
         prefixIcon: prefixIcon == null
             ? null
             : Icon(prefixIcon, color: AppColors.listingTextMuted),

@@ -119,17 +119,17 @@ class _DmPickerSheetState extends State<DmPickerSheet> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: AppColors.text1.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
                 ),
                 Row(
                   children: [
-                    const Text(
+                    Text(
                       'Send to',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.text1,
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
                       ),
@@ -139,7 +139,7 @@ class _DmPickerSheetState extends State<DmPickerSheet> {
                       onTap: () => Navigator.of(context).pop(),
                       child: Icon(
                         Icons.close_rounded,
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: AppColors.text2,
                         size: 22,
                       ),
                     ),
@@ -149,20 +149,20 @@ class _DmPickerSheetState extends State<DmPickerSheet> {
                 TextField(
                   controller: _search,
                   onChanged: (_) => setState(() {}),
-                  style: const TextStyle(fontSize: 14, color: Colors.white),
+                  style: TextStyle(fontSize: 14, color: AppColors.text1),
                   decoration: InputDecoration(
                     hintText: 'Search friends...',
                     hintStyle: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.35),
+                      color: AppColors.text3,
                       fontSize: 14,
                     ),
                     prefixIcon: Icon(
                       Icons.search,
-                      color: Colors.white.withValues(alpha: 0.4),
+                      color: AppColors.text3,
                       size: 20,
                     ),
                     filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.07),
+                    fillColor: AppColors.text1.withValues(alpha: 0.07),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 14,
                       vertical: 10,
@@ -170,12 +170,12 @@ class _DmPickerSheetState extends State<DmPickerSheet> {
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
                       borderSide: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: AppColors.text1.withValues(alpha: 0.1),
                       ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(
+                      borderSide: BorderSide(
                         color: AppColors.amber,
                         width: 1.5,
                       ),
@@ -188,18 +188,18 @@ class _DmPickerSheetState extends State<DmPickerSheet> {
                     maxHeight: MediaQuery.of(context).size.height * 0.42,
                   ),
                   child: _loading
-                      ? const Center(
+                      ? Center(
                           child: CircularProgressIndicator(
                             color: AppColors.amber,
                           ),
                         )
                       : _filtered.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Padding(
-                            padding: EdgeInsets.all(24),
+                            padding: const EdgeInsets.all(24),
                             child: Text(
                               'Follow someone first to share in chat.',
-                              style: TextStyle(color: Colors.white54),
+                              style: TextStyle(color: AppColors.text2),
                             ),
                           ),
                         )
@@ -208,7 +208,7 @@ class _DmPickerSheetState extends State<DmPickerSheet> {
                           shrinkWrap: true,
                           itemCount: filtered.length,
                           separatorBuilder: (_, __) => Divider(
-                            color: Colors.white.withValues(alpha: 0.06),
+                            color: AppColors.text1.withValues(alpha: 0.06),
                             height: 1,
                           ),
                           itemBuilder: (ctx, i) {
@@ -236,7 +236,7 @@ class _DmPickerSheetState extends State<DmPickerSheet> {
   // On-brand contact avatar gradients, replacing the previous unrelated
   // purple/teal/brown/indigo hues with variations of the site's palette.
   List<Color> _dmGradient(int i) {
-    const gradients = [
+    final gradients = [
       [AppColors.amber, AppColors.surface2],
       [AppColors.surface2, AppColors.surface],
       [AppColors.borderHi, AppColors.surface2],
@@ -300,8 +300,8 @@ class _DmContactTile extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.text1,
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
@@ -325,7 +325,7 @@ class _DmContactTile extends StatelessWidget {
                       style: TextStyle(
                         color: status == 'Online'
                             ? const Color(0xFF22C55E)
-                            : Colors.white.withValues(alpha: 0.4),
+                            : AppColors.text3,
                         fontSize: 12,
                       ),
                     ),
@@ -342,13 +342,13 @@ class _DmContactTile extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: sent
                     ? null
-                    : const LinearGradient(
+                    : LinearGradient(
                         colors: [AppColors.amber, AppColors.amberSoft],
                       ),
-                color: sent ? Colors.white.withValues(alpha: 0.08) : null,
+                color: sent ? AppColors.text1.withValues(alpha: 0.08) : null,
                 borderRadius: BorderRadius.circular(999),
                 border: sent
-                    ? Border.all(color: Colors.white.withValues(alpha: 0.15))
+                    ? Border.all(color: AppColors.text1.withValues(alpha: 0.15))
                     : null,
                 boxShadow: sent
                     ? null

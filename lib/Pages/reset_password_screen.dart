@@ -61,7 +61,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     } on DioException catch (e) {
       if (mounted) {
         setState(() => _busy = false);
-        _showError(ApiClient.errorMessage(e, fallback: 'Could not reset password.'));
+        _showError(
+          ApiClient.errorMessage(e, fallback: 'Could not reset password.'),
+        );
       }
     } catch (_) {
       if (mounted) {
@@ -72,7 +74,9 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -108,7 +112,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                             alignment: Alignment.topLeft,
                             child: IconButton(
                               onPressed: () => Navigator.of(context).pop(),
-                              icon: const Icon(
+                              icon: Icon(
                                 Icons.arrow_back_ios_new_rounded,
                                 color: AppColors.text1,
                               ),
@@ -132,7 +136,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                         const SizedBox(height: 10),
                         if (_done) ...[
                           const SizedBox(height: 8),
-                          const Text(
+                          Text(
                             'Your password has been updated. Please sign in again.',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: AppColors.text2),
@@ -149,7 +153,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 ),
                           ),
                         ] else ...[
-                          const Text(
+                          Text(
                             'Paste the code from your reset email and choose a new password.',
                             textAlign: TextAlign.center,
                             style: TextStyle(color: AppColors.text2),
@@ -174,7 +178,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                           ),
                           const SizedBox(height: 20),
                           _busy
-                              ? const CircularProgressIndicator(
+                              ? CircularProgressIndicator(
                                   color: AppColors.amber,
                                 )
                               : MyButton(

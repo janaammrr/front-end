@@ -89,10 +89,7 @@ class _AppNavItem extends StatelessWidget {
           children: [
             Icon(icon, color: color, size: 22),
             const SizedBox(height: 1),
-            Text(
-              label,
-              style: TextStyle(color: color, fontSize: 10),
-            ),
+            Text(label, style: TextStyle(color: color, fontSize: 10)),
           ],
         ),
       ),

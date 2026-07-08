@@ -62,7 +62,10 @@ class _TrendingScreenState extends State<TrendingScreen> {
       _error = null;
     });
     try {
-      final results = await Future.wait([PostService.getAll(), ReelService.getAll()]);
+      final results = await Future.wait([
+        PostService.getAll(),
+        ReelService.getAll(),
+      ]);
       final posts = results[0] as List<PostModel>;
       final reels = results[1] as List<ReelModel>;
 
@@ -77,7 +80,12 @@ class _TrendingScreenState extends State<TrendingScreen> {
           commentOrViewIcon: Icons.visibility_rounded,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => ReelViewerScreen(reels: reels, initialIndex: reels.indexOf(reel))),
+            MaterialPageRoute(
+              builder: (_) => ReelViewerScreen(
+                reels: reels,
+                initialIndex: reels.indexOf(reel),
+              ),
+            ),
           ),
         );
       }).toList();
@@ -93,12 +101,15 @@ class _TrendingScreenState extends State<TrendingScreen> {
           commentOrViewIcon: Icons.chat_bubble_outline_rounded,
           onTap: () => Navigator.push(
             context,
-            MaterialPageRoute(builder: (_) => PostDetailScreen(postId: post.id)),
+            MaterialPageRoute(
+              builder: (_) => PostDetailScreen(postId: post.id),
+            ),
           ),
         );
       }).toList();
 
-      final all = [...reelItems, ...postItems]..sort((a, b) => b.likeCount.compareTo(a.likeCount));
+      final all = [...reelItems, ...postItems]
+        ..sort((a, b) => b.likeCount.compareTo(a.likeCount));
       final visual = all.where((e) => e.hasImage).take(20).toList();
       final text = all.where((e) => !e.hasImage).take(15).toList();
 
@@ -111,7 +122,10 @@ class _TrendingScreenState extends State<TrendingScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = ApiClient.errorMessage(e, fallback: 'Could not load trending content.');
+        _error = ApiClient.errorMessage(
+          e,
+          fallback: 'Could not load trending content.',
+        );
         _loading = false;
       });
     }
@@ -124,11 +138,17 @@ class _TrendingScreenState extends State<TrendingScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         elevation: 0,
-        title: const Row(
+        title: Row(
           children: [
-            Text('Trending', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-            SizedBox(width: 6),
-            Text('🔥'),
+            Text(
+              'Trending',
+              style: TextStyle(
+                color: AppColors.text1,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(width: 6),
+            const Text('🔥'),
           ],
         ),
       ),
@@ -138,7 +158,7 @@ class _TrendingScreenState extends State<TrendingScreen> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.amber));
+      return Center(child: CircularProgressIndicator(color: AppColors.amber));
     }
     if (_error != null) {
       return Center(
@@ -147,11 +167,17 @@ class _TrendingScreenState extends State<TrendingScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.text2),
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _load,
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.amber,
+                ),
                 child: const Text('Retry'),
               ),
             ],
@@ -160,8 +186,11 @@ class _TrendingScreenState extends State<TrendingScreen> {
       );
     }
     if (_visualItems.isEmpty && _textItems.isEmpty) {
-      return const Center(
-        child: Text('Nothing trending right now.', style: TextStyle(color: Colors.white54)),
+      return Center(
+        child: Text(
+          'Nothing trending right now.',
+          style: TextStyle(color: AppColors.text2),
+        ),
       );
     }
 
@@ -182,9 +211,22 @@ class _TrendingScreenState extends State<TrendingScreen> {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(color: AppColors.amber, borderRadius: BorderRadius.circular(999)),
-                  child: const Text('All', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.amber,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Text(
+                    'All',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -194,9 +236,21 @@ class _TrendingScreenState extends State<TrendingScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: Column(children: [for (final item in left) _VisualCard(item: item)])),
+                Expanded(
+                  child: Column(
+                    children: [
+                      for (final item in left) _VisualCard(item: item),
+                    ],
+                  ),
+                ),
                 const SizedBox(width: 8),
-                Expanded(child: Column(children: [for (final item in right) _VisualCard(item: item)])),
+                Expanded(
+                  child: Column(
+                    children: [
+                      for (final item in right) _VisualCard(item: item),
+                    ],
+                  ),
+                ),
               ],
             ),
           for (final item in _textItems) _TextCard(item: item),
@@ -227,7 +281,8 @@ class _VisualCard extends StatelessWidget {
                 child: Image.network(
                   item.imageUrl!,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: AppColors.surface2),
+                  errorBuilder: (_, __, ___) =>
+                      Container(color: AppColors.surface2),
                 ),
               ),
               Positioned(
@@ -240,7 +295,10 @@ class _VisualCard extends StatelessWidget {
                     gradient: LinearGradient(
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
-                      colors: [Colors.transparent, Colors.black.withValues(alpha: 0.75)],
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.75),
+                      ],
                     ),
                   ),
                   child: Column(
@@ -250,18 +308,42 @@ class _VisualCard extends StatelessWidget {
                         item.title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12.5),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12.5,
+                        ),
                       ),
                       const SizedBox(height: 3),
                       Row(
                         children: [
-                          const Icon(Icons.favorite_rounded, color: Colors.white70, size: 12),
+                          const Icon(
+                            Icons.favorite_rounded,
+                            color: Colors.white70,
+                            size: 12,
+                          ),
                           const SizedBox(width: 3),
-                          Text('${item.likeCount}', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                          Text(
+                            '${item.likeCount}',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                            ),
+                          ),
                           const SizedBox(width: 10),
-                          Icon(item.commentOrViewIcon, color: Colors.white70, size: 12),
+                          Icon(
+                            item.commentOrViewIcon,
+                            color: Colors.white70,
+                            size: 12,
+                          ),
                           const SizedBox(width: 3),
-                          Text('${item.commentOrViewCount}', style: const TextStyle(color: Colors.white70, fontSize: 11)),
+                          Text(
+                            '${item.commentOrViewCount}',
+                            style: const TextStyle(
+                              color: Colors.white70,
+                              fontSize: 11,
+                            ),
+                          ),
                         ],
                       ),
                     ],
@@ -272,7 +354,11 @@ class _VisualCard extends StatelessWidget {
                 const Positioned(
                   top: 8,
                   right: 8,
-                  child: Icon(Icons.play_circle_fill_rounded, color: Colors.white70, size: 20),
+                  child: Icon(
+                    Icons.play_circle_fill_rounded,
+                    color: Colors.white70,
+                    size: 20,
+                  ),
                 ),
             ],
           ),
@@ -300,7 +386,7 @@ class _TextCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.surface2,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            border: Border.all(color: AppColors.text1.withValues(alpha: 0.08)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -310,22 +396,46 @@ class _TextCard extends StatelessWidget {
                   UserAvatar(displayName: item.title, radius: 14),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: Text(item.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                    child: Text(
+                      item.title,
+                      style: TextStyle(
+                        color: AppColors.text1,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
-              Text(item.subtitle, style: const TextStyle(color: Colors.white70, height: 1.4)),
-              const Divider(color: Colors.white12, height: 24),
+              Text(
+                item.subtitle,
+                style: TextStyle(color: AppColors.text2, height: 1.4),
+              ),
+              Divider(color: AppColors.text1.withValues(alpha: 0.1), height: 24),
               Row(
                 children: [
-                  const Icon(Icons.favorite_border_rounded, color: Colors.white54, size: 18),
+                  Icon(
+                    Icons.favorite_border_rounded,
+                    color: AppColors.text2,
+                    size: 18,
+                  ),
                   const SizedBox(width: 6),
-                  Text('${item.likeCount}', style: const TextStyle(color: Colors.white70)),
+                  Text(
+                    '${item.likeCount}',
+                    style: TextStyle(color: AppColors.text2),
+                  ),
                   const SizedBox(width: 20),
-                  const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white54, size: 17),
+                  Icon(
+                    Icons.chat_bubble_outline_rounded,
+                    color: AppColors.text2,
+                    size: 17,
+                  ),
                   const SizedBox(width: 6),
-                  Text('${item.commentOrViewCount}', style: const TextStyle(color: Colors.white70)),
+                  Text(
+                    '${item.commentOrViewCount}',
+                    style: TextStyle(color: AppColors.text2),
+                  ),
                 ],
               ),
             ],

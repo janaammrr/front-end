@@ -286,17 +286,17 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                       height: 4,
                       margin: const EdgeInsets.only(bottom: 20),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: AppColors.text1.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(999),
                       ),
                     ),
                   ),
-                  const Text(
+                  Text(
                     'Create Community',
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                      color: AppColors.text1,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -325,14 +325,14 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                       height: 118,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.07),
+                        color: AppColors.text1.withValues(alpha: 0.07),
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.12),
+                          color: AppColors.text1.withValues(alpha: 0.12),
                         ),
                       ),
                       child: coverPhoto == null
-                          ? const Column(
+                          ? Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
                                 Icon(
@@ -340,11 +340,11 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                                   color: AppColors.amber,
                                   size: 28,
                                 ),
-                                SizedBox(height: 8),
+                                const SizedBox(height: 8),
                                 Text(
                                   'Select cover photo',
                                   style: TextStyle(
-                                    color: Colors.white,
+                                    color: AppColors.text1,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
@@ -396,7 +396,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                     width: double.infinity,
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
+                        gradient: LinearGradient(
                           colors: [AppColors.amber, AppColors.amberSoft],
                         ),
                         borderRadius: BorderRadius.circular(14),
@@ -517,8 +517,8 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
             const SizedBox(height: 20),
             Text(
               'No communities found',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: AppColors.text1,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
               ),
@@ -528,7 +528,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
               'Try a different search term.',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.5),
+                color: AppColors.text2,
                 fontSize: 13,
                 height: 1.45,
               ),
@@ -561,7 +561,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
       body: Stack(
         children: [
           Container(
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
@@ -580,10 +580,10 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.04),
+                        color: AppColors.text1.withValues(alpha: 0.04),
                         border: Border(
                           bottom: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.08),
+                            color: AppColors.text1.withValues(alpha: 0.08),
                           ),
                         ),
                       ),
@@ -597,10 +597,10 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                                 fit: BoxFit.contain,
                               ),
                               const SizedBox(width: 10),
-                              const Text(
+                              Text(
                                 'Communities',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.text1,
                                   fontSize: 20,
                                   fontWeight: FontWeight.w800,
                                 ),
@@ -619,18 +619,18 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                                 builder: (_) => const MessagingScreen(),
                               ),
                             ),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.chat_bubble_outline,
                               size: 22,
-                              color: Colors.white,
+                              color: AppColors.text1,
                             ),
                           ),
                           IconButton(
                             onPressed: _showCreateDialog,
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.add_circle_outline,
                               size: 24,
-                              color: Colors.white,
+                              color: AppColors.text1,
                             ),
                           ),
                         ],
@@ -645,20 +645,20 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                   child: TextField(
                     controller: _searchController,
                     onChanged: (_) => setState(() {}),
-                    style: const TextStyle(fontSize: 14, color: Colors.white),
+                    style: TextStyle(fontSize: 14, color: AppColors.text1),
                     decoration: InputDecoration(
                       hintText: 'Search communities...',
                       hintStyle: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.35),
+                        color: AppColors.text3,
                         fontSize: 14,
                       ),
                       prefixIcon: Icon(
                         Icons.search,
-                        color: Colors.white.withValues(alpha: 0.4),
+                        color: AppColors.text3,
                         size: 20,
                       ),
                       filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.06),
+                      fillColor: AppColors.text1.withValues(alpha: 0.06),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 10,
@@ -666,12 +666,12 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: AppColors.text1.withValues(alpha: 0.1),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(
+                        borderSide: BorderSide(
                           color: AppColors.amber,
                           width: 1.5,
                         ),
@@ -683,7 +683,7 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                 // ── List ─────────────────────────────────────────────────
                 Expanded(
                   child: _loading
-                      ? const Center(
+                      ? Center(
                           child: CircularProgressIndicator(
                             color: AppColors.amber,
                           ),
@@ -693,9 +693,9 @@ class _CommunitiesScreenState extends State<CommunitiesScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.error_outline,
-                                color: Colors.white38,
+                                color: AppColors.text3,
                                 size: 48,
                               ),
                               const SizedBox(height: 12),
@@ -768,9 +768,9 @@ class _MyCommunitiesListScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         elevation: 0,
-        title: const Text(
+        title: Text(
           'My Communities',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
+          style: TextStyle(color: AppColors.text1, fontWeight: FontWeight.w800),
         ),
       ),
       body: ListView.separated(
@@ -809,10 +809,10 @@ class _NotificationButton extends StatelessWidget {
       children: [
         IconButton(
           onPressed: onTap,
-          icon: const Icon(
+          icon: Icon(
             Icons.notifications_none_rounded,
             size: 23,
-            color: Colors.white,
+            color: AppColors.text1,
           ),
         ),
         if (count > 0)
@@ -934,8 +934,8 @@ class _SectionTitle extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.text1,
             fontSize: 18,
             fontWeight: FontWeight.w800,
           ),
@@ -946,7 +946,7 @@ class _SectionTitle extends StatelessWidget {
             onTap: onAction,
             child: Text(
               actionLabel!,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.amber,
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
@@ -968,13 +968,13 @@ class _InlineEmptyState extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: AppColors.text1.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        border: Border.all(color: AppColors.text1.withValues(alpha: 0.08)),
       ),
       child: Text(
         message,
-        style: TextStyle(color: Colors.white.withValues(alpha: 0.55)),
+        style: TextStyle(color: AppColors.text2),
       ),
     );
   }
@@ -993,9 +993,9 @@ class _MyCommunityCard extends StatelessWidget {
       child: Container(
         width: 184,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
+          color: AppColors.text1.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(color: AppColors.text1.withValues(alpha: 0.1)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1015,8 +1015,8 @@ class _MyCommunityCard extends StatelessWidget {
                     community.name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.text1,
                       fontWeight: FontWeight.w800,
                       fontSize: 14,
                       height: 1.15,
@@ -1033,7 +1033,7 @@ class _MyCommunityCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.55),
+                            color: AppColors.text2,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -1075,9 +1075,9 @@ class _RecommendedCommunityTile extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
+          color: AppColors.text1.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(17),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          border: Border.all(color: AppColors.text1.withValues(alpha: 0.1)),
         ),
         child: Row(
           children: [
@@ -1098,8 +1098,8 @@ class _RecommendedCommunityTile extends StatelessWidget {
                     community.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.text1,
                       fontWeight: FontWeight.w800,
                       fontSize: 15,
                     ),
@@ -1108,7 +1108,7 @@ class _RecommendedCommunityTile extends StatelessWidget {
                   Text(
                     '${community.memberCount} members',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: AppColors.text2,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1119,7 +1119,7 @@ class _RecommendedCommunityTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.58),
+                      color: AppColors.text2,
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -1131,7 +1131,7 @@ class _RecommendedCommunityTile extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.48),
+                        color: AppColors.text2,
                         fontSize: 12,
                         height: 1.25,
                       ),
@@ -1179,7 +1179,7 @@ class _JoinTextButton extends StatelessWidget {
         width: 108,
         child: Center(
           child: loading
-              ? const SizedBox(
+              ? SizedBox(
                   width: 16,
                   height: 16,
                   child: CircularProgressIndicator(
@@ -1192,7 +1192,7 @@ class _JoinTextButton extends StatelessWidget {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     color: disabled
-                        ? Colors.white.withValues(alpha: 0.45)
+                        ? AppColors.text3
                         : AppColors.amber,
                     fontWeight: FontWeight.w800,
                     fontSize: 13,
@@ -1232,7 +1232,7 @@ class _CommunityCover extends StatelessWidget {
   final double height;
 
   List<Color> get _colors {
-    const palettes = [
+    final palettes = [
       [AppColors.amber, AppColors.borderHi],
       [AppColors.surface2, AppColors.borderHi],
       [AppColors.amberSoft, AppColors.surface2],
@@ -1308,7 +1308,7 @@ class _CommunityCard extends StatelessWidget {
   // Deterministic on-brand gradient based on community id (previously an
   // unrelated purple/teal/navy rainbow, now built from the site's palette).
   List<Color> get _gradient {
-    const palettes = [
+    final palettes = [
       [AppColors.amber, AppColors.surface2],
       [AppColors.surface2, AppColors.surface],
       [AppColors.borderHi, AppColors.surface2],
@@ -1499,7 +1499,7 @@ class _CommunityCard extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             '${community.memberCount} members',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
                               color: AppColors.amber,
                               fontWeight: FontWeight.w600,
@@ -1549,7 +1549,7 @@ class _CommunityCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
         ),
-        child: const Center(
+        child: Center(
           child: SizedBox(
             width: 18,
             height: 18,
@@ -1591,7 +1591,7 @@ class _CommunityCard extends StatelessWidget {
               const SizedBox(width: 6),
               Text(
                 isOwner ? 'Owner' : (isRequested ? 'Requested' : 'Joined'),
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.amberSoft,
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
@@ -1608,7 +1608,7 @@ class _CommunityCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 13),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             colors: [AppColors.amber, AppColors.amberSoft],
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
@@ -1680,7 +1680,7 @@ class _CommunityNotificationsSheet extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.bg.withValues(alpha: 0.95),
             border: Border(
-              top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+              top: BorderSide(color: AppColors.text1.withValues(alpha: 0.1)),
             ),
           ),
           child: SafeArea(
@@ -1695,22 +1695,22 @@ class _CommunityNotificationsSheet extends StatelessWidget {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 18),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.18),
+                      color: AppColors.text1.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(999),
                     ),
                   ),
                 ),
-                const Text(
+                Text(
                   'Community Notifications',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.text1,
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
                 const SizedBox(height: 14),
                 if (loading)
-                  const Center(
+                  Center(
                     child: Padding(
                       padding: EdgeInsets.all(24),
                       child: CircularProgressIndicator(color: AppColors.amber),
@@ -1766,8 +1766,8 @@ class _NotificationGroup extends StatelessWidget {
       children: [
         Text(
           community.name,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.text1,
             fontSize: 15,
             fontWeight: FontWeight.w800,
           ),
@@ -1778,9 +1778,9 @@ class _NotificationGroup extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
+              color: AppColors.text1.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              border: Border.all(color: AppColors.text1.withValues(alpha: 0.1)),
             ),
             child: Row(
               children: [
@@ -1794,7 +1794,7 @@ class _NotificationGroup extends StatelessWidget {
                 Expanded(
                   child: Text(
                     '${user.displayName} requested to join.',
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    style: TextStyle(color: AppColors.text1, fontSize: 13),
                   ),
                 ),
                 IconButton(
@@ -1803,7 +1803,7 @@ class _NotificationGroup extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () => onApprove(community, user),
-                  icon: const Icon(Icons.check_rounded, color: AppColors.amber),
+                  icon: Icon(Icons.check_rounded, color: AppColors.amber),
                 ),
               ],
             ),
@@ -1832,9 +1832,9 @@ class _SmallActionButton extends StatelessWidget {
         width: 46,
         height: 46,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
+          color: AppColors.text1.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          border: Border.all(color: AppColors.text1.withValues(alpha: 0.12)),
         ),
         child: Icon(icon, color: color, size: 20),
       ),
@@ -1856,9 +1856,7 @@ class _PillTab extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
       decoration: BoxDecoration(
         gradient: active
-            ? const LinearGradient(
-                colors: [AppColors.amber, AppColors.amberSoft],
-              )
+            ? LinearGradient(colors: [AppColors.amber, AppColors.amberSoft])
             : null,
         color: active ? null : Colors.transparent,
         borderRadius: BorderRadius.circular(999),
@@ -1895,12 +1893,12 @@ class _PrivacyOption extends StatelessWidget {
       decoration: BoxDecoration(
         color: selected
             ? AppColors.amber.withValues(alpha: 0.14)
-            : Colors.white.withValues(alpha: 0.04),
+            : AppColors.text1.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: selected
               ? AppColors.amber
-              : Colors.white.withValues(alpha: 0.12),
+              : AppColors.text1.withValues(alpha: 0.12),
         ),
       ),
       child: Column(
@@ -1908,14 +1906,14 @@ class _PrivacyOption extends StatelessWidget {
         children: [
           Icon(
             icon,
-            color: selected ? AppColors.amber : Colors.white70,
+            color: selected ? AppColors.amber : AppColors.text2,
             size: 20,
           ),
           const SizedBox(height: 6),
           Text(
             label,
             style: TextStyle(
-              color: selected ? Colors.white : Colors.white70,
+              color: selected ? AppColors.text1 : AppColors.text2,
               fontWeight: FontWeight.w700,
               fontSize: 14,
             ),
@@ -1924,7 +1922,7 @@ class _PrivacyOption extends StatelessWidget {
           Text(
             subtitle,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
+              color: AppColors.text2,
               fontSize: 11,
             ),
           ),
@@ -1950,24 +1948,24 @@ class _StyledTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       maxLines: maxLines,
-      style: const TextStyle(fontSize: 14, color: Colors.white),
+      style: TextStyle(fontSize: 14, color: AppColors.text1),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.35)),
+        hintStyle: TextStyle(color: AppColors.text3),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.07),
+        fillColor: AppColors.text1.withValues(alpha: 0.07),
         contentPadding: const EdgeInsets.all(14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+          borderSide: BorderSide(color: AppColors.text1.withValues(alpha: 0.12)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.12)),
+          borderSide: BorderSide(color: AppColors.text1.withValues(alpha: 0.12)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.amber, width: 1.5),
+          borderSide: BorderSide(color: AppColors.amber, width: 1.5),
         ),
       ),
     );

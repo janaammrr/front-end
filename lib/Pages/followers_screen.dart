@@ -15,7 +15,8 @@ class FollowersScreen extends StatefulWidget {
   State<FollowersScreen> createState() => _FollowersScreenState();
 }
 
-class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProviderStateMixin {
+class _FollowersScreenState extends State<FollowersScreen>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   String _query = '';
@@ -31,12 +32,19 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialTab);
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTab,
+    );
     _load();
   }
 
   Future<void> _load() async {
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
       final me = await UserService.getMe();
       final results = await Future.wait([
@@ -54,7 +62,11 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
         _loading = false;
       });
     } catch (e) {
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = e.toString();
+          _loading = false;
+        });
     }
   }
 
@@ -67,7 +79,9 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
 
   List<FollowUser> _filter(List<FollowUser> list) {
     if (_query.isEmpty) return list;
-    return list.where((u) => u.displayName.toLowerCase().contains(_query)).toList();
+    return list
+        .where((u) => u.displayName.toLowerCase().contains(_query))
+        .toList();
   }
 
   Future<void> _toggleFollow(int targetId) async {
@@ -83,7 +97,12 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _processingIds.remove(targetId));
@@ -96,8 +115,22 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
       backgroundColor: AppColors.bg,
       body: Stack(
         children: [
-          Positioned(top: -80, right: -60, child: _GlowOrb(color: AppColors.amber.withValues(alpha: 0.16), size: 200)),
-          Positioned(bottom: -100, left: -60, child: _GlowOrb(color: AppColors.amberSoft.withValues(alpha: 0.14), size: 240)),
+          Positioned(
+            top: -80,
+            right: -60,
+            child: _GlowOrb(
+              color: AppColors.amber.withValues(alpha: 0.16),
+              size: 200,
+            ),
+          ),
+          Positioned(
+            bottom: -100,
+            left: -60,
+            child: _GlowOrb(
+              color: AppColors.amberSoft.withValues(alpha: 0.14),
+              size: 240,
+            ),
+          ),
           SafeArea(
             child: Column(
               children: [
@@ -107,20 +140,49 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
                     children: [
                       _BackButton(onTap: () => Navigator.of(context).pop()),
                       const SizedBox(width: 12),
-                      const Text('My Network', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+                      const Text(
+                        'My Network',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 if (_loading)
-                  const Expanded(child: Center(child: CircularProgressIndicator(color: AppColors.amber)))
+                  Expanded(
+                    child: Center(
+                      child: CircularProgressIndicator(color: AppColors.amber),
+                    ),
+                  )
                 else if (_error != null)
                   Expanded(
                     child: Center(
-                      child: Column(mainAxisSize: MainAxisSize.min, children: [
-                        Text(_error!, style: const TextStyle(color: AppColors.error, fontSize: 13)),
-                        const SizedBox(height: 16),
-                        ElevatedButton(onPressed: _load, style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber), child: const Text('Retry', style: TextStyle(color: Colors.white))),
-                      ]),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _error!,
+                            style: const TextStyle(
+                              color: AppColors.error,
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          ElevatedButton(
+                            onPressed: _load,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.amber,
+                            ),
+                            child: const Text(
+                              'Retry',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   )
                 else ...[
@@ -141,18 +203,40 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
                     child: TextField(
                       controller: _searchController,
-                      onChanged: (v) => setState(() => _query = v.toLowerCase()),
+                      onChanged: (v) =>
+                          setState(() => _query = v.toLowerCase()),
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
                         hintText: 'Search',
-                        hintStyle: const TextStyle(color: AppColors.text3),
-                        prefixIcon: const Icon(Icons.search_rounded, color: AppColors.text3),
+                        hintStyle: TextStyle(color: AppColors.text3),
+                        prefixIcon: Icon(
+                          Icons.search_rounded,
+                          color: AppColors.text3,
+                        ),
                         filled: true,
                         fillColor: Colors.white.withValues(alpha: 0.06),
-                        contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-                        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-                        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.amber, width: 1.1)),
+                        contentPadding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.1),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: AppColors.amber,
+                            width: 1.1,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -161,8 +245,20 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
                     child: TabBarView(
                       controller: _tabController,
                       children: [
-                        _UserList(users: _filter(_followers), followingIds: _followingIds, processingIds: _processingIds, myId: _myId, onToggle: _toggleFollow),
-                        _UserList(users: _filter(_following), followingIds: _followingIds, processingIds: _processingIds, myId: _myId, onToggle: _toggleFollow),
+                        _UserList(
+                          users: _filter(_followers),
+                          followingIds: _followingIds,
+                          processingIds: _processingIds,
+                          myId: _myId,
+                          onToggle: _toggleFollow,
+                        ),
+                        _UserList(
+                          users: _filter(_following),
+                          followingIds: _followingIds,
+                          processingIds: _processingIds,
+                          myId: _myId,
+                          onToggle: _toggleFollow,
+                        ),
                       ],
                     ),
                   ),
@@ -177,7 +273,13 @@ class _FollowersScreenState extends State<FollowersScreen> with SingleTickerProv
 }
 
 class _UserList extends StatelessWidget {
-  const _UserList({required this.users, required this.followingIds, required this.processingIds, required this.myId, required this.onToggle});
+  const _UserList({
+    required this.users,
+    required this.followingIds,
+    required this.processingIds,
+    required this.myId,
+    required this.onToggle,
+  });
 
   final List<FollowUser> users;
   final Set<int> followingIds;
@@ -188,7 +290,9 @@ class _UserList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (users.isEmpty) {
-      return const Center(child: Text('No users found', style: TextStyle(color: AppColors.text3)));
+      return Center(
+        child: Text('No users found', style: TextStyle(color: AppColors.text3)),
+      );
     }
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -235,7 +339,13 @@ class _UserList extends StatelessWidget {
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: Text(u.displayName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                            child: Text(
+                              u.displayName,
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -244,20 +354,44 @@ class _UserList extends StatelessWidget {
                   if (!isMe) ...[
                     const SizedBox(width: 8),
                     processing
-                        ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.amber))
+                        ? SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.amber,
+                            ),
+                          )
                         : GestureDetector(
                             onTap: () => onToggle(u.id),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
                               decoration: BoxDecoration(
-                                color: isFollowing ? Colors.white.withValues(alpha: 0.08) : AppColors.amber,
+                                color: isFollowing
+                                    ? Colors.white.withValues(alpha: 0.08)
+                                    : AppColors.amber,
                                 borderRadius: BorderRadius.circular(12),
-                                border: isFollowing ? Border.all(color: Colors.white.withValues(alpha: 0.15)) : null,
+                                border: isFollowing
+                                    ? Border.all(
+                                        color: Colors.white.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                      )
+                                    : null,
                               ),
                               child: Text(
                                 isFollowing ? 'Following' : 'Follow',
-                                style: TextStyle(color: isFollowing ? AppColors.text2 : Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
+                                style: TextStyle(
+                                  color: isFollowing
+                                      ? AppColors.text2
+                                      : Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 13,
+                                ),
                               ),
                             ),
                           ),
@@ -280,7 +414,15 @@ class _GlowOrb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(width: size, height: size, decoration: BoxDecoration(shape: BoxShape.circle, color: color, boxShadow: [BoxShadow(color: color, blurRadius: 100, spreadRadius: 30)]));
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [BoxShadow(color: color, blurRadius: 100, spreadRadius: 30)],
+      ),
+    );
   }
 }
 
@@ -294,9 +436,18 @@ class _BackButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40, height: 40,
-        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.07), shape: BoxShape.circle, border: Border.all(color: Colors.white.withValues(alpha: 0.12))),
-        child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.07),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        ),
+        child: const Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: Colors.white,
+          size: 18,
+        ),
       ),
     );
   }

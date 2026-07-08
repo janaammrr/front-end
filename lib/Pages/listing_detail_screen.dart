@@ -50,7 +50,8 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
   bool _booked = false;
   bool _deleting = false;
 
-  bool get _full => widget.availableSeats != null && widget.availableSeats! <= 0;
+  bool get _full =>
+      widget.availableSeats != null && widget.availableSeats! <= 0;
 
   Future<void> _book() async {
     setState(() => _booking = true);
@@ -60,7 +61,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Booking failed: ${e.toString()}'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Booking failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -73,11 +77,26 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.listingCard,
-        title: Text('Delete ${widget.kind.toLowerCase()}', style: const TextStyle(color: AppColors.listingInk)),
-        content: Text('Delete ${widget.title}?', style: const TextStyle(color: AppColors.listingTextMuted)),
+        title: Text(
+          'Delete ${widget.kind.toLowerCase()}',
+          style: TextStyle(color: AppColors.listingInk),
+        ),
+        content: Text(
+          'Delete ${widget.title}?',
+          style: TextStyle(color: AppColors.listingTextMuted),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete', style: TextStyle(color: AppColors.error))),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Delete',
+              style: TextStyle(color: AppColors.error),
+            ),
+          ),
         ],
       ),
     );
@@ -90,7 +109,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
       if (mounted) {
         setState(() => _deleting = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Delete failed: ${e.toString()}'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Delete failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -101,7 +123,18 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
     final parsed = DateTime.tryParse(raw);
     if (parsed == null) return raw;
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     final hour = parsed.hour % 12 == 0 ? 12 : parsed.hour % 12;
     final minute = parsed.minute.toString().padLeft(2, '0');
@@ -133,8 +166,18 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                 IconButton(
                   onPressed: _deleting ? null : _delete,
                   icon: _deleting
-                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.delete_outline_rounded, color: Colors.white),
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Icon(
+                          Icons.delete_outline_rounded,
+                          color: Colors.white,
+                        ),
                 ),
             ],
             flexibleSpace: FlexibleSpaceBar(
@@ -147,7 +190,10 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [Colors.transparent, Colors.black.withValues(alpha: 0.55)],
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.55),
+                        ],
                       ),
                     ),
                   ),
@@ -166,67 +212,129 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
                       Expanded(
                         child: Text(
                           widget.title,
-                          style: const TextStyle(color: AppColors.listingInk, fontSize: 22, fontWeight: FontWeight.w800),
+                          style: TextStyle(
+                            color: AppColors.listingInk,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                       if (widget.isPast)
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
                           decoration: BoxDecoration(
-                            color: AppColors.listingTextMuted.withValues(alpha: 0.2),
+                            color: AppColors.listingTextMuted.withValues(
+                              alpha: 0.2,
+                            ),
                             borderRadius: BorderRadius.circular(999),
                           ),
-                          child: const Text('Finished', style: TextStyle(color: AppColors.listingTextMuted, fontWeight: FontWeight.w700, fontSize: 12)),
+                          child: Text(
+                            'Finished',
+                            style: TextStyle(
+                              color: AppColors.listingTextMuted,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
                         ),
                     ],
                   ),
                   const SizedBox(height: 18),
-                  _InfoRow(icon: Icons.calendar_today_rounded, label: 'Starts', value: startText),
+                  _InfoRow(
+                    icon: Icons.calendar_today_rounded,
+                    label: 'Starts',
+                    value: startText,
+                  ),
                   if (endText != null) ...[
                     const SizedBox(height: 10),
-                    _InfoRow(icon: Icons.event_available_rounded, label: 'Ends', value: endText),
+                    _InfoRow(
+                      icon: Icons.event_available_rounded,
+                      label: 'Ends',
+                      value: endText,
+                    ),
                   ],
                   const SizedBox(height: 10),
-                  _InfoRow(icon: Icons.location_on_rounded, label: 'Location', value: widget.location),
+                  _InfoRow(
+                    icon: Icons.location_on_rounded,
+                    label: 'Location',
+                    value: widget.location,
+                  ),
                   if (widget.capacity != null) ...[
                     const SizedBox(height: 10),
                     _InfoRow(
                       icon: Icons.event_seat_rounded,
                       label: 'Seats',
-                      value: '${widget.availableSeats}/${widget.capacity} available',
+                      value:
+                          '${widget.availableSeats}/${widget.capacity} available',
                     ),
                   ],
                   const SizedBox(height: 22),
-                  const Text('About', style: TextStyle(color: AppColors.listingInk, fontWeight: FontWeight.w700, fontSize: 15)),
+                  Text(
+                    'About',
+                    style: TextStyle(
+                      color: AppColors.listingInk,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
                   const SizedBox(height: 8),
                   Text(
-                    widget.description.isEmpty ? 'No description provided.' : widget.description,
-                    style: const TextStyle(color: AppColors.listingTextMuted, height: 1.5),
+                    widget.description.isEmpty
+                        ? 'No description provided.'
+                        : widget.description,
+                    style: TextStyle(
+                      color: AppColors.listingTextMuted,
+                      height: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 28),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: (widget.isPast || booked || _full || _booking) ? null : _book,
+                      onPressed: (widget.isPast || booked || _full || _booking)
+                          ? null
+                          : _book,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: booked ? const Color(0xFF10B981) : AppColors.listingAccent,
+                        backgroundColor: booked
+                            ? const Color(0xFF10B981)
+                            : AppColors.listingAccent,
                         disabledBackgroundColor: widget.isPast
                             ? AppColors.listingTextMuted.withValues(alpha: 0.2)
-                            : (booked ? const Color(0xFF10B981) : AppColors.listingAccent.withValues(alpha: 0.5)),
+                            : (booked
+                                  ? const Color(0xFF10B981)
+                                  : AppColors.listingAccent.withValues(
+                                      alpha: 0.5,
+                                    )),
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                       child: _booking
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
                           : Text(
                               widget.isPast
                                   ? '${widget.kind} finished'
                                   : booked
-                                      ? 'Booked ✓'
-                                      : _full
-                                          ? 'Fully booked'
-                                          : 'Book ${widget.kind}',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
+                                  ? 'Booked ✓'
+                                  : _full
+                                  ? 'Fully booked'
+                                  : 'Book ${widget.kind}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 15,
+                              ),
                             ),
                     ),
                   ),
@@ -241,7 +349,11 @@ class _ListingDetailScreenState extends State<ListingDetailScreen> {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.label, required this.value});
+  const _InfoRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
 
   final IconData icon;
   final String label;
@@ -254,9 +366,21 @@ class _InfoRow extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: AppColors.listingAccent),
         const SizedBox(width: 10),
-        Text('$label: ', style: const TextStyle(color: AppColors.listingTextMuted, fontWeight: FontWeight.w600)),
+        Text(
+          '$label: ',
+          style: TextStyle(
+            color: AppColors.listingTextMuted,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         Expanded(
-          child: Text(value, style: const TextStyle(color: AppColors.listingInk, fontWeight: FontWeight.w600)),
+          child: Text(
+            value,
+            style: TextStyle(
+              color: AppColors.listingInk,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
         ),
       ],
     );

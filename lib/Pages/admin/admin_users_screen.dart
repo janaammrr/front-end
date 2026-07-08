@@ -53,7 +53,10 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         elevation: 0,
-        title: const Text('Users', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Users',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
       ),
       body: _buildBody(),
     );
@@ -70,11 +73,17 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70),
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _load,
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.amber,
+                ),
                 child: const Text('Retry'),
               ),
             ],
@@ -83,7 +92,9 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
       );
     }
     if (_users.isEmpty) {
-      return const Center(child: Text('No users found.', style: TextStyle(color: Colors.white54)));
+      return const Center(
+        child: Text('No users found.', style: TextStyle(color: Colors.white54)),
+      );
     }
     return RefreshIndicator(
       color: AppColors.amber,
@@ -110,19 +121,41 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(user.fullName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                          Text(user.email, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                          Text(
+                            user.fullName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            user.email,
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     if (user.suspended)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.error.withValues(alpha: 0.16),
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: const Text('Suspended', style: TextStyle(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.w700)),
+                        child: const Text(
+                          'Suspended',
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                   ],
                 ),
@@ -133,12 +166,16 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     DropdownButton<String>(
-                      value: _roles.contains(user.role) ? user.role : _roles.first,
+                      value: _roles.contains(user.role)
+                          ? user.role
+                          : _roles.first,
                       dropdownColor: AppColors.surface,
                       style: const TextStyle(color: Colors.white, fontSize: 13),
                       underline: Container(height: 1, color: Colors.white24),
                       items: _roles
-                          .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                          .map(
+                            (r) => DropdownMenuItem(value: r, child: Text(r)),
+                          )
                           .toList(),
                       onChanged: (role) async {
                         if (role == null) return;
@@ -148,7 +185,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                         } catch (e) {
                           if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not update role.'))),
+                            SnackBar(
+                              content: Text(
+                                ApiClient.errorMessage(
+                                  e,
+                                  fallback: 'Could not update role.',
+                                ),
+                              ),
+                            ),
                           );
                         }
                       },
@@ -157,12 +201,23 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                       suspended: user.suspended,
                       onToggleSuspend: (suspend, reason) async {
                         try {
-                          await AdminService.setUserSuspended(user.id, suspend, reason: reason);
+                          await AdminService.setUserSuspended(
+                            user.id,
+                            suspend,
+                            reason: reason,
+                          );
                           await _load();
                         } catch (e) {
                           if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not update user.'))),
+                            SnackBar(
+                              content: Text(
+                                ApiClient.errorMessage(
+                                  e,
+                                  fallback: 'Could not update user.',
+                                ),
+                              ),
+                            ),
                           );
                         }
                       },
@@ -173,7 +228,14 @@ class _AdminUsersScreenState extends State<AdminUsersScreen> {
                         } catch (e) {
                           if (!mounted) return;
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not delete user.'))),
+                            SnackBar(
+                              content: Text(
+                                ApiClient.errorMessage(
+                                  e,
+                                  fallback: 'Could not delete user.',
+                                ),
+                              ),
+                            ),
                           );
                         }
                       },

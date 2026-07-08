@@ -57,26 +57,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _pickAndUploadPhoto() async {
     final picker = ImagePicker();
-    final xfile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    final xfile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 85,
+    );
     if (xfile == null) return;
 
-    setState(() { _localPhotoPath = xfile.path; _uploadingPhoto = true; });
+    setState(() {
+      _localPhotoPath = xfile.path;
+      _uploadingPhoto = true;
+    });
     try {
       final formData = FormData.fromMap({
         'file': await MultipartFile.fromFile(xfile.path, filename: xfile.name),
       });
-      await ApiClient.instance.post('/api/users/me/profile-image', data: formData);
+      await ApiClient.instance.post(
+        '/api/users/me/profile-image',
+        data: formData,
+      );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Row(children: [
-              Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
-              SizedBox(width: 10),
-              Text('Profile photo updated!'),
-            ]),
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: Colors.white, size: 18),
+                SizedBox(width: 10),
+                Text('Profile photo updated!'),
+              ],
+            ),
             backgroundColor: AppColors.amber,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             margin: const EdgeInsets.fromLTRB(12, 0, 12, 20),
           ),
         );
@@ -85,7 +98,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (mounted) {
         setState(() => _localPhotoPath = null);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Upload failed: $e'), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('Upload failed: $e'),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     } finally {
@@ -106,7 +122,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(ApiClient.errorMessage(e, fallback: 'Failed to update profile.')),
+            content: Text(
+              ApiClient.errorMessage(e, fallback: 'Failed to update profile.'),
+            ),
             backgroundColor: AppColors.error,
           ),
         );
@@ -122,8 +140,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       backgroundColor: AppColors.bg,
       body: Stack(
         children: [
-          Positioned(top: -80, right: -60, child: _GlowOrb(color: AppColors.amber.withValues(alpha: 0.18), size: 200)),
-          Positioned(bottom: -100, left: -60, child: _GlowOrb(color: AppColors.amberSoft.withValues(alpha: 0.16), size: 240)),
+          Positioned(
+            top: -80,
+            right: -60,
+            child: _GlowOrb(
+              color: AppColors.amber.withValues(alpha: 0.18),
+              size: 200,
+            ),
+          ),
+          Positioned(
+            bottom: -100,
+            left: -60,
+            child: _GlowOrb(
+              color: AppColors.amberSoft.withValues(alpha: 0.16),
+              size: 240,
+            ),
+          ),
           SafeArea(
             child: Column(
               children: [
@@ -133,13 +165,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     children: [
                       _BackButton(onTap: () => Navigator.of(context).pop()),
                       const SizedBox(width: 12),
-                      const Text('Edit Profile', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700)),
+                      Text(
+                        'Edit Profile',
+                        style: TextStyle(
+                          color: AppColors.text1,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       const Spacer(),
                       _saving
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.amber))
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: AppColors.amber,
+                              ),
+                            )
                           : TextButton(
                               onPressed: _loading ? null : _save,
-                              child: const Text('Done', style: TextStyle(color: AppColors.amber, fontWeight: FontWeight.w700, fontSize: 16)),
+                              child: Text(
+                                'Done',
+                                style: TextStyle(
+                                  color: AppColors.amber,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                              ),
                             ),
                     ],
                   ),
@@ -158,16 +211,26 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 height: 96,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  border: Border.all(color: AppColors.amber, width: 3),
+                                  border: Border.all(
+                                    color: AppColors.amber,
+                                    width: 3,
+                                  ),
                                 ),
                                 child: ClipOval(
                                   child: _localPhotoPath != null
-                                      ? Image.file(File(_localPhotoPath!), fit: BoxFit.cover)
+                                      ? Image.file(
+                                          File(_localPhotoPath!),
+                                          fit: BoxFit.cover,
+                                        )
                                       : Container(
-                                          decoration: const BoxDecoration(
+                                          decoration: BoxDecoration(
                                             gradient: AppColors.accentGradient,
                                           ),
-                                          child: const Icon(Icons.person_rounded, color: Colors.white, size: 48),
+                                          child: const Icon(
+                                            Icons.person_rounded,
+                                            color: Colors.white,
+                                            size: 48,
+                                          ),
                                         ),
                                 ),
                               ),
@@ -176,18 +239,38 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   child: ClipOval(
                                     child: Container(
                                       color: Colors.black54,
-                                      child: const Center(child: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.amber))),
+                                      child: Center(
+                                        child: SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: AppColors.amber,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                 ),
                               Positioned(
-                                bottom: 0, right: 0,
+                                bottom: 0,
+                                right: 0,
                                 child: GestureDetector(
-                                  onTap: _uploadingPhoto ? null : _pickAndUploadPhoto,
+                                  onTap: _uploadingPhoto
+                                      ? null
+                                      : _pickAndUploadPhoto,
                                   child: Container(
-                                    width: 30, height: 30,
-                                    decoration: const BoxDecoration(color: AppColors.amber, shape: BoxShape.circle),
-                                    child: const Icon(Icons.camera_alt_rounded, color: Colors.white, size: 16),
+                                    width: 30,
+                                    height: 30,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.amber,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.camera_alt_rounded,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -197,20 +280,43 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         const SizedBox(height: 8),
                         GestureDetector(
                           onTap: _uploadingPhoto ? null : _pickAndUploadPhoto,
-                          child: const Center(child: Text('Change photo', style: TextStyle(color: AppColors.amber, fontSize: 13, fontWeight: FontWeight.w600))),
+                          child: Center(
+                            child: Text(
+                              'Change photo',
+                              style: TextStyle(
+                                color: AppColors.amber,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
                         ),
                         const SizedBox(height: 28),
                         _FieldLabel('Full Name'),
-                        _StyledField(controller: _nameController, hint: 'Your full name', enabled: false),
+                        _StyledField(
+                          controller: _nameController,
+                          hint: 'Your full name',
+                          enabled: false,
+                        ),
                         const SizedBox(height: 16),
                         _FieldLabel('Username'),
-                        _StyledField(controller: _usernameController, hint: 'username'),
+                        _StyledField(
+                          controller: _usernameController,
+                          hint: 'username',
+                        ),
                         const SizedBox(height: 16),
                         _FieldLabel('Bio'),
-                        _StyledField(controller: _bioController, hint: 'Tell people about yourself…', maxLines: 3),
+                        _StyledField(
+                          controller: _bioController,
+                          hint: 'Tell people about yourself…',
+                          maxLines: 3,
+                        ),
                         const SizedBox(height: 16),
                         _FieldLabel('Location'),
-                        _StyledField(controller: _locationController, hint: 'City, Country'),
+                        _StyledField(
+                          controller: _locationController,
+                          hint: 'City, Country',
+                        ),
                         const SizedBox(height: 16),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(14),
@@ -219,20 +325,36 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(14),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.05),
+                                color: AppColors.text1.withValues(
+                                  alpha: 0.05,
+                                ),
                                 borderRadius: BorderRadius.circular(14),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-                              ),
-                              child: Row(children: [
-                                const Icon(Icons.info_outline_rounded, color: Colors.white38, size: 18),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: Text(
-                                    'To update your preferences, visit Profile → Settings → Preferences.',
-                                    style: TextStyle(color: Colors.white.withValues(alpha: 0.45), fontSize: 12, height: 1.4),
+                                border: Border.all(
+                                  color: AppColors.text1.withValues(
+                                    alpha: 0.08,
                                   ),
                                 ),
-                              ]),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.info_outline_rounded,
+                                    color: AppColors.text3,
+                                    size: 18,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Text(
+                                      'To update your preferences, visit Profile → Settings → Preferences.',
+                                      style: TextStyle(
+                                        color: AppColors.text2,
+                                        fontSize: 12,
+                                        height: 1.4,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -245,12 +367,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                               backgroundColor: AppColors.amber,
                               foregroundColor: Colors.white,
                               padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              disabledBackgroundColor: AppColors.amber.withValues(alpha: 0.4),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              disabledBackgroundColor: AppColors.amber
+                                  .withValues(alpha: 0.4),
                             ),
                             child: _saving
-                                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                                : const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text(
+                                    'Save Changes',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 16,
+                                    ),
+                                  ),
                           ),
                         ),
                       ],
@@ -275,7 +413,14 @@ class _FieldLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
-      child: Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: AppColors.text1,
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
+      ),
     );
   }
 }
@@ -299,16 +444,28 @@ class _StyledField extends StatelessWidget {
       controller: controller,
       maxLines: maxLines,
       enabled: enabled,
-      style: TextStyle(color: enabled ? Colors.white : Colors.white54),
+      style: TextStyle(color: enabled ? AppColors.text1 : AppColors.text3),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.text3),
+        hintStyle: TextStyle(color: AppColors.text3),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: enabled ? 0.06 : 0.03),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-        disabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.06))),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: const BorderSide(color: AppColors.amber, width: 1.2)),
+        fillColor: AppColors.text1.withValues(alpha: enabled ? 0.06 : 0.03),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: AppColors.text1.withValues(alpha: 0.1)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: AppColors.text1.withValues(alpha: 0.1)),
+        ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: AppColors.text1.withValues(alpha: 0.06)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: AppColors.amber, width: 1.2),
+        ),
       ),
     );
   }
@@ -322,7 +479,15 @@ class _GlowOrb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(width: size, height: size, decoration: BoxDecoration(shape: BoxShape.circle, color: color, boxShadow: [BoxShadow(color: color, blurRadius: 100, spreadRadius: 30)]));
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [BoxShadow(color: color, blurRadius: 100, spreadRadius: 30)],
+      ),
+    );
   }
 }
 
@@ -336,9 +501,18 @@ class _BackButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 40, height: 40,
-        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.07), shape: BoxShape.circle, border: Border.all(color: Colors.white.withValues(alpha: 0.12))),
-        child: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: AppColors.text1.withValues(alpha: 0.07),
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.text1.withValues(alpha: 0.12)),
+        ),
+        child: Icon(
+          Icons.arrow_back_ios_new_rounded,
+          color: AppColors.text1,
+          size: 18,
+        ),
       ),
     );
   }

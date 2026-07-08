@@ -127,10 +127,10 @@ class _MessagingScreenState extends State<MessagingScreen> {
                     children: [
                       _BackButton(onTap: () => Navigator.of(context).pop()),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Messages',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.text1,
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                         ),
@@ -144,32 +144,32 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   child: TextField(
                     controller: _searchController,
                     onChanged: (v) => setState(() => _query = v.toLowerCase()),
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: AppColors.text1),
                     decoration: InputDecoration(
                       hintText: 'Search messages',
-                      hintStyle: const TextStyle(color: AppColors.text3),
-                      prefixIcon: const Icon(
+                      hintStyle: TextStyle(color: AppColors.text3),
+                      prefixIcon: Icon(
                         Icons.search_rounded,
                         color: AppColors.text3,
                       ),
                       filled: true,
-                      fillColor: Colors.white.withValues(alpha: 0.06),
+                      fillColor: AppColors.text1.withValues(alpha: 0.06),
                       contentPadding: const EdgeInsets.symmetric(vertical: 10),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: AppColors.text1.withValues(alpha: 0.1),
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.1),
+                          color: AppColors.text1.withValues(alpha: 0.1),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
-                        borderSide: const BorderSide(
+                        borderSide: BorderSide(
                           color: AppColors.amber,
                           width: 1.1,
                         ),
@@ -216,7 +216,10 @@ class _MessagingScreenState extends State<MessagingScreen> {
                                   friend.firstname,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(color: Colors.white70, fontSize: 11),
+                                  style: TextStyle(
+                                    color: AppColors.text2,
+                                    fontSize: 11,
+                                  ),
                                 ),
                               ],
                             ),
@@ -249,7 +252,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                 const SizedBox(height: 8),
                 Expanded(
                   child: _loading
-                      ? const Center(
+                      ? Center(
                           child: CircularProgressIndicator(
                             color: AppColors.amber,
                           ),
@@ -259,9 +262,9 @@ class _MessagingScreenState extends State<MessagingScreen> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(
+                              Icon(
                                 Icons.error_outline,
-                                color: Colors.white38,
+                                color: AppColors.text3,
                                 size: 48,
                               ),
                               const SizedBox(height: 12),
@@ -287,7 +290,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                           ),
                         )
                       : convos.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Text(
                             'No conversations yet',
                             style: TextStyle(color: AppColors.text3),
@@ -300,7 +303,7 @@ class _MessagingScreenState extends State<MessagingScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             itemCount: convos.length,
                             separatorBuilder: (_, _) => Divider(
-                              color: Colors.white.withValues(alpha: 0.06),
+                              color: AppColors.text1.withValues(alpha: 0.06),
                               height: 1,
                             ),
                             itemBuilder: (_, i) => _ConvoTile(
@@ -327,7 +330,11 @@ class _MessagingScreenState extends State<MessagingScreen> {
 }
 
 class _InboxFilterChip extends StatelessWidget {
-  const _InboxFilterChip({required this.label, required this.selected, required this.onTap});
+  const _InboxFilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;
@@ -341,7 +348,9 @@ class _InboxFilterChip extends StatelessWidget {
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? AppColors.amber : Colors.white.withValues(alpha: 0.06),
+          color: selected
+              ? AppColors.amber
+              : AppColors.text1.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
@@ -376,7 +385,7 @@ class _ConvoTile extends StatelessWidget {
       title: Text(
         item.otherUser.displayName,
         style: TextStyle(
-          color: Colors.white,
+          color: AppColors.text1,
           fontWeight: item.unreadCount > 0 ? FontWeight.w700 : FontWeight.w600,
         ),
       ),
@@ -385,9 +394,7 @@ class _ConvoTile extends StatelessWidget {
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
         style: TextStyle(
-          color: item.unreadCount > 0
-              ? AppColors.text2
-              : AppColors.text3,
+          color: item.unreadCount > 0 ? AppColors.text2 : AppColors.text3,
           fontSize: 13,
         ),
       ),
@@ -395,7 +402,7 @@ class _ConvoTile extends StatelessWidget {
           ? Container(
               width: 20,
               height: 20,
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 color: AppColors.amber,
                 shape: BoxShape.circle,
               ),
@@ -522,7 +529,7 @@ class _ChatScreenState extends State<ChatScreen> {
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: AppColors.text1.withValues(alpha: 0.08),
                   ),
                 ),
               ),
@@ -538,8 +545,8 @@ class _ChatScreenState extends State<ChatScreen> {
                   const SizedBox(width: 10),
                   Text(
                     widget.otherUser.displayName,
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: AppColors.text1,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -548,16 +555,17 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             Expanded(
               child: _loading
-                  ? const Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.amber,
-                      ),
+                  ? Center(
+                      child: CircularProgressIndicator(color: AppColors.amber),
                     )
                   : ListView.builder(
                       controller: _scrollController,
                       padding: const EdgeInsets.all(16),
                       itemCount: _messages.length,
-                      itemBuilder: (_, i) => _ChatBubble(msg: _messages[i], otherUser: widget.otherUser),
+                      itemBuilder: (_, i) => _ChatBubble(
+                        msg: _messages[i],
+                        otherUser: widget.otherUser,
+                      ),
                     ),
             ),
             Padding(
@@ -567,15 +575,15 @@ class _ChatScreenState extends State<ChatScreen> {
                   Expanded(
                     child: TextField(
                       controller: _controller,
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
+                      style: TextStyle(color: AppColors.text1, fontSize: 14),
                       decoration: InputDecoration(
                         hintText: 'Message…',
-                        hintStyle: const TextStyle(
+                        hintStyle: TextStyle(
                           color: AppColors.text3,
                           fontSize: 14,
                         ),
                         filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.07),
+                        fillColor: AppColors.text1.withValues(alpha: 0.07),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,
                           vertical: 10,
@@ -586,7 +594,7 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(22),
-                          borderSide: const BorderSide(
+                          borderSide: BorderSide(
                             color: AppColors.amber,
                             width: 1.2,
                           ),
@@ -601,7 +609,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     child: Container(
                       width: 42,
                       height: 42,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         color: AppColors.amber,
                         shape: BoxShape.circle,
                       ),
@@ -671,7 +679,7 @@ class _ChatBubble extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: msg.isMine
                         ? AppColors.amber
-                        : Colors.white.withValues(alpha: 0.09),
+                        : AppColors.text1.withValues(alpha: 0.09),
                     borderRadius: BorderRadius.only(
                       topLeft: const Radius.circular(18),
                       topRight: const Radius.circular(18),
@@ -682,9 +690,7 @@ class _ChatBubble extends StatelessWidget {
                   child: Text(
                     msg.content,
                     style: TextStyle(
-                      color: msg.isMine
-                          ? Colors.white
-                          : AppColors.text2,
+                      color: msg.isMine ? Colors.white : AppColors.text2,
                       fontSize: 14,
                       height: 1.4,
                     ),
@@ -693,10 +699,7 @@ class _ChatBubble extends StatelessWidget {
                 const SizedBox(height: 3),
                 Text(
                   msg.sentAt,
-                  style: const TextStyle(
-                    color: AppColors.border,
-                    fontSize: 11,
-                  ),
+                  style: TextStyle(color: AppColors.border, fontSize: 11),
                 ),
               ],
             ),
@@ -740,13 +743,13 @@ class _BackButton extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.07),
+          color: AppColors.text1.withValues(alpha: 0.07),
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          border: Border.all(color: AppColors.text1.withValues(alpha: 0.12)),
         ),
-        child: const Icon(
+        child: Icon(
           Icons.arrow_back_ios_new_rounded,
-          color: Colors.white,
+          color: AppColors.text1,
           size: 18,
         ),
       ),

@@ -163,7 +163,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                       ),
                       const SizedBox(height: 20),
                       ShaderMask(
-                        shaderCallback: (r) => const LinearGradient(
+                        shaderCallback: (r) => LinearGradient(
                           colors: [AppColors.amber, AppColors.amberSoft],
                         ).createShader(r),
                         child: const Text(
@@ -188,7 +188,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                       if (_selected.isNotEmpty)
                         Text(
                           '${_selected.length}/$_maxSelect selected',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.amber,
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -200,7 +200,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                 const SizedBox(height: 20),
                 Expanded(
                   child: _loading
-                      ? const Center(
+                      ? Center(
                           child: CircularProgressIndicator(
                             color: AppColors.amber,
                           ),
@@ -277,7 +277,9 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                                     boxShadow: selected
                                         ? [
                                             BoxShadow(
-                                              color: AppColors.amber.withValues(alpha: 0.3),
+                                              color: AppColors.amber.withValues(
+                                                alpha: 0.3,
+                                              ),
                                               blurRadius: 10,
                                               offset: const Offset(0, 3),
                                             ),
@@ -327,7 +329,7 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                           decoration: BoxDecoration(
                             gradient: _selected.isEmpty
                                 ? null
-                                : const LinearGradient(
+                                : LinearGradient(
                                     colors: [
                                       AppColors.amber,
                                       AppColors.amberSoft,
@@ -341,7 +343,9 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
                                 ? null
                                 : [
                                     BoxShadow(
-                                      color: AppColors.amber.withValues(alpha: 0.35),
+                                      color: AppColors.amber.withValues(
+                                        alpha: 0.35,
+                                      ),
                                       blurRadius: 14,
                                       offset: const Offset(0, 4),
                                     ),

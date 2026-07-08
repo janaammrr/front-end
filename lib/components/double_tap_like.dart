@@ -15,10 +15,28 @@ class LikeBurstOverlayState extends State<LikeBurstOverlay> {
   @override
   Widget build(BuildContext context) {
     final scale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 0.0, end: 1.15).chain(CurveTween(curve: Curves.easeOut)), weight: 35),
-      TweenSequenceItem(tween: Tween(begin: 1.15, end: 1.0).chain(CurveTween(curve: Curves.easeIn)), weight: 15),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 0.0,
+          end: 1.15,
+        ).chain(CurveTween(curve: Curves.easeOut)),
+        weight: 35,
+      ),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.15,
+          end: 1.0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 15,
+      ),
       TweenSequenceItem(tween: ConstantTween(1.0), weight: 30),
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.0).chain(CurveTween(curve: Curves.easeIn)), weight: 20),
+      TweenSequenceItem(
+        tween: Tween(
+          begin: 1.0,
+          end: 0.0,
+        ).chain(CurveTween(curve: Curves.easeIn)),
+        weight: 20,
+      ),
     ]).animate(widget.controller);
 
     return IgnorePointer(
@@ -56,7 +74,8 @@ class DoubleTapLike extends StatefulWidget {
   State<DoubleTapLike> createState() => _DoubleTapLikeState();
 }
 
-class _DoubleTapLikeState extends State<DoubleTapLike> with SingleTickerProviderStateMixin {
+class _DoubleTapLikeState extends State<DoubleTapLike>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 550),

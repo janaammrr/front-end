@@ -37,14 +37,20 @@ class PostService {
         .toList();
   }
 
-  static Future<PostModel> create(String content, {List<String> imagePaths = const []}) async {
+  static Future<PostModel> create(
+    String content, {
+    List<String> imagePaths = const [],
+  }) async {
     final data = imagePaths.isEmpty
         ? {'content': content}
         : FormData.fromMap({
             'content': content,
             'files': [
               for (final path in imagePaths)
-                await MultipartFile.fromFile(path, filename: path.split('/').last),
+                await MultipartFile.fromFile(
+                  path,
+                  filename: path.split('/').last,
+                ),
             ],
           });
     final response = await ApiClient.instance.post('/api/posts', data: data);
@@ -63,7 +69,9 @@ class PostService {
       ApiClient.instance.post('/api/posts/$postId/likes/toggle');
 
   static Future<List<CommentModel>> getComments(int postId) async {
-    final response = await ApiClient.instance.get('/api/posts/$postId/comments');
+    final response = await ApiClient.instance.get(
+      '/api/posts/$postId/comments',
+    );
     final list = response.data as List<dynamic>;
     return list
         .map((e) => CommentModel.fromJson(e as Map<String, dynamic>))

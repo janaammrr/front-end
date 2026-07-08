@@ -112,16 +112,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(24),
               ),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              border: Border.all(
+                color: AppColors.text1.withValues(alpha: 0.1),
+              ),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Change Password',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.text1,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
@@ -130,14 +132,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 TextField(
                   controller: oldCtrl,
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.text1),
                   decoration: _fieldDecoration('Current password'),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: newCtrl,
                   obscureText: true,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.text1),
                   decoration: _fieldDecoration('New password'),
                 ),
                 if (error != null) ...[
@@ -174,10 +176,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                               );
                               if (ctx.mounted) Navigator.of(ctx).pop();
                               if (mounted) {
-                                ScaffoldMessenger.of(
-                                  context,
-                                ).showSnackBar(
-                                  const SnackBar(
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
                                     content: Text('Password updated.'),
                                     backgroundColor: AppColors.amber,
                                   ),
@@ -226,20 +226,20 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   InputDecoration _fieldDecoration(String hint) => InputDecoration(
     hintText: hint,
-    hintStyle: const TextStyle(color: AppColors.text3),
+    hintStyle: TextStyle(color: AppColors.text3),
     filled: true,
-    fillColor: Colors.white.withValues(alpha: 0.06),
+    fillColor: AppColors.text1.withValues(alpha: 0.06),
     border: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      borderSide: BorderSide(color: AppColors.text1.withValues(alpha: 0.1)),
     ),
     enabledBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+      borderSide: BorderSide(color: AppColors.text1.withValues(alpha: 0.1)),
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: AppColors.amber, width: 1.1),
+      borderSide: BorderSide(color: AppColors.amber, width: 1.1),
     ),
   );
 
@@ -274,10 +274,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     children: [
                       _BackButton(onTap: () => Navigator.of(context).pop()),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'Settings',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.text1,
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                         ),
@@ -293,12 +293,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _SettingsTile(
                         icon: Icons.person_outline_rounded,
                         title: 'Edit Profile',
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const EditProfileScreen(),
-                          ),
-                        ),
+                        onTap: () async {
+                          final changed = await Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const EditProfileScreen(),
+                            ),
+                          );
+                          if (changed == true && context.mounted) {
+                            Navigator.of(context).pop(true);
+                          }
+                        },
                       ),
                       _SettingsTile(
                         icon: Icons.lock_outline_rounded,
@@ -312,7 +317,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'Recommended for You',
                         onTap: () => Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const RecommendationsScreen()),
+                          MaterialPageRoute(
+                            builder: (_) => const RecommendationsScreen(),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
@@ -322,7 +329,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'My Workshops',
                         trailing: Text(
                           '${_countLabel(_bookedWorkshopsCount, 'booked', 'booked')} · ${_countLabel(_createdWorkshopsCount, 'created', 'created')}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.text3,
                             fontSize: 11,
                           ),
@@ -339,7 +346,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'My Events',
                         trailing: Text(
                           '${_countLabel(_bookedEventsCount, 'booked', 'booked')} · ${_countLabel(_createdEventsCount, 'created', 'created')}',
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.text3,
                             fontSize: 11,
                           ),
@@ -356,7 +363,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'Liked Videos',
                         trailing: Text(
                           _countLabel(_likedCount, 'video', 'videos'),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.text3,
                             fontSize: 12,
                           ),
@@ -373,7 +380,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         title: 'Saved Content',
                         trailing: Text(
                           _countLabel(_savedCount, 'reel', 'reels'),
-                          style: const TextStyle(
+                          style: TextStyle(
                             color: AppColors.text3,
                             fontSize: 12,
                           ),
@@ -405,32 +412,47 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           final isLight = mode == ThemeMode.light;
                           return _GlassTile(
                             child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 2,
+                              ),
                               leading: Container(
                                 width: 38,
                                 height: 38,
                                 decoration: BoxDecoration(
-                                  color: AppColors.amber.withValues(alpha: 0.12),
+                                  color: AppColors.amber.withValues(
+                                    alpha: 0.12,
+                                  ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Icon(
-                                  isLight ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
+                                  isLight
+                                      ? Icons.light_mode_outlined
+                                      : Icons.dark_mode_outlined,
                                   color: AppColors.amber,
                                   size: 20,
                                 ),
                               ),
-                              title: const Text(
+                              title: Text(
                                 'Light Mode',
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14),
+                                style: TextStyle(
+                                  color: AppColors.text1,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
                               ),
                               subtitle: Text(
                                 isLight ? 'On' : 'Off',
-                                style: const TextStyle(color: AppColors.text3, fontSize: 12),
+                                style: TextStyle(
+                                  color: AppColors.text3,
+                                  fontSize: 12,
+                                ),
                               ),
                               trailing: Switch(
                                 value: isLight,
                                 activeThumbColor: AppColors.amber,
-                                onChanged: (value) => ThemeController.setLight(value),
+                                onChanged: (value) =>
+                                    ThemeController.setLight(value),
                               ),
                               onTap: () => ThemeController.setLight(!isLight),
                             ),
@@ -445,7 +467,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: 'Admin Dashboard',
                           onTap: () => Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const AdminDashboardScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const AdminDashboardScreen(),
+                            ),
                           ),
                         ),
                         _SettingsTile(
@@ -453,7 +477,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           title: 'Reel Moderation Queue',
                           onTap: () => Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (_) => const ModerationPanelScreen()),
+                            MaterialPageRoute(
+                              builder: (_) => const ModerationPanelScreen(),
+                            ),
                           ),
                         ),
                       ],
@@ -507,19 +533,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.text1,
             fontWeight: FontWeight.w700,
           ),
         ),
-        content: Text(body, style: const TextStyle(color: AppColors.text2)),
+        content: Text(body, style: TextStyle(color: AppColors.text2)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: AppColors.text2),
-            ),
+            child: Text('Cancel', style: TextStyle(color: AppColors.text2)),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
@@ -549,7 +572,7 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 10),
       child: Text(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           color: AppColors.amber,
           fontWeight: FontWeight.w700,
           fontSize: 12,
@@ -589,15 +612,15 @@ class _SettingsTile extends StatelessWidget {
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.text1,
             fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
         ),
         trailing:
             trailing ??
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios_rounded,
               color: AppColors.border,
               size: 14,
@@ -642,7 +665,7 @@ class _DangerTile extends StatelessWidget {
             fontSize: 14,
           ),
         ),
-        trailing: const Icon(
+        trailing: Icon(
           Icons.arrow_forward_ios_rounded,
           color: AppColors.border,
           size: 14,
@@ -664,10 +687,10 @@ class _GlassTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: AppColors.text1.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: borderColor ?? Colors.white.withValues(alpha: 0.09),
+          color: borderColor ?? AppColors.text1.withValues(alpha: 0.09),
         ),
       ),
       child: child,
@@ -708,13 +731,13 @@ class _BackButton extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.07),
+          color: AppColors.text1.withValues(alpha: 0.07),
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          border: Border.all(color: AppColors.text1.withValues(alpha: 0.12)),
         ),
-        child: const Icon(
+        child: Icon(
           Icons.arrow_back_ios_new_rounded,
-          color: Colors.white,
+          color: AppColors.text1,
           size: 18,
         ),
       ),

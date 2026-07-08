@@ -51,7 +51,10 @@ class _AdminPostsScreenState extends State<AdminPostsScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         elevation: 0,
-        title: const Text('Posts', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Posts',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
       ),
       body: _buildBody(),
     );
@@ -68,11 +71,17 @@ class _AdminPostsScreenState extends State<AdminPostsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70),
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _load,
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.amber,
+                ),
                 child: const Text('Retry'),
               ),
             ],
@@ -81,7 +90,9 @@ class _AdminPostsScreenState extends State<AdminPostsScreen> {
       );
     }
     if (_posts.isEmpty) {
-      return const Center(child: Text('No posts found.', style: TextStyle(color: Colors.white54)));
+      return const Center(
+        child: Text('No posts found.', style: TextStyle(color: Colors.white54)),
+      );
     }
     return RefreshIndicator(
       color: AppColors.amber,
@@ -105,32 +116,64 @@ class _AdminPostsScreenState extends State<AdminPostsScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(post.authorName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                      child: Text(
+                        post.authorName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                     if (post.suspended)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.error.withValues(alpha: 0.16),
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: const Text('Suspended', style: TextStyle(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.w700)),
+                        child: const Text(
+                          'Suspended',
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                   ],
                 ),
                 const SizedBox(height: 6),
-                Text(post.content, maxLines: 3, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Colors.white70)),
+                Text(
+                  post.content,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Colors.white70),
+                ),
                 const SizedBox(height: 10),
                 AdminSuspendActions(
                   suspended: post.suspended,
                   onToggleSuspend: (suspend, reason) async {
                     try {
-                      await AdminService.setPostSuspended(post.id, suspend, reason: reason);
+                      await AdminService.setPostSuspended(
+                        post.id,
+                        suspend,
+                        reason: reason,
+                      );
                       await _load();
                     } catch (e) {
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not update post.'))),
+                        SnackBar(
+                          content: Text(
+                            ApiClient.errorMessage(
+                              e,
+                              fallback: 'Could not update post.',
+                            ),
+                          ),
+                        ),
                       );
                     }
                   },
@@ -141,7 +184,14 @@ class _AdminPostsScreenState extends State<AdminPostsScreen> {
                     } catch (e) {
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not delete post.'))),
+                        SnackBar(
+                          content: Text(
+                            ApiClient.errorMessage(
+                              e,
+                              fallback: 'Could not delete post.',
+                            ),
+                          ),
+                        ),
                       );
                     }
                   },

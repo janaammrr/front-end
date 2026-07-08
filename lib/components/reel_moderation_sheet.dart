@@ -53,7 +53,7 @@ Future<void> showReelActionsSheet(
                           'Delete video?',
                           style: TextStyle(color: Colors.white),
                         ),
-                        content: const Text(
+                        content: Text(
                           'This cannot be undone.',
                           style: TextStyle(color: AppColors.text2),
                         ),
@@ -96,10 +96,7 @@ Future<void> showReelActionsSheet(
                 )
               else
                 ListTile(
-                  leading: const Icon(
-                    Icons.flag_outlined,
-                    color: AppColors.amber,
-                  ),
+                  leading: Icon(Icons.flag_outlined, color: AppColors.amber),
                   title: const Text(
                     'Report video',
                     style: TextStyle(color: Colors.white),
@@ -165,7 +162,7 @@ Future<void> showReportReasonPicker(BuildContext context, int reelId) async {
     await ReelService.reportReel(reelId, reason);
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
+      SnackBar(
         content: Text('Report sent. Thanks for helping keep Flame safe.'),
         backgroundColor: AppColors.amber,
       ),

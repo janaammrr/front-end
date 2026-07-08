@@ -131,13 +131,13 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface2,
-        title: const Text(
+        title: Text(
           'Leave community',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.text1),
         ),
         content: Text(
           'Leave ${widget.community.name}?',
-          style: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+          style: TextStyle(color: AppColors.text2),
         ),
         actions: [
           TextButton(
@@ -219,8 +219,8 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface2,
-        title: const Text('Delete post', style: TextStyle(color: Colors.white)),
-        content: const Text(
+        title: Text('Delete post', style: TextStyle(color: AppColors.text1)),
+        content: Text(
           'This cannot be undone.',
           style: TextStyle(color: AppColors.text2),
         ),
@@ -274,13 +274,13 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
       context: context,
       builder: (_) => AlertDialog(
         backgroundColor: AppColors.surface2,
-        title: const Text(
+        title: Text(
           'Remove member',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.text1),
         ),
         content: Text(
           'Remove ${member.displayName} from this community?',
-          style: const TextStyle(color: AppColors.text2),
+          style: TextStyle(color: AppColors.text2),
         ),
         actions: [
           TextButton(
@@ -386,14 +386,14 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                   widget.community.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: AppColors.text1,
                     fontSize: 18,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
                 if (widget.community.isPrivate)
-                  const Text(
+                  Text(
                     'Private community',
                     style: TextStyle(color: AppColors.text3, fontSize: 12),
                   ),
@@ -409,16 +409,14 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(
-        child: CircularProgressIndicator(color: AppColors.amber),
-      );
+      return Center(child: CircularProgressIndicator(color: AppColors.amber));
     }
     if (_error != null) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, color: Colors.white38, size: 48),
+            Icon(Icons.error_outline, color: AppColors.text3, size: 48),
             const SizedBox(height: 12),
             Text(
               _error!,
@@ -442,7 +440,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         TabBar(
           controller: _tabController,
           indicatorColor: AppColors.amber,
-          labelColor: Colors.white,
+          labelColor: AppColors.text1,
           unselectedLabelColor: AppColors.text3,
           labelStyle: const TextStyle(fontWeight: FontWeight.w700),
           tabs: const [
@@ -468,16 +466,16 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.lock_outline_rounded,
-              color: Colors.white38,
+              color: AppColors.text3,
               size: 56,
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'This is a private community',
               style: TextStyle(
-                color: Colors.white,
+                color: AppColors.text1,
                 fontSize: 18,
                 fontWeight: FontWeight.w700,
               ),
@@ -487,7 +485,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               Text(
                 'Owner: ${detail.owner.displayName}',
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: TextStyle(
                   color: AppColors.amber,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
@@ -498,7 +496,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 Text(
                   detail.description,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: AppColors.text2,
                     fontSize: 13,
                     height: 1.45,
@@ -507,7 +505,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
               ],
               const SizedBox(height: 8),
             ],
-            const Text(
+            Text(
               'Request to join to see posts and members.',
               textAlign: TextAlign.center,
               style: TextStyle(color: AppColors.text3, fontSize: 13),
@@ -558,12 +556,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         children: [
           if (_canPost) ...[_buildComposer(), const SizedBox(height: 16)],
           if (posts.isEmpty)
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 48),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 48),
               child: Center(
                 child: Text(
                   'No posts yet',
-                  style: TextStyle(color: Colors.white54),
+                  style: TextStyle(color: AppColors.text2),
                 ),
               ),
             )
@@ -586,21 +584,21 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: AppColors.text1.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: AppColors.text1.withValues(alpha: 0.1)),
       ),
       child: Column(
         children: [
           TextField(
             controller: _postController,
             maxLines: 3,
-            style: const TextStyle(color: Colors.white),
+            style: TextStyle(color: AppColors.text1),
             decoration: InputDecoration(
               hintText: 'Share something with the community…',
-              hintStyle: const TextStyle(color: AppColors.text3),
+              hintStyle: TextStyle(color: AppColors.text3),
               filled: true,
-              fillColor: Colors.white.withValues(alpha: 0.06),
+              fillColor: AppColors.text1.withValues(alpha: 0.06),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide.none,
@@ -650,13 +648,13 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 child: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.06),
+                    color: AppColors.text1.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.12),
+                      color: AppColors.text1.withValues(alpha: 0.12),
                     ),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.image_outlined,
                     color: AppColors.amber,
                     size: 20,
@@ -709,7 +707,7 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
         padding: const EdgeInsets.all(16),
         children: [
           if (_isOwner && detail.isPrivate) ...[
-            const Text(
+            Text(
               'Join Requests',
               style: TextStyle(
                 color: AppColors.amber,
@@ -719,14 +717,14 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
             ),
             const SizedBox(height: 8),
             if (_loadingRequests)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.symmetric(vertical: 12),
                 child: Center(
                   child: CircularProgressIndicator(color: AppColors.amber),
                 ),
               )
             else if (_pendingRequests.isEmpty)
-              const Padding(
+              Padding(
                 padding: EdgeInsets.only(bottom: 12),
                 child: Text(
                   'No pending requests',
@@ -743,12 +741,12 @@ class _CommunityDetailScreenState extends State<CommunityDetailScreen>
                 ),
               ),
             const SizedBox(height: 16),
-            Container(height: 1, color: Colors.white.withValues(alpha: 0.08)),
+            Container(height: 1, color: AppColors.text1.withValues(alpha: 0.08)),
             const SizedBox(height: 16),
           ],
           Text(
             '${detail.members.length} members',
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.amber,
               fontWeight: FontWeight.w700,
               fontSize: 13,
@@ -949,9 +947,9 @@ class _PostCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: AppColors.text1.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        border: Border.all(color: AppColors.text1.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -971,8 +969,8 @@ class _PostCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       post.author.displayName,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.text1,
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
@@ -984,7 +982,7 @@ class _PostCard extends StatelessWidget {
               if (canDelete)
                 GestureDetector(
                   onTap: onDelete,
-                  child: const Icon(
+                  child: Icon(
                     Icons.delete_outline_rounded,
                     color: AppColors.text3,
                     size: 18,
@@ -996,7 +994,7 @@ class _PostCard extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               post.content,
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.text2,
                 fontSize: 14,
                 height: 1.4,
@@ -1013,11 +1011,11 @@ class _PostCard extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   height: 120,
-                  color: Colors.white.withValues(alpha: 0.05),
-                  child: const Center(
+                  color: AppColors.text1.withValues(alpha: 0.05),
+                  child: Center(
                     child: Icon(
                       Icons.broken_image_outlined,
-                      color: Colors.white24,
+                      color: AppColors.text3,
                     ),
                   ),
                 ),
@@ -1041,16 +1039,13 @@ class _PostCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       '${post.likesCount}',
-                      style: const TextStyle(
-                        color: AppColors.text3,
-                        fontSize: 12,
-                      ),
+                      style: TextStyle(color: AppColors.text3, fontSize: 12),
                     ),
                   ],
                 ),
               ),
               const SizedBox(width: 16),
-              const Icon(
+              Icon(
                 Icons.chat_bubble_outline_rounded,
                 color: AppColors.text3,
                 size: 16,
@@ -1058,7 +1053,7 @@ class _PostCard extends StatelessWidget {
               const SizedBox(width: 4),
               Text(
                 '${post.commentsCount}',
-                style: const TextStyle(color: AppColors.text3, fontSize: 12),
+                style: TextStyle(color: AppColors.text3, fontSize: 12),
               ),
             ],
           ),
@@ -1102,8 +1097,8 @@ class _RequestRow extends StatelessWidget {
                   Expanded(
                     child: Text(
                       user.displayName,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.text1,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1183,8 +1178,8 @@ class _MemberRow extends StatelessWidget {
                     child: Text(
                       user.displayName,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: AppColors.text1,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1202,7 +1197,7 @@ class _MemberRow extends StatelessWidget {
                       ),
                       child: Text(
                         badge!,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: AppColors.amber,
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
@@ -1217,7 +1212,7 @@ class _MemberRow extends StatelessWidget {
           if (canManage)
             PopupMenuButton<String>(
               color: AppColors.surface2,
-              icon: const Icon(
+              icon: Icon(
                 Icons.more_vert_rounded,
                 color: AppColors.text3,
                 size: 20,
@@ -1231,7 +1226,7 @@ class _MemberRow extends StatelessWidget {
                   value: 'promote',
                   child: Text(
                     isAdmin ? 'Demote to member' : 'Promote to admin',
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: AppColors.text1),
                   ),
                 ),
                 const PopupMenuItem(
@@ -1263,11 +1258,11 @@ class _CircleBtn extends StatelessWidget {
         width: 38,
         height: 38,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.07),
+          color: AppColors.text1.withValues(alpha: 0.07),
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          border: Border.all(color: AppColors.text1.withValues(alpha: 0.12)),
         ),
-        child: Icon(icon, color: Colors.white, size: 18),
+        child: Icon(icon, color: AppColors.text1, size: 18),
       ),
     );
   }

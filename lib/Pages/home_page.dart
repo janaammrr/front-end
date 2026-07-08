@@ -1,10 +1,13 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 
 import '../services/reel_service.dart';
 import '../services/api_client.dart';
+import '../components/double_tap_like.dart';
 import '../components/reel_moderation_sheet.dart';
 import '../components/reel_thumbnail.dart';
 import '../components/user_avatar.dart';
@@ -443,7 +446,7 @@ class _FeedViewState extends State<_FeedView> {
   // On-brand fallback backgrounds for reel cards with no thumbnail — kept
   // within the website's amber/neutral palette instead of the previous
   // unrelated purple/teal/indigo hues.
-  static const _gradients = [
+  static List<List<Color>> get _gradients => [
     [AppColors.amber, AppColors.surface2, AppColors.bg],
     [AppColors.amberSoft, AppColors.surface2, AppColors.bg],
     [AppColors.borderHi, AppColors.surface2, AppColors.bg],
@@ -568,7 +571,7 @@ class _FeedViewState extends State<_FeedView> {
 
   Widget _buildFeedPage() {
     if (_loading) {
-      return const ColoredBox(
+      return ColoredBox(
         color: AppColors.bg,
         child: Center(child: CircularProgressIndicator(color: AppColors.amber)),
       );
@@ -590,10 +593,7 @@ class _FeedViewState extends State<_FeedView> {
                   });
                   _loadReels();
                 },
-                child: const Text(
-                  'Retry',
-                  style: TextStyle(color: AppColors.amber),
-                ),
+                child: Text('Retry', style: TextStyle(color: AppColors.amber)),
               ),
             ],
           ),
@@ -601,7 +601,7 @@ class _FeedViewState extends State<_FeedView> {
       );
     }
     if (_videos.isEmpty) {
-      return const ColoredBox(
+      return ColoredBox(
         color: AppColors.bg,
         child: Center(
           child: Text('No videos yet', style: TextStyle(color: Colors.white54)),
@@ -759,7 +759,23 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
   bool _videoFailed = false;
   bool _notifiedVideoEnd = false;
   late int _likeCount;
-  VideoPlayerController? _videoController;
+  Player? _player;
+  VideoController? _videoController;
+  StreamSubscription<String>? _errorSub;
+  StreamSubscription<Duration>? _positionSub;
+  StreamSubscription<bool>? _completedSub;
+
+  // Some Android devices (decoder/texture stalls that never surface as a
+  // player error) leave `play()` reporting "playing" while the frame never
+  // advances — a frozen first frame with a play/pause button that does
+  // nothing. This watchdog detects "playing but position isn't moving" and
+  // forces a full controller rebuild, which is the reliable recovery for a
+  // stuck platform decoder.
+  Timer? _stallTimer;
+  Duration _lastWatchedPosition = Duration.zero;
+  int _stallTicks = 0;
+  int _autoReinitCount = 0;
+  static const _maxAutoReinits = 3;
 
   @override
   void initState() {
@@ -787,7 +803,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
     if (widget.isActive) _startPlayback();
   }
 
-  Future<void> _initVideo({bool retrying = false}) async {
+  Future<void> _initVideo() async {
     final url = widget.item.videoUrl;
     if (url == null || url.isEmpty) {
       _progressCtrl.stop();
@@ -800,28 +816,57 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
       return;
     }
 
-    final controller = VideoPlayerController.networkUrl(Uri.parse(url));
-    _videoController = controller;
+    final player = Player();
+    _player = player;
+    _videoController = VideoController(
+      player,
+      // Hardware-accelerated decode is what hangs on the affected devices
+      // (confirmed: MediaTek Codec2 on a Samsung Galaxy A13) — software
+      // decode via the bundled FFmpeg avoids the OS decoder entirely.
+      configuration: const VideoControllerConfiguration(
+        enableHardwareAcceleration: false,
+      ),
+    );
+    _errorSub = player.stream.error.listen((error) {
+      debugPrint('Reel ${widget.item.id} playback error: $error');
+      if (mounted) {
+        setState(() {
+          _videoFailed = true;
+          _isPaused = true;
+        });
+      }
+    });
+    _positionSub = player.stream.position.listen((_) {
+      if (mounted) setState(() {});
+    });
+    _completedSub = player.stream.completed.listen((completed) {
+      if (completed && !_notifiedVideoEnd && mounted) {
+        _notifiedVideoEnd = true;
+        widget.onVideoEnd();
+      }
+    });
     try {
-      await controller.initialize();
-      controller.setLooping(true);
-      controller.addListener(_handleVideoTick);
-      if (!mounted || _videoController != controller) return;
+      // On some devices playback can hang indefinitely instead of throwing
+      // (a stuck native connection/decoder handshake) — without this
+      // timeout that leaves the reel stuck in the loading state forever,
+      // silently, since nothing else here would ever fire.
+      await player
+          .open(Media(url), play: false)
+          .timeout(const Duration(seconds: 10));
+      await player.setPlaylistMode(PlaylistMode.loop);
+      if (!mounted || _player != player) return;
       _progressCtrl.stop();
       setState(() {
         _videoReady = true;
         _videoFailed = false;
       });
-      if (widget.isActive && !_isPaused) controller.play();
-    } catch (_) {
+      if (widget.isActive && !_isPaused) {
+        player.play();
+        _startStallWatchdog();
+      }
+    } catch (e) {
+      debugPrint('Reel ${widget.item.id} failed to initialize: $e');
       _progressCtrl.stop();
-      await controller.dispose();
-      if (_videoController == controller) _videoController = null;
-      if (!retrying && mounted) {
-        await Future<void>.delayed(const Duration(milliseconds: 450));
-        if (mounted) await _initVideo(retrying: true);
-        return;
-      }
       if (mounted) {
         setState(() {
           _videoFailed = true;
@@ -829,54 +874,85 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
         });
       }
     }
-  }
-
-  void _handleVideoTick() {
-    final controller = _videoController;
-    if (controller == null || !controller.value.isInitialized) return;
-    if (controller.value.hasError) {
-      if (mounted) {
-        setState(() {
-          _videoFailed = true;
-          _isPaused = true;
-        });
-      }
-      return;
-    }
-    final duration = controller.value.duration;
-    final position = controller.value.position;
-    if (duration > Duration.zero &&
-        position >= duration &&
-        !_notifiedVideoEnd &&
-        mounted) {
-      _notifiedVideoEnd = true;
-      widget.onVideoEnd();
-    }
-    if (mounted) setState(() {});
   }
 
   void _startPlayback() {
     _notifiedVideoEnd = false;
-    final controller = _videoController;
-    if (controller != null && controller.value.isInitialized) {
-      controller.seekTo(Duration.zero);
-      controller.play();
+    final player = _player;
+    if (player != null && _videoReady) {
+      player.seek(Duration.zero);
+      player.play();
+      _startStallWatchdog();
     } else if (!_videoFailed) {
       _progressCtrl.forward(from: 0);
     }
   }
 
   void _stopPlayback() {
-    final controller = _videoController;
-    if (controller != null && controller.value.isInitialized) {
-      controller.pause();
+    final player = _player;
+    if (player != null && _videoReady) {
+      player.pause();
     }
     _progressCtrl.stop();
+    _stopStallWatchdog();
+  }
+
+  void _startStallWatchdog() {
+    _stallTimer?.cancel();
+    _stallTicks = 0;
+    _lastWatchedPosition = _player?.state.position ?? Duration.zero;
+    _stallTimer = Timer.periodic(const Duration(seconds: 2), (_) {
+      if (!mounted || _isPaused || !widget.isActive || _videoFailed) return;
+      final player = _player;
+      if (player == null || !_videoReady) return;
+      if (player.state.duration <= Duration.zero) return;
+      final position = player.state.position;
+      if (position == _lastWatchedPosition) {
+        _stallTicks++;
+        if (_stallTicks >= 2) {
+          _stallTicks = 0;
+          if (_autoReinitCount < _maxAutoReinits) {
+            _autoReinitCount++;
+            debugPrint(
+              'Reel ${widget.item.id} stalled at $position — '
+              'forcing reinit ($_autoReinitCount/$_maxAutoReinits).',
+            );
+            _retryVideo();
+          } else {
+            debugPrint(
+              'Reel ${widget.item.id} still stalled after '
+              '$_maxAutoReinits auto-reinits — giving up.',
+            );
+            _stopStallWatchdog();
+            if (mounted) {
+              setState(() {
+                _videoFailed = true;
+                _isPaused = true;
+              });
+            }
+          }
+        }
+      } else {
+        _stallTicks = 0;
+        _lastWatchedPosition = position;
+      }
+    });
+  }
+
+  void _stopStallWatchdog() {
+    _stallTimer?.cancel();
+    _stallTimer = null;
   }
 
   Future<void> _retryVideo() async {
-    await _videoController?.dispose();
+    _stopStallWatchdog();
+    await _errorSub?.cancel();
+    await _positionSub?.cancel();
+    await _completedSub?.cancel();
+    final old = _player;
+    _player = null;
     _videoController = null;
+    await old?.dispose();
     _progressCtrl.stop();
     if (!mounted) return;
     setState(() {
@@ -894,7 +970,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
     super.didUpdateWidget(old);
     if (widget.isActive && !old.isActive) {
       _progressCtrl.reset();
-      _videoController?.seekTo(Duration.zero);
+      if (_videoReady) _player?.seek(Duration.zero);
       if (mounted) {
         setState(() {
           _isPaused = false;
@@ -909,8 +985,11 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _videoController?.removeListener(_handleVideoTick);
-    _videoController?.dispose();
+    _stopStallWatchdog();
+    _errorSub?.cancel();
+    _positionSub?.cancel();
+    _completedSub?.cancel();
+    _player?.dispose();
     _progressCtrl.dispose();
     _likeCtrl.dispose();
     super.dispose();
@@ -937,6 +1016,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
 
   void _togglePause() {
     if (_videoFailed) {
+      _autoReinitCount = 0;
       _retryVideo();
       return;
     }
@@ -947,7 +1027,8 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
     if (_isPaused) {
       _stopPlayback();
     } else {
-      _videoController?.play();
+      _player?.play();
+      _startStallWatchdog();
       if (!_videoReady) _progressCtrl.forward();
       Future.delayed(const Duration(milliseconds: 900), () {
         if (mounted) setState(() => _showOverlay = false);
@@ -1033,27 +1114,33 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
       : '$_likeCount';
 
   double get _progressValue {
-    final controller = _videoController;
-    if (controller == null || !controller.value.isInitialized) {
+    final player = _player;
+    if (player == null || !_videoReady) {
       return _progressCtrl.value;
     }
-    final duration = controller.value.duration.inMilliseconds;
+    final duration = player.state.duration.inMilliseconds;
     if (duration <= 0) return 0;
-    return (controller.value.position.inMilliseconds / duration).clamp(0, 1);
+    return (player.state.position.inMilliseconds / duration).clamp(0, 1);
   }
 
   @override
   Widget build(BuildContext context) {
     const floor = 20.0;
 
-    return GestureDetector(
+    return DoubleTapLike(
+      isLiked: _isLiked,
+      onLike: _toggleLike,
       onTap: _togglePause,
       child: Stack(
         fit: StackFit.expand,
         children: [
           // ── Background gradient ──────────────────────────────────────────
           if (_videoReady && _videoController != null)
-            SizedBox.expand(child: VideoPlayer(_videoController!))
+            Video(
+              controller: _videoController!,
+              fit: BoxFit.cover,
+              controls: NoVideoControls,
+            )
           else
             ReelThumbnail(
               thumbnailUrl: widget.item.thumbnailUrl,
@@ -1119,9 +1206,7 @@ class _VideoCardState extends State<_VideoCard> with TickerProviderStateMixin {
               builder: (_, __) => LinearProgressIndicator(
                 value: _progressValue,
                 backgroundColor: Colors.white.withValues(alpha: 0.18),
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColors.amber,
-                ),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.amber),
                 minHeight: 3,
               ),
             ),
@@ -1495,7 +1580,7 @@ class _CreatorCard extends StatelessWidget {
                     ),
                     child: Text(
                       item.category,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.amberSoft,
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
@@ -1544,21 +1629,36 @@ class _FeedModeTabs extends StatelessWidget {
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.only(top: 58),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _FeedModeTab(
-                label: 'Trendings',
-                active: currentIndex == 1,
-                onTap: onTrendingTap,
+          child: Center(
+            child: Container(
+              // A backing pill, since this bar sits over both the video
+              // feed (dark scrim) and the plain Trending page background —
+              // without it the inactive label was unreadable in light mode.
+              padding: const EdgeInsets.symmetric(
+                horizontal: 18,
+                vertical: 8,
               ),
-              const SizedBox(width: 26),
-              _FeedModeTab(
-                label: 'For You',
-                active: currentIndex == 0,
-                onTap: onForYouTap,
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.32),
+                borderRadius: BorderRadius.circular(999),
               ),
-            ],
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _FeedModeTab(
+                    label: 'Trendings',
+                    active: currentIndex == 1,
+                    onTap: onTrendingTap,
+                  ),
+                  const SizedBox(width: 26),
+                  _FeedModeTab(
+                    label: 'For You',
+                    active: currentIndex == 0,
+                    onTap: onForYouTap,
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
@@ -1864,7 +1964,7 @@ class _ShareSheet extends StatelessWidget {
                                 const SizedBox(height: 4),
                                 Text(
                                   creatorName,
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: AppColors.amber,
                                     fontSize: 12,
                                   ),

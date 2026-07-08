@@ -38,16 +38,23 @@ class EditListingDialog extends StatefulWidget {
     required String date,
     required double price,
     int? capacity,
-  }) onSave;
+  })
+  onSave;
 
   @override
   State<EditListingDialog> createState() => _EditListingDialogState();
 }
 
 class _EditListingDialogState extends State<EditListingDialog> {
-  late final _titleController = TextEditingController(text: widget.initialTitle);
-  late final _descController = TextEditingController(text: widget.initialDescription);
-  late final _locationController = TextEditingController(text: widget.initialLocation);
+  late final _titleController = TextEditingController(
+    text: widget.initialTitle,
+  );
+  late final _descController = TextEditingController(
+    text: widget.initialDescription,
+  );
+  late final _locationController = TextEditingController(
+    text: widget.initialLocation,
+  );
   late final _dateController = TextEditingController(text: widget.initialDate);
   late final _priceController = TextEditingController(
     text: widget.initialPrice > 0 ? widget.initialPrice.toString() : '',
@@ -74,7 +81,10 @@ class _EditListingDialogState extends State<EditListingDialog> {
     final title = _titleController.text.trim();
     if (title.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a title'), backgroundColor: AppColors.error),
+        const SnackBar(
+          content: Text('Please enter a title'),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
@@ -94,7 +104,9 @@ class _EditListingDialogState extends State<EditListingDialog> {
         setState(() => _saving = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(ApiClient.errorMessage(e, fallback: 'Failed to save changes.')),
+            content: Text(
+              ApiClient.errorMessage(e, fallback: 'Failed to save changes.'),
+            ),
             backgroundColor: AppColors.error,
           ),
         );
@@ -132,7 +144,11 @@ class _EditListingDialogState extends State<EditListingDialog> {
                         Expanded(
                           child: Text(
                             widget.dialogTitle,
-                            style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w700),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                         IconButton(
@@ -143,7 +159,10 @@ class _EditListingDialogState extends State<EditListingDialog> {
                       ],
                     ),
                   ),
-                  Divider(color: Colors.white.withValues(alpha: 0.1), height: 1),
+                  Divider(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    height: 1,
+                  ),
                   Flexible(
                     child: SingleChildScrollView(
                       padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
@@ -158,10 +177,18 @@ class _EditListingDialogState extends State<EditListingDialog> {
                           const SizedBox(height: 14),
                           _field('Date (YYYY-MM-DD)', _dateController),
                           const SizedBox(height: 14),
-                          _field('Price', _priceController, keyboardType: TextInputType.number),
+                          _field(
+                            'Price',
+                            _priceController,
+                            keyboardType: TextInputType.number,
+                          ),
                           if (widget.showCapacity) ...[
                             const SizedBox(height: 14),
-                            _field('Capacity', _capacityController, keyboardType: TextInputType.number),
+                            _field(
+                              'Capacity',
+                              _capacityController,
+                              keyboardType: TextInputType.number,
+                            ),
                           ],
                         ],
                       ),
@@ -176,11 +203,26 @@ class _EditListingDialogState extends State<EditListingDialog> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.amber,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
                         child: _saving
-                            ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                            : const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Text(
+                                'Save Changes',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     ),
                   ),
@@ -202,7 +244,14 @@ class _EditListingDialogState extends State<EditListingDialog> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(height: 6),
         TextField(
           controller: controller,
@@ -212,8 +261,14 @@ class _EditListingDialogState extends State<EditListingDialog> {
           decoration: InputDecoration(
             filled: true,
             fillColor: Colors.white.withValues(alpha: 0.06),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
           ),
         ),
       ],

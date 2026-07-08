@@ -89,9 +89,7 @@ class EventService {
   }
 
   static Future<List<EventModel>> getCreated() async {
-    final response = await ApiClient.instance.get(
-      '/api/users/listings/events',
-    );
+    final response = await ApiClient.instance.get('/api/users/listings/events');
     final list = response.data as List<dynamic>;
     return list
         .map((json) => EventModel.fromJson(json as Map<String, dynamic>))

@@ -31,11 +31,10 @@ class ReelService {
       ApiClient.instance.delete('/api/reels/$reelId');
 
   static Future<void> reportReel(int reelId, String reason) =>
-      ApiClient.instance.post('/api/reports', data: {
-        'targetType': 'REEL',
-        'targetId': reelId,
-        'reason': reason,
-      });
+      ApiClient.instance.post(
+        '/api/reports',
+        data: {'targetType': 'REEL', 'targetId': reelId, 'reason': reason},
+      );
 
   static Future<List<ReelModel>> getLiked() async {
     final response = await ApiClient.instance.get('/api/reels/liked');

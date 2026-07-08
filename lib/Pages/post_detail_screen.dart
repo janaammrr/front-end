@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../components/dm_picker_sheet.dart';
+import '../components/double_tap_like.dart';
 import '../components/user_avatar.dart';
 import 'posts_screen.dart' show MediaGrid, formatRelativeTime;
 import '../models/post_model.dart';
@@ -121,7 +122,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not post comment.'))),
+          SnackBar(
+            content: Text(
+              ApiClient.errorMessage(e, fallback: 'Could not post comment.'),
+            ),
+          ),
         );
       }
     } finally {
@@ -137,10 +142,19 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete post?', style: TextStyle(color: Colors.white)),
-        content: const Text('This cannot be undone.', style: TextStyle(color: AppColors.text2)),
+        title: const Text(
+          'Delete post?',
+          style: TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          'This cannot be undone.',
+          style: TextStyle(color: AppColors.text2),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
@@ -156,7 +170,11 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not delete post.'))),
+          SnackBar(
+            content: Text(
+              ApiClient.errorMessage(e, fallback: 'Could not delete post.'),
+            ),
+          ),
         );
       }
     }
@@ -175,11 +193,17 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
         appBar: AppBar(
           backgroundColor: AppColors.bg,
           elevation: 0,
-          title: const Text('Post', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          title: const Text(
+            'Post',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+          ),
           actions: [
             if (_post != null && _myId != null && _myId == _post!.author.id)
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                icon: const Icon(
+                  Icons.delete_outline_rounded,
+                  color: AppColors.error,
+                ),
                 onPressed: _confirmDelete,
               ),
           ],
@@ -191,11 +215,14 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.amber));
+      return Center(child: CircularProgressIndicator(color: AppColors.amber));
     }
     if (_error != null || _post == null) {
       return Center(
-        child: Text(_error ?? 'Post not found', style: const TextStyle(color: Colors.white70)),
+        child: Text(
+          _error ?? 'Post not found',
+          style: const TextStyle(color: Colors.white70),
+        ),
       );
     }
     final post = _post!;
@@ -218,25 +245,52 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                         ),
                       ),
                     ),
-                    child: UserAvatar(displayName: post.author.fullName, radius: 20),
+                    child: UserAvatar(
+                      displayName: post.author.fullName,
+                      radius: 20,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(post.author.fullName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
-                      Text(formatRelativeTime(DateTime.tryParse(post.createdAt)), style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                      Text(
+                        post.author.fullName,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+                      Text(
+                        formatRelativeTime(DateTime.tryParse(post.createdAt)),
+                        style: const TextStyle(
+                          color: Colors.white38,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                   ),
                 ],
               ),
               if (post.content.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                Text(post.content, style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.5)),
+                Text(
+                  post.content,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    height: 1.5,
+                  ),
+                ),
               ],
               if (post.mediaUrls.isNotEmpty) ...[
                 const SizedBox(height: 16),
-                MediaGrid(urls: post.mediaUrls),
+                DoubleTapLike(
+                  isLiked: post.likedByMe,
+                  onLike: _toggleLike,
+                  child: MediaGrid(urls: post.mediaUrls),
+                ),
               ],
               const SizedBox(height: 16),
               Row(
@@ -246,20 +300,34 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     child: Row(
                       children: [
                         Icon(
-                          post.likedByMe ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                          color: post.likedByMe ? AppColors.amber : Colors.white54,
+                          post.likedByMe
+                              ? Icons.favorite_rounded
+                              : Icons.favorite_border_rounded,
+                          color: post.likedByMe
+                              ? AppColors.amber
+                              : Colors.white54,
                         ),
                         const SizedBox(width: 6),
-                        Text('${post.likeCount}', style: const TextStyle(color: Colors.white70)),
+                        Text(
+                          '${post.likeCount}',
+                          style: const TextStyle(color: Colors.white70),
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 24),
                   Row(
                     children: [
-                      const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white54, size: 18),
+                      const Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        color: Colors.white54,
+                        size: 18,
+                      ),
                       const SizedBox(width: 6),
-                      Text('${post.commentCount}', style: const TextStyle(color: Colors.white70)),
+                      Text(
+                        '${post.commentCount}',
+                        style: const TextStyle(color: Colors.white70),
+                      ),
                     ],
                   ),
                   const Spacer(),
@@ -276,17 +344,30 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                         shareContent: post.content,
                       ),
                     ),
-                    child: const Icon(Icons.send_outlined, color: Colors.white54, size: 20),
+                    child: const Icon(
+                      Icons.send_outlined,
+                      color: Colors.white54,
+                      size: 20,
+                    ),
                   ),
                 ],
               ),
               const Divider(color: Colors.white24, height: 32),
-              const Text('Comments', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+              const Text(
+                'Comments',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const SizedBox(height: 12),
               if (_comments.isEmpty)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text('No comments yet. Be the first!', style: TextStyle(color: Colors.white38)),
+                  child: Text(
+                    'No comments yet. Be the first!',
+                    style: TextStyle(color: Colors.white38),
+                  ),
                 )
               else
                 for (final comment in _comments)
@@ -295,15 +376,29 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        UserAvatar(displayName: comment.user.name, username: comment.user.username, radius: 15),
+                        UserAvatar(
+                          displayName: comment.user.name,
+                          username: comment.user.username,
+                          radius: 15,
+                        ),
                         const SizedBox(width: 10),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(comment.user.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 13)),
+                              Text(
+                                comment.user.name,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
                               const SizedBox(height: 2),
-                              Text(comment.content, style: const TextStyle(color: Colors.white70)),
+                              Text(
+                                comment.content,
+                                style: const TextStyle(color: Colors.white70),
+                              ),
                             ],
                           ),
                         ),
@@ -328,17 +423,33 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                       hintStyle: const TextStyle(color: Colors.white38),
                       filled: true,
                       fillColor: Colors.white.withValues(alpha: 0.06),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 10,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(24),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                     onSubmitted: (_) => _sendComment(),
                   ),
                 ),
                 const SizedBox(width: 8),
                 _sendingComment
-                    ? const SizedBox(width: 40, height: 40, child: Padding(padding: EdgeInsets.all(8), child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.amber)))
+                    ? SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: Padding(
+                          padding: EdgeInsets.all(8),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppColors.amber,
+                          ),
+                        ),
+                      )
                     : IconButton(
-                        icon: const Icon(Icons.send_rounded, color: AppColors.amber),
+                        icon: Icon(Icons.send_rounded, color: AppColors.amber),
                         onPressed: _sendComment,
                       ),
               ],

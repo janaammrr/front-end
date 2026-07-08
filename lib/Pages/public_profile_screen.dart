@@ -25,6 +25,7 @@ class PublicProfileScreen extends StatefulWidget {
     this.profileUrl,
     this.username,
     this.isRootView = false,
+    this.onProfileChanged,
   });
 
   final int? creatorId;
@@ -40,6 +41,11 @@ class PublicProfileScreen extends StatefulWidget {
   /// screen to pop to). Shows a settings-gear icon instead of a back arrow.
   final bool isRootView;
 
+  /// Called after returning from Settings with an edited profile, so a
+  /// parent holding name/photo (e.g. [ProfileScreen]) can refetch and pass
+  /// fresh props back down.
+  final VoidCallback? onProfileChanged;
+
   @override
   State<PublicProfileScreen> createState() => _PublicProfileScreenState();
 }
@@ -54,6 +60,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
   bool _loading = true;
   bool _followBusy = false;
   String? _error;
+  String? _bio;
 
   String get _handle {
     if (widget.username != null && widget.username!.trim().isNotEmpty) {
@@ -89,10 +96,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       int? myId;
       var isSelf = false;
       var isFollowing = false;
+      String? bio;
       try {
         final me = await UserService.getMe();
         myId = me.id;
         isSelf = me.id == creatorId;
+        if (isSelf) bio = me.bio;
         final myFollowing = await FollowService.getFollowing(me.id);
         isFollowing = myFollowing.any((user) => user.id == creatorId);
       } catch (e) {
@@ -100,10 +109,16 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           await AuthService.logout();
         }
       }
+      if (bio == null && !isSelf && widget.username != null) {
+        try {
+          bio = (await UserService.getByUsername(widget.username!)).bio;
+        } catch (_) {}
+      }
       if (!mounted) return;
       setState(() {
         _myId = myId;
         _isSelf = isSelf;
+        _bio = bio;
         _reels = results[0] as List<ReelModel>;
         _followersCount = (results[1] as List<FollowUser>).length;
         _followingCount = (results[2] as List<FollowUser>).length;
@@ -246,7 +261,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
         slivers: [
           _buildHeader(context),
           if (_loading)
-            const SliverFillRemaining(
+            SliverFillRemaining(
               child: Center(
                 child: CircularProgressIndicator(color: AppColors.amber),
               ),
@@ -322,12 +337,18 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               child: widget.isRootView
                   ? _CircleBtn(
                       icon: Icons.settings_outlined,
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SettingsScreen(),
-                        ),
-                      ),
+                      onTap: () async {
+                        final changed = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SettingsScreen(),
+                          ),
+                        );
+                        if (changed == true) {
+                          _loadProfile();
+                          widget.onProfileChanged?.call();
+                        }
+                      },
                     )
                   : _CircleBtn(
                       icon: Icons.arrow_back_ios_new_rounded,
@@ -352,10 +373,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                   height: 100,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: AppColors.amber,
-                      width: 3,
-                    ),
+                    border: Border.all(color: AppColors.amber, width: 3),
                     gradient: widget.profileUrl == null
                         ? LinearGradient(
                             colors: widget.gradient.length >= 2
@@ -418,10 +436,16 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       leading: widget.isRootView
           ? _CircleBtn(
               icon: Icons.settings_outlined,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const SettingsScreen()),
-              ),
+              onTap: () async {
+                final changed = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+                if (changed == true) {
+                  _loadProfile();
+                  widget.onProfileChanged?.call();
+                }
+              },
             )
           : _CircleBtn(
               icon: Icons.arrow_back_ios_new_rounded,
@@ -445,8 +469,8 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           Text(
             widget.creatorName,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: AppColors.text1,
               fontSize: 24,
               fontWeight: FontWeight.w800,
             ),
@@ -454,7 +478,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           const SizedBox(height: 4),
           Text(
             _handle,
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.amber,
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -462,10 +486,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            'Educator and content creator on Flame.',
+            (_bio != null && _bio!.trim().isNotEmpty)
+                ? _bio!.trim()
+                : 'Educator and content creator on Flame.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.6),
+              color: AppColors.text2,
               fontSize: 13.5,
               height: 1.45,
             ),
@@ -485,17 +511,27 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(vertical: 18),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
+              color: AppColors.text1.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+              border: Border.all(
+                color: AppColors.text1.withValues(alpha: 0.12),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 _Stat(value: '${_reels.length}', label: 'Reels'),
-                Container(width: 1, height: 36, color: Colors.white12),
+                Container(
+                  width: 1,
+                  height: 36,
+                  color: AppColors.text1.withValues(alpha: 0.12),
+                ),
                 _Stat(value: _fmt(_followersCount), label: 'Followers'),
-                Container(width: 1, height: 36, color: Colors.white12),
+                Container(
+                  width: 1,
+                  height: 36,
+                  color: AppColors.text1.withValues(alpha: 0.12),
+                ),
                 _Stat(value: _fmt(_followingCount), label: 'Following'),
               ],
             ),
@@ -520,23 +556,23 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                 decoration: BoxDecoration(
                   gradient: _isFollowing ? null : AppColors.accentGradient,
                   color: _isFollowing
-                      ? Colors.white.withValues(alpha: 0.08)
+                      ? AppColors.text1.withValues(alpha: 0.08)
                       : null,
                   borderRadius: BorderRadius.circular(14),
                   border: _isFollowing
-                      ? Border.all(color: Colors.white.withValues(alpha: 0.2))
+                      ? Border.all(color: AppColors.text1.withValues(alpha: 0.2))
                       : null,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     if (_followBusy)
-                      const SizedBox(
+                      SizedBox(
                         width: 18,
                         height: 18,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: _isFollowing ? AppColors.text1 : Colors.white,
                         ),
                       )
                     else
@@ -544,14 +580,14 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
                         _isFollowing
                             ? Icons.person_remove_outlined
                             : Icons.person_add_outlined,
-                        color: Colors.white,
+                        color: _isFollowing ? AppColors.text1 : Colors.white,
                         size: 18,
                       ),
                     const SizedBox(width: 6),
                     Text(
                       _isFollowing ? 'Following' : 'Follow',
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: _isFollowing ? AppColors.text1 : Colors.white,
                         fontWeight: FontWeight.w700,
                         fontSize: 15,
                       ),
@@ -569,25 +605,25 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.07),
+                  color: AppColors.text1.withValues(alpha: 0.07),
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.18),
+                    color: AppColors.text1.withValues(alpha: 0.18),
                   ),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
                       Icons.chat_bubble_outline_rounded,
-                      color: Colors.white,
+                      color: AppColors.text1,
                       size: 17,
                     ),
-                    SizedBox(width: 6),
+                    const SizedBox(width: 6),
                     Text(
                       'Message',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.text1,
                         fontWeight: FontWeight.w700,
                         fontSize: 14,
                       ),
@@ -607,10 +643,10 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
       child: Row(
         children: [
-          const Text(
+          Text(
             'Reels',
             style: TextStyle(
-              color: Colors.white,
+              color: AppColors.text1,
               fontSize: 18,
               fontWeight: FontWeight.w700,
             ),
@@ -621,14 +657,12 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
             decoration: BoxDecoration(
               color: AppColors.amber.withValues(alpha: 0.13),
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(
-                color: AppColors.amber.withValues(alpha: 0.4),
-              ),
+              border: Border.all(color: AppColors.amber.withValues(alpha: 0.4)),
             ),
             child: Text(
               '${_reels.length} total',
-              style: const TextStyle(
-                color: AppColors.amberSoft,
+              style: TextStyle(
+                color: AppColors.amber,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
               ),
@@ -641,13 +675,13 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   Widget _buildVideoGrid() {
     if (_reels.isEmpty) {
-      return const SliverToBoxAdapter(
+      return SliverToBoxAdapter(
         child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 48),
+          padding: const EdgeInsets.symmetric(vertical: 48),
           child: Center(
             child: Text(
               'No public videos yet',
-              style: TextStyle(color: Colors.white54),
+              style: TextStyle(color: AppColors.text3),
             ),
           ),
         ),
@@ -714,7 +748,7 @@ class _PublicProfileScreenState extends State<PublicProfileScreen> {
 
   // On-brand fallback thumbnails, replacing the previous unrelated
   // purple/teal/indigo/maroon hues with variations of the site's palette.
-  static const _thumbGradients = [
+  static List<List<Color>> get _thumbGradients => [
     [AppColors.amber, AppColors.surface2],
     [AppColors.surface2, AppColors.surface],
     [AppColors.borderHi, AppColors.surface2],
@@ -738,7 +772,7 @@ class _ErrorState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, color: Colors.white38, size: 48),
+            Icon(Icons.error_outline, color: AppColors.text3, size: 48),
             const SizedBox(height: 12),
             Text(
               error,
@@ -748,9 +782,7 @@ class _ErrorState extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: onRetry,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.amber,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber),
               child: const Text('Retry', style: TextStyle(color: Colors.white)),
             ),
           ],
@@ -802,17 +834,14 @@ class _Stat extends StatelessWidget {
       children: [
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: AppColors.text1,
             fontSize: 20,
             fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: 5),
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white54, fontSize: 12),
-        ),
+        Text(label, style: TextStyle(color: AppColors.text3, fontSize: 12)),
       ],
     );
   }

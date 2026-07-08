@@ -97,10 +97,10 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
                     children: [
                       _BackButton(onTap: () => Navigator.of(context).pop()),
                       const SizedBox(width: 12),
-                      const Text(
+                      Text(
                         'My Workshops',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.text1,
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                         ),
@@ -109,11 +109,9 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
                   ),
                 ),
                 if (_loading)
-                  const Expanded(
+                  Expanded(
                     child: Center(
-                      child: CircularProgressIndicator(
-                        color: AppColors.amber,
-                      ),
+                      child: CircularProgressIndicator(color: AppColors.amber),
                     ),
                   )
                 else if (_error != null)
@@ -122,9 +120,9 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.error_outline,
-                            color: Colors.white38,
+                            color: AppColors.text3,
                             size: 48,
                           ),
                           const SizedBox(height: 12),
@@ -156,10 +154,10 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
                     controller: _tabController,
                     indicatorColor: AppColors.amber,
                     indicatorWeight: 2,
-                    labelColor: Colors.white,
+                    labelColor: AppColors.text1,
                     unselectedLabelColor: AppColors.text3,
                     labelStyle: const TextStyle(fontWeight: FontWeight.w700),
-                    dividerColor: Colors.white.withValues(alpha: 0.08),
+                    dividerColor: AppColors.text1.withValues(alpha: 0.08),
                     tabs: [
                       Tab(text: 'Booked (${_booked.length})'),
                       Tab(text: 'Created (${_created.length})'),
@@ -205,22 +203,23 @@ class _MyWorkshopsScreenState extends State<MyWorkshopsScreen>
                                 initialPrice: item.price ?? 0,
                                 showCapacity: true,
                                 initialCapacity: item.capacity,
-                                onSave: ({
-                                  required title,
-                                  required description,
-                                  required location,
-                                  required date,
-                                  required price,
-                                  capacity,
-                                }) => WorkshopService.updateWorkshop(
-                                  item.id,
-                                  title: title,
-                                  description: description,
-                                  location: location,
-                                  capacity: capacity ?? 0,
-                                  date: date,
-                                  price: price,
-                                ),
+                                onSave:
+                                    ({
+                                      required title,
+                                      required description,
+                                      required location,
+                                      required date,
+                                      required price,
+                                      capacity,
+                                    }) => WorkshopService.updateWorkshop(
+                                      item.id,
+                                      title: title,
+                                      description: description,
+                                      location: location,
+                                      capacity: capacity ?? 0,
+                                      date: date,
+                                      price: price,
+                                    ),
                               ),
                             );
                             if (saved == true) await _load();
@@ -265,16 +264,12 @@ class _WorkshopList extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.school_outlined,
-              color: AppColors.border,
-              size: 48,
-            ),
+            Icon(Icons.school_outlined, color: AppColors.border, size: 48),
             const SizedBox(height: 12),
             Text(
               emptyMessage,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.text3),
+              style: TextStyle(color: AppColors.text3),
             ),
           ],
         ),
@@ -327,9 +322,9 @@ class _WorkshopCard extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
+            color: AppColors.text1.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            border: Border.all(color: AppColors.text1.withValues(alpha: 0.1)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,7 +340,7 @@ class _WorkshopCard extends StatelessWidget {
                       color: AppColors.amber.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(999),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Workshop',
                       style: TextStyle(
                         color: AppColors.amber,
@@ -367,7 +362,7 @@ class _WorkshopCard extends StatelessWidget {
                     InkWell(
                       borderRadius: BorderRadius.circular(999),
                       onTap: onEdit,
-                      child: const Padding(
+                      child: Padding(
                         padding: EdgeInsets.all(4),
                         child: Icon(
                           Icons.edit_outlined,
@@ -382,8 +377,8 @@ class _WorkshopCard extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 item.title,
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: AppColors.text1,
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
@@ -394,10 +389,7 @@ class _WorkshopCard extends StatelessWidget {
                   item.description!,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: AppColors.text3,
-                    fontSize: 13,
-                  ),
+                  style: TextStyle(color: AppColors.text3, fontSize: 13),
                 ),
               ],
               if (item.location != null && item.location!.isNotEmpty) ...[
@@ -420,13 +412,11 @@ class _WorkshopCard extends StatelessWidget {
                           backgroundColor: AppColors.surface2,
                           title: Text(
                             actionLabel!,
-                            style: const TextStyle(color: Colors.white),
+                            style: TextStyle(color: AppColors.text1),
                           ),
                           content: Text(
                             'Are you sure?',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.7),
-                            ),
+                            style: TextStyle(color: AppColors.text2),
                           ),
                           actions: [
                             TextButton(
@@ -456,11 +446,8 @@ class _WorkshopCard extends StatelessWidget {
                           ? AppColors.error
                           : AppColors.amber,
                       side: BorderSide(
-                        color:
-                            (destructive
-                                    ? AppColors.error
-                                    : AppColors.amber)
-                                .withValues(alpha: 0.45),
+                        color: (destructive ? AppColors.error : AppColors.amber)
+                            .withValues(alpha: 0.45),
                       ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -487,12 +474,12 @@ class _MetaChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.07),
+        color: AppColors.text1.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         text,
-        style: const TextStyle(color: Colors.white70, fontSize: 12),
+        style: TextStyle(color: AppColors.text2, fontSize: 12),
       ),
     );
   }
@@ -517,7 +504,7 @@ class _Detail extends StatelessWidget {
               text,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: AppColors.text2, fontSize: 13),
+              style: TextStyle(color: AppColors.text2, fontSize: 13),
             ),
           ),
         ],
@@ -559,13 +546,13 @@ class _BackButton extends StatelessWidget {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.07),
+          color: AppColors.text1.withValues(alpha: 0.07),
           shape: BoxShape.circle,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+          border: Border.all(color: AppColors.text1.withValues(alpha: 0.12)),
         ),
-        child: const Icon(
+        child: Icon(
           Icons.arrow_back_ios_new_rounded,
-          color: Colors.white,
+          color: AppColors.text1,
           size: 18,
         ),
       ),

@@ -59,11 +59,13 @@ class _ListingHeroHeaderState extends State<ListingHeroHeader> {
 
   @override
   Widget build(BuildContext context) {
-    final name = _user?.firstname.isNotEmpty == true ? _user!.firstname : _user?.fullName;
+    final name = _user?.firstname.isNotEmpty == true
+        ? _user!.firstname
+        : _user?.fullName;
     final location = _user?.location;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 22),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.listingHeaderBg,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
       ),
@@ -86,12 +88,20 @@ class _ListingHeroHeaderState extends State<ListingHeroHeader> {
                       name == null ? 'Hi, Welcome 👋' : 'Hi Welcome 👋 $name',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       widget.title,
-                      style: const TextStyle(color: AppColors.listingAccentSoft, fontSize: 12, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        color: AppColors.listingAccentSoft,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -102,14 +112,21 @@ class _ListingHeroHeaderState extends State<ListingHeroHeader> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.location_on_rounded, color: AppColors.listingAccentSoft, size: 16),
+                      const Icon(
+                        Icons.location_on_rounded,
+                        color: AppColors.listingAccentSoft,
+                        size: 16,
+                      ),
                       const SizedBox(width: 2),
                       Flexible(
                         child: Text(
                           location,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ],
@@ -129,7 +146,9 @@ class _ListingHeroHeaderState extends State<ListingHeroHeader> {
               child: Row(
                 children: [
                   Expanded(child: _sectionTab('Events', ListingSection.events)),
-                  Expanded(child: _sectionTab('Workshops', ListingSection.workshops)),
+                  Expanded(
+                    child: _sectionTab('Workshops', ListingSection.workshops),
+                  ),
                 ],
               ),
             ),
@@ -142,7 +161,9 @@ class _ListingHeroHeaderState extends State<ListingHeroHeader> {
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.07),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.1),
+                    ),
                   ),
                   child: TextField(
                     controller: widget.searchController,
@@ -150,9 +171,15 @@ class _ListingHeroHeaderState extends State<ListingHeroHeader> {
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: widget.hintText,
-                      hintStyle: const TextStyle(color: AppColors.listingTextMuted),
-                      prefixIcon: const Icon(Icons.search_rounded, color: AppColors.listingTextMuted),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                      hintStyle: TextStyle(color: AppColors.listingTextMuted),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: AppColors.listingTextMuted,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
                       contentPadding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                   ),

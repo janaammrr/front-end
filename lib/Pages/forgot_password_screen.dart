@@ -46,7 +46,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     } on DioException catch (e) {
       if (mounted) {
         setState(() => _busy = false);
-        _showError(ApiClient.errorMessage(e, fallback: 'Could not send reset email.'));
+        _showError(
+          ApiClient.errorMessage(e, fallback: 'Could not send reset email.'),
+        );
       }
     } catch (_) {
       if (mounted) {
@@ -57,7 +59,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -92,13 +96,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           alignment: Alignment.topLeft,
                           child: IconButton(
                             onPressed: () => Navigator.of(context).pop(),
-                            icon: const Icon(
+                            icon: Icon(
                               Icons.arrow_back_ios_new_rounded,
                               color: AppColors.text1,
                             ),
                           ),
                         ),
-                        const Icon(
+                        Icon(
                           Icons.lock_reset_rounded,
                           color: AppColors.amber,
                           size: 56,
@@ -111,7 +115,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ),
                         const SizedBox(height: 10),
                         if (!_sent)
-                          const Text(
+                          Text(
                             "Enter your email and we'll send you a reset link.",
                             textAlign: TextAlign.center,
                             style: TextStyle(color: AppColors.text2),
@@ -127,7 +131,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           Text(
                             'If an account exists for ${_emailController.text.trim()}, a reset link has been sent.',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(color: AppColors.text2),
+                            style: TextStyle(color: AppColors.text2),
                           ),
                           const SizedBox(height: 24),
                           MyButton(
@@ -146,7 +150,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           ),
                           const SizedBox(height: 20),
                           _busy
-                              ? const CircularProgressIndicator(
+                              ? CircularProgressIndicator(
                                   color: AppColors.amber,
                                 )
                               : MyButton(
@@ -160,7 +164,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                                 builder: (_) => const ResetPasswordScreen(),
                               ),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Already have a reset code?',
                               style: TextStyle(
                                 color: AppColors.text2,

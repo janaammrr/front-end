@@ -8,16 +8,24 @@ import 'package:google_fonts/google_fonts.dart';
 class AppColors {
   AppColors._();
 
-  static const bg = _darkBg;
-  static const surface = _darkSurface;
-  static const surface2 = _darkSurface2;
-  static const border = _darkBorder;
-  static const borderHi = _darkBorderHi;
-  static const text1 = _darkText1;
-  static const text2 = _darkText2;
-  static const text3 = _darkText3;
-  static const amber = _darkAmber;
-  static const amberSoft = _darkAmberSoft;
+  /// Whether every `AppColors.*` token below should resolve to the light
+  /// palette. Reading [ThemeController.mode] directly (rather than
+  /// `Theme.of(context)`) lets these stay drop-in `static` accessors used
+  /// throughout the app without threading `BuildContext` everywhere — the
+  /// [MyApp] root rebuilds its whole subtree (via `key: ValueKey(mode)`) on
+  /// every toggle, so every widget re-reads these on the next frame.
+  static bool get _isLight => ThemeController.mode.value == ThemeMode.light;
+
+  static Color get bg => _isLight ? lightBg : _darkBg;
+  static Color get surface => _isLight ? lightSurface : _darkSurface;
+  static Color get surface2 => _isLight ? lightSurface2 : _darkSurface2;
+  static Color get border => _isLight ? lightBorder : _darkBorder;
+  static Color get borderHi => _isLight ? lightBorderHi : _darkBorderHi;
+  static Color get text1 => _isLight ? lightText1 : _darkText1;
+  static Color get text2 => _isLight ? lightText2 : _darkText2;
+  static Color get text3 => _isLight ? lightText3 : _darkText3;
+  static Color get amber => _isLight ? lightAccent : _darkAmber;
+  static Color get amberSoft => _isLight ? lightAccentSoft : _darkAmberSoft;
   static const error = Color(0xFFEF4444);
 
   static const _darkBg = Color(0xFF1A1C1C);
@@ -32,16 +40,18 @@ class AppColors {
   static const _darkAmberSoft = Color(0xFFFFB5A0);
 
   /// Listings palette (Events/Workshops screens): the same warm peach +
-  /// deep orange duo used as the accent, now over whichever base
-  /// surfaces are active for the current mode.
-  static const listingInk = Colors.white;
+  /// deep orange duo used as the accent regardless of mode, over whichever
+  /// base surfaces/ink are active for the current mode.
+  static Color get listingInk => _isLight ? lightText1 : Colors.white;
   static const listingAccent = lightAccent;
   static const listingAccentSoft = lightAccentSoft;
-  static const listingBg = bg;
-  static const listingHeaderBg = surface;
-  static const listingCard = Color(0xFF232525);
-  static const listingCardBorder = Color(0x1FFFFFFF);
-  static const listingTextMuted = text2;
+  static Color get listingBg => bg;
+  static Color get listingHeaderBg => surface;
+  static Color get listingCard =>
+      _isLight ? lightSurface : const Color(0xFF232525);
+  static Color get listingCardBorder =>
+      _isLight ? lightBorder : const Color(0x1FFFFFFF);
+  static Color get listingTextMuted => text2;
 
   static const listingAccentGradient = LinearGradient(
     colors: [listingAccent, Color(0xFFE8853F)],
@@ -53,14 +63,15 @@ class AppColors {
     BoxShadow(color: Color(0x66000000), blurRadius: 32, offset: Offset(0, 8)),
   ];
 
-  static const accentGradient = LinearGradient(
+  static LinearGradient get accentGradient => LinearGradient(
     colors: [amber, amberSoft],
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
 
   /// Web's `.glass-panel`: `background:#121212cc` + `backdrop-filter:blur(20px)`.
-  static const glassPanel = Color(0xCC121212);
+  static Color get glassPanel =>
+      _isLight ? const Color(0xCCFFFFFF) : const Color(0xCC121212);
   static const glassBlur = 20.0;
 
   // Corner radii lifted from the web app's Tailwind scale / component CSS.
@@ -74,7 +85,7 @@ class AppColors {
   /// Shared decorative header background used behind profile screens
   /// throughout the app (was an off-brand brown/orange/black gradient;
   /// now built from the real palette).
-  static const profileHeaderGradient = [amber, surface2, bg];
+  static List<Color> get profileHeaderGradient => [amber, surface2, bg];
 
   // ─── Light mode palette (user-supplied brand colors) ──────────────────────
   static const lightBg = Color(0xFFFFF5E7);
@@ -102,9 +113,7 @@ class AppTheme {
             displayMedium: GoogleFonts.montserrat(fontWeight: FontWeight.w700),
             displaySmall: GoogleFonts.montserrat(fontWeight: FontWeight.w700),
             headlineLarge: GoogleFonts.montserrat(fontWeight: FontWeight.w700),
-            headlineMedium: GoogleFonts.montserrat(
-              fontWeight: FontWeight.w600,
-            ),
+            headlineMedium: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
             headlineSmall: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
             titleLarge: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
             titleMedium: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
@@ -145,10 +154,7 @@ class AppTheme {
           side: BorderSide(color: AppColors.border),
         ),
       ),
-      dividerTheme: DividerThemeData(
-        color: AppColors.border,
-        thickness: 1,
-      ),
+      dividerTheme: DividerThemeData(color: AppColors.border, thickness: 1),
       iconTheme: IconThemeData(color: AppColors.text1),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -213,25 +219,19 @@ class AppTheme {
         backgroundColor: AppColors.surface2,
         labelStyle: GoogleFonts.inter(color: AppColors.text1),
         side: BorderSide(color: AppColors.border),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       snackBarTheme: SnackBarThemeData(
         backgroundColor: AppColors.surface2,
         contentTextStyle: GoogleFonts.inter(color: AppColors.text1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
         color: AppColors.amber,
       ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.surface,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       bottomSheetTheme: BottomSheetThemeData(
         backgroundColor: AppColors.surface,
@@ -265,7 +265,10 @@ class AppTheme {
             titleMedium: GoogleFonts.montserrat(fontWeight: FontWeight.w600),
           ),
         )
-        .apply(bodyColor: AppColors.lightText1, displayColor: AppColors.lightText1);
+        .apply(
+          bodyColor: AppColors.lightText1,
+          displayColor: AppColors.lightText1,
+        );
 
     final colorScheme = ColorScheme.fromSeed(
       seedColor: AppColors.lightAccent,
@@ -300,14 +303,20 @@ class AppTheme {
           side: const BorderSide(color: AppColors.lightBorder),
         ),
       ),
-      dividerTheme: const DividerThemeData(color: AppColors.lightBorder, thickness: 1),
+      dividerTheme: const DividerThemeData(
+        color: AppColors.lightBorder,
+        thickness: 1,
+      ),
       iconTheme: const IconThemeData(color: AppColors.lightText1),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.lightSurface2,
         hintStyle: GoogleFonts.inter(color: AppColors.lightText3),
         labelStyle: GoogleFonts.inter(color: AppColors.lightText2),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: AppColors.lightBorder),
@@ -318,7 +327,10 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.lightAccent, width: 1.5),
+          borderSide: const BorderSide(
+            color: AppColors.lightAccent,
+            width: 1.5,
+          ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
@@ -330,7 +342,9 @@ class AppTheme {
           backgroundColor: AppColors.lightAccent,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           textStyle: GoogleFonts.inter(fontWeight: FontWeight.w600),
         ),
       ),
@@ -344,7 +358,9 @@ class AppTheme {
         style: OutlinedButton.styleFrom(
           foregroundColor: AppColors.lightText1,
           side: const BorderSide(color: AppColors.lightBorder),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
@@ -365,7 +381,9 @@ class AppTheme {
         contentTextStyle: GoogleFonts.inter(color: AppColors.lightBg),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(color: AppColors.lightAccent),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: AppColors.lightAccent,
+      ),
       dialogTheme: DialogThemeData(
         backgroundColor: AppColors.lightSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

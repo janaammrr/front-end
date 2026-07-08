@@ -54,21 +54,21 @@ class _FeedItem {
   final Future<void> Function() delete;
 
   factory _FeedItem.fromPost(PostModel post, int? myId) => _FeedItem(
-        id: post.id,
-        content: post.content,
-        authorId: post.author.id,
-        authorName: post.author.fullName,
-        authorProfileUrl: null,
-        authorUsername: post.author.username,
-        createdAt: DateTime.tryParse(post.createdAt),
-        mediaUrls: post.mediaUrls,
-        likeCount: post.likeCount,
-        likedByMe: post.likedByMe,
-        commentCount: post.commentCount,
-        isMine: myId != null && myId == post.author.id,
-        toggleLike: () => PostService.toggleLike(post.id),
-        delete: () => PostService.deletePost(post.id),
-      );
+    id: post.id,
+    content: post.content,
+    authorId: post.author.id,
+    authorName: post.author.fullName,
+    authorProfileUrl: null,
+    authorUsername: post.author.username,
+    createdAt: DateTime.tryParse(post.createdAt),
+    mediaUrls: post.mediaUrls,
+    likeCount: post.likeCount,
+    likedByMe: post.likedByMe,
+    commentCount: post.commentCount,
+    isMine: myId != null && myId == post.author.id,
+    toggleLike: () => PostService.toggleLike(post.id),
+    delete: () => PostService.deletePost(post.id),
+  );
 }
 
 String formatRelativeTime(DateTime? dateTime) {
@@ -113,7 +113,9 @@ class _PostsScreenState extends State<PostsScreen> {
       Set<int> following = {};
       try {
         myId = (await UserService.getMe()).id;
-        following = (await FollowService.getFollowing(myId)).map((f) => f.id).toSet();
+        following = (await FollowService.getFollowing(
+          myId,
+        )).map((f) => f.id).toSet();
       } catch (_) {}
       if (!mounted) return;
       setState(() {
@@ -133,7 +135,10 @@ class _PostsScreenState extends State<PostsScreen> {
         return;
       }
       setState(() {
-        _feedError = ApiClient.errorMessage(e, fallback: 'Could not load posts.');
+        _feedError = ApiClient.errorMessage(
+          e,
+          fallback: 'Could not load posts.',
+        );
         _loadingFeed = false;
       });
     }
@@ -164,10 +169,19 @@ class _PostsScreenState extends State<PostsScreen> {
       builder: (dialogContext) => AlertDialog(
         backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete post?', style: TextStyle(color: Colors.white)),
-        content: const Text('This cannot be undone.', style: TextStyle(color: AppColors.text2)),
+        title: Text(
+          'Delete post?',
+          style: TextStyle(color: AppColors.text1),
+        ),
+        content: Text(
+          'This cannot be undone.',
+          style: TextStyle(color: AppColors.text2),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(dialogContext).pop(false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('Cancel'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
@@ -183,7 +197,11 @@ class _PostsScreenState extends State<PostsScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not delete post.'))),
+        SnackBar(
+          content: Text(
+            ApiClient.errorMessage(e, fallback: 'Could not delete post.'),
+          ),
+        ),
       );
     }
   }
@@ -207,10 +225,16 @@ class _PostsScreenState extends State<PostsScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         elevation: 0,
-        title: const Text('Posts', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: Text(
+          'Posts',
+          style: TextStyle(color: AppColors.text1, fontWeight: FontWeight.w700),
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.amber),
+            icon: Icon(
+              Icons.add_circle_outline_rounded,
+              color: AppColors.amber,
+            ),
             onPressed: _openCompose,
           ),
         ],
@@ -221,8 +245,16 @@ class _PostsScreenState extends State<PostsScreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                _TabButton(label: 'Feed', active: _tab == _FeedTab.feed, onTap: () => setState(() => _tab = _FeedTab.feed)),
-                _TabButton(label: 'Friends', active: _tab == _FeedTab.friends, onTap: () => setState(() => _tab = _FeedTab.friends)),
+                _TabButton(
+                  label: 'Feed',
+                  active: _tab == _FeedTab.feed,
+                  onTap: () => setState(() => _tab = _FeedTab.feed),
+                ),
+                _TabButton(
+                  label: 'Friends',
+                  active: _tab == _FeedTab.friends,
+                  onTap: () => setState(() => _tab = _FeedTab.friends),
+                ),
               ],
             ),
           ),
@@ -235,15 +267,33 @@ class _PostsScreenState extends State<PostsScreen> {
   Widget _buildBody() {
     switch (_tab) {
       case _FeedTab.feed:
-        return _buildList(_feed, _loadingFeed, _feedError, _loadFeed, 'No posts yet');
+        return _buildList(
+          _feed,
+          _loadingFeed,
+          _feedError,
+          _loadFeed,
+          'No posts yet',
+        );
       case _FeedTab.friends:
-        return _buildList(_friends, _loadingFeed, _feedError, _loadFeed, "You don't follow anyone with posts yet");
+        return _buildList(
+          _friends,
+          _loadingFeed,
+          _feedError,
+          _loadFeed,
+          "You don't follow anyone with posts yet",
+        );
     }
   }
 
-  Widget _buildList(List<_FeedItem> items, bool loading, String? error, Future<void> Function() onRefresh, String emptyMessage) {
+  Widget _buildList(
+    List<_FeedItem> items,
+    bool loading,
+    String? error,
+    Future<void> Function() onRefresh,
+    String emptyMessage,
+  ) {
     if (loading) {
-      return const Center(child: CircularProgressIndicator(color: AppColors.amber));
+      return Center(child: CircularProgressIndicator(color: AppColors.amber));
     }
     if (error != null && items.isEmpty) {
       return Center(
@@ -252,13 +302,23 @@ class _PostsScreenState extends State<PostsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_outline_rounded, color: Colors.white38, size: 48),
+              Icon(
+                Icons.error_outline_rounded,
+                color: AppColors.text3,
+                size: 48,
+              ),
               const SizedBox(height: 12),
-              Text(error, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+              Text(
+                error,
+                textAlign: TextAlign.center,
+                style: TextStyle(color: AppColors.text2),
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: onRefresh,
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.amber,
+                ),
                 child: const Text('Retry'),
               ),
             ],
@@ -271,9 +331,9 @@ class _PostsScreenState extends State<PostsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.article_outlined, color: Colors.white24, size: 56),
+            Icon(Icons.article_outlined, color: AppColors.text3, size: 56),
             const SizedBox(height: 12),
-            Text(emptyMessage, style: const TextStyle(color: Colors.white54)),
+            Text(emptyMessage, style: TextStyle(color: AppColors.text2)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _openCompose,
@@ -300,7 +360,9 @@ class _PostsScreenState extends State<PostsScreen> {
             onOpen: () async {
               final changed = await Navigator.push<bool>(
                 context,
-                MaterialPageRoute(builder: (_) => PostDetailScreen(postId: item.id)),
+                MaterialPageRoute(
+                  builder: (_) => PostDetailScreen(postId: item.id),
+                ),
               );
               if (changed == true) _loadFeed();
             },
@@ -324,7 +386,11 @@ class _PostsScreenState extends State<PostsScreen> {
 }
 
 class _TabButton extends StatelessWidget {
-  const _TabButton({required this.label, required this.active, required this.onTap});
+  const _TabButton({
+    required this.label,
+    required this.active,
+    required this.onTap,
+  });
 
   final String label;
   final bool active;
@@ -341,7 +407,7 @@ class _TabButton extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: active ? AppColors.amber : Colors.white54,
+              color: active ? AppColors.amber : AppColors.text3,
               fontWeight: active ? FontWeight.w700 : FontWeight.w500,
               fontSize: 13,
             ),
@@ -351,7 +417,10 @@ class _TabButton extends StatelessWidget {
             duration: const Duration(milliseconds: 160),
             width: active ? 28 : 0,
             height: 2.5,
-            decoration: BoxDecoration(color: AppColors.amber, borderRadius: BorderRadius.circular(999)),
+            decoration: BoxDecoration(
+              color: AppColors.amber,
+              borderRadius: BorderRadius.circular(999),
+            ),
           ),
         ],
       ),
@@ -385,9 +454,9 @@ class _PostCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.05),
+          color: AppColors.text1.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          border: Border.all(color: AppColors.text1.withValues(alpha: 0.08)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -410,28 +479,52 @@ class _PostCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item.authorName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                        Text(formatRelativeTime(item.createdAt), style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                        Text(
+                          item.authorName,
+                          style: TextStyle(
+                            color: AppColors.text1,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          formatRelativeTime(item.createdAt),
+                          style: TextStyle(
+                            color: AppColors.text3,
+                            fontSize: 12,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 ),
                 if (item.isMine)
                   PopupMenuButton<String>(
-                    icon: const Icon(Icons.more_horiz_rounded, color: Colors.white54),
+                    icon: Icon(
+                      Icons.more_horiz_rounded,
+                      color: AppColors.text2,
+                    ),
                     color: AppColors.surface,
                     onSelected: (value) {
                       if (value == 'delete') _confirmDelete(context);
                     },
                     itemBuilder: (_) => const [
-                      PopupMenuItem(value: 'delete', child: Text('Delete', style: TextStyle(color: AppColors.error))),
+                      PopupMenuItem(
+                        value: 'delete',
+                        child: Text(
+                          'Delete',
+                          style: TextStyle(color: AppColors.error),
+                        ),
+                      ),
                     ],
                   ),
               ],
             ),
             if (item.content.isNotEmpty) ...[
               const SizedBox(height: 12),
-              Text(item.content, style: const TextStyle(color: Colors.white, height: 1.4)),
+              Text(
+                item.content,
+                style: TextStyle(color: AppColors.text1, height: 1.4),
+              ),
             ],
             if (item.mediaUrls.isNotEmpty) ...[
               const SizedBox(height: 12),
@@ -445,12 +538,19 @@ class _PostCard extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(
-                        item.likedByMe ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                        color: item.likedByMe ? AppColors.amber : Colors.white54,
+                        item.likedByMe
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        color: item.likedByMe
+                            ? AppColors.amber
+                            : AppColors.text2,
                         size: 20,
                       ),
                       const SizedBox(width: 6),
-                      Text('${item.likeCount}', style: const TextStyle(color: Colors.white70)),
+                      Text(
+                        '${item.likeCount}',
+                        style: TextStyle(color: AppColors.text2),
+                      ),
                     ],
                   ),
                 ),
@@ -459,9 +559,16 @@ class _PostCard extends StatelessWidget {
                   onTap: onOpen,
                   child: Row(
                     children: [
-                      const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white54, size: 18),
+                      Icon(
+                        Icons.chat_bubble_outline_rounded,
+                        color: AppColors.text2,
+                        size: 18,
+                      ),
                       const SizedBox(width: 6),
-                      Text('${item.commentCount}', style: const TextStyle(color: Colors.white70)),
+                      Text(
+                        '${item.commentCount}',
+                        style: TextStyle(color: AppColors.text2),
+                      ),
                     ],
                   ),
                 ),
@@ -479,7 +586,11 @@ class _PostCard extends StatelessWidget {
                       shareContent: item.content,
                     ),
                   ),
-                  child: const Icon(Icons.send_outlined, color: Colors.white54, size: 18),
+                  child: Icon(
+                    Icons.send_outlined,
+                    color: AppColors.text2,
+                    size: 18,
+                  ),
                 ),
               ],
             ),
@@ -531,7 +642,11 @@ class MediaGrid extends StatelessWidget {
                   alignment: Alignment.center,
                   child: Text(
                     '+${urls.length - 4}',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
+                    ),
                   ),
                 ),
             ],
@@ -571,13 +686,20 @@ class ComposePostSheetState extends State<ComposePostSheet> {
     if (content.isEmpty && _images.isEmpty) return;
     setState(() => _busy = true);
     try {
-      await PostService.create(content, imagePaths: _images.map((f) => f.path).toList());
+      await PostService.create(
+        content,
+        imagePaths: _images.map((f) => f.path).toList(),
+      );
       if (mounted) Navigator.of(context).pop(true);
     } catch (e) {
       if (mounted) {
         setState(() => _busy = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not create post.'))),
+          SnackBar(
+            content: Text(
+              ApiClient.errorMessage(e, fallback: 'Could not create post.'),
+            ),
+          ),
         );
       }
     }
@@ -586,7 +708,9 @@ class ComposePostSheetState extends State<ComposePostSheet> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
       child: ClipRRect(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         child: Container(
@@ -598,19 +722,29 @@ class ComposePostSheetState extends State<ComposePostSheet> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('New Post', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16)),
+                Text(
+                  'New Post',
+                  style: TextStyle(
+                    color: AppColors.text1,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 16,
+                  ),
+                ),
                 const SizedBox(height: 14),
                 TextField(
                   controller: _controller,
                   autofocus: true,
                   maxLines: 5,
-                  style: const TextStyle(color: Colors.white),
+                  style: TextStyle(color: AppColors.text1),
                   decoration: InputDecoration(
                     hintText: "What's on your mind?",
-                    hintStyle: const TextStyle(color: Colors.white38),
+                    hintStyle: TextStyle(color: AppColors.text3),
                     filled: true,
-                    fillColor: Colors.white.withValues(alpha: 0.06),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                    fillColor: AppColors.text1.withValues(alpha: 0.06),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
                   ),
                 ),
                 if (_images.isNotEmpty) ...[
@@ -636,11 +770,19 @@ class ComposePostSheetState extends State<ComposePostSheet> {
                             top: 2,
                             right: 2,
                             child: GestureDetector(
-                              onTap: () => setState(() => _images.removeAt(index)),
+                              onTap: () =>
+                                  setState(() => _images.removeAt(index)),
                               child: Container(
                                 padding: const EdgeInsets.all(2),
-                                decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                                child: const Icon(Icons.close_rounded, color: Colors.white, size: 14),
+                                decoration: const BoxDecoration(
+                                  color: Colors.black54,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  color: Colors.white,
+                                  size: 14,
+                                ),
                               ),
                             ),
                           ),
@@ -656,7 +798,10 @@ class ComposePostSheetState extends State<ComposePostSheet> {
                       onPressed: _pickImages,
                       icon: const Icon(Icons.image_outlined, size: 18),
                       label: const Text('Photo'),
-                      style: OutlinedButton.styleFrom(foregroundColor: AppColors.amber, side: const BorderSide(color: AppColors.amber)),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AppColors.amber,
+                        side: BorderSide(color: AppColors.amber),
+                      ),
                     ),
                     const Spacer(),
                   ],
@@ -669,11 +814,23 @@ class ComposePostSheetState extends State<ComposePostSheet> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.amber,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                     child: _busy
-                        ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : const Text('Post', style: TextStyle(fontWeight: FontWeight.w700)),
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text(
+                            'Post',
+                            style: TextStyle(fontWeight: FontWeight.w700),
+                          ),
                   ),
                 ),
               ],

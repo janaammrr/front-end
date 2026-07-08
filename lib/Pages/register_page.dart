@@ -43,8 +43,11 @@ class _RegisterPageState extends State<RegisterPage> {
     final password = passwordController.text.trim();
     final confirmPassword = confirmPasswordController.text.trim();
 
-    if (firstName.isEmpty || lastName.isEmpty || email.isEmpty ||
-        password.isEmpty || confirmPassword.isEmpty) {
+    if (firstName.isEmpty ||
+        lastName.isEmpty ||
+        email.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty) {
       _showError('Please fill in all fields.');
       return;
     }
@@ -78,7 +81,9 @@ class _RegisterPageState extends State<RegisterPage> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -152,22 +157,20 @@ class _RegisterPageState extends State<RegisterPage> {
                         ),
                         const SizedBox(height: 24),
                         _busy
-                            ? const CircularProgressIndicator(
-                                color: AppColors.amber,
-                              )
+                            ? CircularProgressIndicator(color: AppColors.amber)
                             : MyButton(onTap: signUp, text: 'Sign up'),
                         const SizedBox(height: 25),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Text(
+                            Text(
                               'Already have an account?',
                               style: TextStyle(color: AppColors.text2),
                             ),
                             const SizedBox(width: 4),
                             GestureDetector(
                               onTap: widget.onTap,
-                              child: const Text(
+                              child: Text(
                                 'Login Page',
                                 style: TextStyle(
                                   color: AppColors.amber,

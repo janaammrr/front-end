@@ -38,7 +38,10 @@ class _AdminProvidersScreenState extends State<AdminProvidersScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _error = ApiClient.errorMessage(e, fallback: 'Could not load providers.');
+        _error = ApiClient.errorMessage(
+          e,
+          fallback: 'Could not load providers.',
+        );
         _loading = false;
       });
     }
@@ -51,7 +54,10 @@ class _AdminProvidersScreenState extends State<AdminProvidersScreen> {
       appBar: AppBar(
         backgroundColor: AppColors.bg,
         elevation: 0,
-        title: const Text('Providers', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        title: const Text(
+          'Providers',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
       ),
       body: _buildBody(),
     );
@@ -68,11 +74,17 @@ class _AdminProvidersScreenState extends State<AdminProvidersScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(_error!, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70)),
+              Text(
+                _error!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white70),
+              ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _load,
-                style: ElevatedButton.styleFrom(backgroundColor: AppColors.amber),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.amber,
+                ),
                 child: const Text('Retry'),
               ),
             ],
@@ -81,7 +93,12 @@ class _AdminProvidersScreenState extends State<AdminProvidersScreen> {
       );
     }
     if (_providers.isEmpty) {
-      return const Center(child: Text('No providers found.', style: TextStyle(color: Colors.white54)));
+      return const Center(
+        child: Text(
+          'No providers found.',
+          style: TextStyle(color: Colors.white54),
+        ),
+      );
     }
     return RefreshIndicator(
       color: AppColors.amber,
@@ -108,19 +125,41 @@ class _AdminProvidersScreenState extends State<AdminProvidersScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(provider.fullName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
-                          Text(provider.email, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                          Text(
+                            provider.fullName,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            provider.email,
+                            style: const TextStyle(
+                              color: Colors.white54,
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                     ),
                     if (provider.suspended)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: AppColors.error.withValues(alpha: 0.16),
                           borderRadius: BorderRadius.circular(999),
                         ),
-                        child: const Text('Suspended', style: TextStyle(color: AppColors.error, fontSize: 11, fontWeight: FontWeight.w700)),
+                        child: const Text(
+                          'Suspended',
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
                       ),
                   ],
                 ),
@@ -129,12 +168,23 @@ class _AdminProvidersScreenState extends State<AdminProvidersScreen> {
                   suspended: provider.suspended,
                   onToggleSuspend: (suspend, reason) async {
                     try {
-                      await AdminService.setProviderSuspended(provider.id, suspend, reason: reason);
+                      await AdminService.setProviderSuspended(
+                        provider.id,
+                        suspend,
+                        reason: reason,
+                      );
                       await _load();
                     } catch (e) {
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not update provider.'))),
+                        SnackBar(
+                          content: Text(
+                            ApiClient.errorMessage(
+                              e,
+                              fallback: 'Could not update provider.',
+                            ),
+                          ),
+                        ),
                       );
                     }
                   },
@@ -145,7 +195,14 @@ class _AdminProvidersScreenState extends State<AdminProvidersScreen> {
                     } catch (e) {
                       if (!mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(ApiClient.errorMessage(e, fallback: 'Could not delete provider.'))),
+                        SnackBar(
+                          content: Text(
+                            ApiClient.errorMessage(
+                              e,
+                              fallback: 'Could not delete provider.',
+                            ),
+                          ),
+                        ),
                       );
                     }
                   },

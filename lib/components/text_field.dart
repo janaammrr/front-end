@@ -19,10 +19,10 @@ class MyTextField extends StatelessWidget {
     return TextField(
       controller: controller,
       obscureText: obscureText,
-      style: const TextStyle(color: AppColors.text1),
+      style: TextStyle(color: AppColors.text1),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: const TextStyle(color: AppColors.text3),
+        hintStyle: TextStyle(color: AppColors.text3),
         filled: true,
         fillColor: AppColors.surface2,
         contentPadding: const EdgeInsets.symmetric(
@@ -30,15 +30,15 @@ class MyTextField extends StatelessWidget {
           vertical: 14,
         ),
         border: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
           borderRadius: BorderRadius.circular(AppColors.inputRadius),
         ),
         enabledBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide(color: AppColors.border),
           borderRadius: BorderRadius.circular(AppColors.inputRadius),
         ),
         focusedBorder: OutlineInputBorder(
-          borderSide: const BorderSide(color: AppColors.borderHi, width: 1.5),
+          borderSide: BorderSide(color: AppColors.borderHi, width: 1.5),
           borderRadius: BorderRadius.circular(AppColors.inputRadius),
         ),
       ),
